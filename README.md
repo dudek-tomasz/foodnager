@@ -1,94 +1,57 @@
-# 10x Astro Starter
+# Foodnager
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+## Project Description
+Foodnager is a mobile and web application that helps users search for, store, and manage culinary recipes. The application leverages AI to generate or modify recipes based on the ingredients available in a user's virtual pantry. It features user registration and authentication, comprehensive virtual fridge management, and a hierarchical recipe search that prioritizes user-created recipes, followed by API-sourced recipes, with AI-generated recipes as a fallback. Additionally, Foodnager can generate a shopping list of missing ingredients for any selected recipe.
 
 ## Tech Stack
+- **Frontend:** Astro 5, React 19, Typescript 5, Tailwind 4, Shadcn/ui
+- **Backend & Database:** Supabase
+- **AI Communication:** Openrouter.ai
+- **CI/CD & Hosting:** GitHub Actions, DigitalOcean
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
-
-## Prerequisites
-
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
-
-## Getting Started
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Run the development server:
-
-```bash
-npm run dev
-```
-
-4. Build for production:
-
-```bash
-npm run build
-```
+## Getting Started Locally
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/foodnager.git
+   ```
+2. **Navigate into the project directory:**
+   ```bash
+   cd foodnager
+   ```
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+4. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+5. **Open your browser:**  
+   Visit `http://localhost:3000` (or the port specified) to view the application.
 
 ## Available Scripts
+The following scripts are defined in the project's `package.json`:
+- **`npm run dev`**: Starts the Astro development server.
+- **`npm run build`**: Builds the project for production.
+- **`npm run preview`**: Previews the production build.
+- **`npm run astro`**: Runs Astro CLI commands.
+- **`npm run lint`**: Runs ESLint to analyze the code for potential quality issues.
+- **`npm run lint:fix`**: Runs ESLint and automatically fixes problems where possible.
+- **`npm run format`**: Formats the codebase using Prettier.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+## Project Scope
+Foodnager focuses on solving the user problem of efficiently finding recipes that match available ingredients. Key functionalities include:
+- **User registration and login:** Secure account creation and authentication.
+- **Virtual Fridge Management:** Add, edit, view, and delete products from a virtual pantry.
+- **Recipe Management:** Create, view, and delete recipes with required (name, ingredients with quantities) and optional (cooking time, difficulty) fields.
+- **Hierarchical Recipe Search:** 
+  - First, search through user-created recipes.
+  - Then, retrieve recipes via an external API.
+  - Finally, use AI to generate a recipe if no suitable match is found.
+- **Shopping List Generation:** Compare available ingredients against a recipe’s requirements and generate a list of missing items for easy shopping.
 
-## Project Structure
-
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
-
-## AI Development Support
-
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
-
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
-
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+## Project Status
+This project is currently in the MVP (Minimum Viable Product) phase. Certain advanced features, such as external recipe import via URLs, extensive multimedia support, and social sharing, are not included in this initial release.
 
 ## License
-
-MIT
+This project is licensed under the [MIT License](LICENSE).
