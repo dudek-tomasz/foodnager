@@ -1,5 +1,8 @@
 # API Endpoints Implementation Plan: Units Dictionary
 
+**Status:** ✅ IMPLEMENTED (2025-10-19)  
+**Summary:** `.ai/implementation-summary-units.md`
+
 ## Spis treści
 1. [GET /api/units - List Units](#1-get-apiunits---list-units)
 

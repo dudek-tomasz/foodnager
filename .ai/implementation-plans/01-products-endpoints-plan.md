@@ -1,5 +1,24 @@
 # API Endpoints Implementation Plan: Products Management
 
+## Kluczowe decyzje architektoniczne
+
+**Multi-tenant data model:**
+- Produkty są przechowywane w jednej tabeli z rozróżnieniem przez `user_id`
+- `user_id = null` → produkty globalne (dostępne dla wszystkich, **TYLKO DO ODCZYTU**)
+- `user_id = {konkretny_user_id}` → produkty prywatne danego użytkownika
+- **ZAWSZE** zwracamy: produkty globalne + produkty prywatne użytkownika
+- Query: `WHERE (user_id IS NULL OR user_id = $userId)`
+
+**Zasady modyfikacji produktów:**
+- ✅ Edycja: tylko produkty prywatne (user_id = własny)
+- ✅ Usuwanie: tylko produkty prywatne (user_id = własny)
+- ⚠️ **Edycja globalnego produktu:** tworzy NOWY produkt prywatny (fork) z zmodyfikowanymi danymi
+- ❌ **Usuwanie globalnego produktu:** zabronione (403 Forbidden)
+
+**Struktura endpointów:**
+- `src/pages/api/products.ts` → obsługuje `/api/products` (lista + tworzenie)
+- `src/pages/api/products/[id].ts` → obsługuje `/api/products/:id` (CRUD operacje na konkretnym produkcie)
+
 ## Spis treści
 1. [GET /api/products - List Products](#1-get-apiproducts---list-products)
 2. [GET /api/products/:id - Get Product by ID](#2-get-apiproductsid---get-product-by-id)
@@ -12,7 +31,7 @@
 ## 1. GET /api/products - List Products
 
 ### 1.1 Przegląd punktu końcowego
-Endpoint umożliwia pobieranie listy produktów dostępnych dla użytkownika. Zwraca zarówno produkty globalne (widoczne dla wszystkich) jak i prywatne produkty użytkownika. Obsługuje wyszukiwanie pełnotekstowe, filtrowanie według zakresu (scope) oraz paginację.
+Endpoint umożliwia pobieranie listy produktów dostępnych dla użytkownika. Zwraca zarówno produkty globalne (user_id = null) jak i prywatne produkty użytkownika (user_id = konkretny użytkownik). Obsługuje wyszukiwanie pełnotekstowe oraz paginację.
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
 
@@ -25,13 +44,12 @@ Endpoint umożliwia pobieranie listy produktów dostępnych dla użytkownika. Zw
 **Query Parameters:**
 - **Opcjonalne:**
   - `search` (string) - Wyszukiwanie pełnotekstowe w nazwach produktów
-  - `scope` (enum: `global`, `private`, `all`) - Filtrowanie według zakresu, domyślnie `all`
   - `page` (integer) - Numer strony, domyślnie `1`, minimum `1`
   - `limit` (integer) - Liczba elementów na stronę, domyślnie `20`, maximum `100`
 
 **Przykładowe żądanie:**
 ```
-GET /api/products?search=tomato&scope=all&page=1&limit=20
+GET /api/products?search=tomato&page=1&limit=20
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -41,7 +59,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```typescript
 ListProductsQueryDTO {
   search?: string;
-  scope?: 'global' | 'private' | 'all';
   page?: number;
   limit?: number;
 }
@@ -107,15 +124,15 @@ PaginationMetaDTO {
 ### 1.5 Przepływ danych
 
 ```
-1. [Client] → GET /api/products?search=tomato&scope=all
+1. [Client] → GET /api/products?search=tomato&page=1&limit=20
 2. [Middleware] → Walidacja tokenu JWT (Supabase Auth)
 3. [Middleware] → Pobranie user_id z auth.uid()
 4. [Handler] → Walidacja query parameters (Zod)
 5. [Service] → ProductService.listProducts(userId, queryParams)
 6. [Database] → Query z wykorzystaniem RLS:
-   - Filtrowanie: WHERE (user_id IS NULL OR user_id = auth.uid())
-   - Wyszukiwanie: ts_vector index na name
-   - Scope filter: WHERE user_id IS NULL (global) | IS NOT NULL (private) | both (all)
+   - Filtrowanie: WHERE (user_id IS NULL OR user_id = $userId)
+   - Zawsze zwraca produkty globalne + produkty danego użytkownika
+   - Wyszukiwanie: ts_vector index na name (jeśli podano search)
    - Paginacja: LIMIT/OFFSET
 7. [Service] → Transformacja wyników na ProductDTO (dodanie is_global)
 8. [Service] → Obliczenie metadanych paginacji
@@ -148,7 +165,6 @@ PaginationMetaDTO {
 |------------|----------|------------|-------|
 | Brak tokenu autoryzacji | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
 | Nieprawidłowy/wygasły token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy scope value | 422 | VALIDATION_ERROR | Zwróć szczegóły walidacji: dopuszczalne wartości |
 | page < 1 | 422 | VALIDATION_ERROR | Zwróć komunikat: page musi być >= 1 |
 | limit > 100 | 422 | VALIDATION_ERROR | Zwróć komunikat: limit nie może przekraczać 100 |
 | Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj szczegóły, zwróć ogólny komunikat błędu |
@@ -160,7 +176,7 @@ PaginationMetaDTO {
     "code": "VALIDATION_ERROR",
     "message": "Invalid query parameters",
     "details": {
-      "scope": "Must be one of: global, private, all"
+      "page": "Must be greater than or equal to 1"
     }
   }
 }
@@ -187,7 +203,7 @@ PaginationMetaDTO {
 
 1. **Utworzenie Zod schema walidacji**
    - Zdefiniuj schema dla ListProductsQueryDTO
-   - Dodaj walidatory dla: scope enum, page >= 1, limit 1-100
+   - Dodaj walidatory dla: page >= 1, limit 1-100, search (opcjonalny string)
    - Eksportuj schema z `src/lib/validations/products.ts`
 
 2. **Utworzenie ProductService**
@@ -195,8 +211,8 @@ PaginationMetaDTO {
    - Implementuj metodę `listProducts(userId: string, query: ListProductsQueryDTO)`
    - Zbuduj zapytanie SQL z warunkami:
      - Base: `WHERE (user_id IS NULL OR user_id = $userId)`
-     - Scope filter: dodaj warunek dla global/private
-     - Search: użyj `to_tsvector` dla full-text search
+     - Zawsze zwraca produkty globalne + produkty użytkownika
+     - Search: użyj `to_tsvector` dla full-text search (jeśli podano)
      - Pagination: LIMIT/OFFSET
    - Użyj `COUNT(*) OVER()` dla total count
    - Transformuj wyniki: dodaj `is_global: user_id === null`
@@ -207,7 +223,7 @@ PaginationMetaDTO {
    - Zwraca PaginationMetaDTO
 
 4. **Utworzenie endpoint handlera**
-   - Utwórz `src/pages/api/products/index.ts`
+   - Utwórz `src/pages/api/products.ts`
    - Dodaj `export const prerender = false`
    - Implementuj funkcję `GET(context: APIContext)`
    - Pobierz supabase z `context.locals.supabase`
@@ -224,9 +240,8 @@ PaginationMetaDTO {
 
 6. **Testowanie**
    - Test bez autoryzacji (401)
-   - Test z prawidłowymi parametrami (200)
-   - Test search query
-   - Test scope filtering (global, private, all)
+   - Test z prawidłowymi parametrami (200) - weryfikuj że zwraca globalne + prywatne
+   - Test search query - weryfikuj że działa na globalnych + prywatnych
    - Test paginacji (różne page/limit)
    - Test walidacji (nieprawidłowe parametry)
 
@@ -534,7 +549,7 @@ ProductDTO {
    - Transformuj na ProductDTO
 
 3. **Aktualizacja endpoint handlera**
-   - W `src/pages/api/products/index.ts` dodaj funkcję `POST`
+   - W `src/pages/api/products.ts` dodaj funkcję `POST`
    - Parse request body: `await context.request.json()`
    - Waliduj przez Zod schema
    - Wywołaj ProductService.createProduct()
@@ -562,7 +577,10 @@ ProductDTO {
 ## 4. PATCH /api/products/:id - Update Product
 
 ### 4.1 Przegląd punktu końcowego
-Endpoint umożliwia aktualizację nazwy prywatnego produktu użytkownika. Użytkownik może modyfikować tylko swoje prywatne produkty. Produkty globalne nie mogą być modyfikowane przez użytkowników.
+Endpoint umożliwia aktualizację nazwy produktu. Zachowanie zależy od typu produktu:
+- **Produkt prywatny użytkownika (user_id = własny):** aktualizuje istniejący produkt
+- **Produkt globalny (user_id = null):** tworzy NOWY produkt prywatny z zmodyfikowanymi danymi (fork)
+- **Produkt innego użytkownika:** zwraca 404 Not Found
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
 
@@ -615,7 +633,7 @@ ProductDTO {
 
 ### 4.4 Szczegóły odpowiedzi
 
-**Sukces (200 OK):**
+**Sukces - edycja własnego produktu (200 OK):**
 ```json
 {
   "id": 123,
@@ -626,15 +644,27 @@ ProductDTO {
 }
 ```
 
+**Sukces - fork produktu globalnego (201 Created):**
+```json
+{
+  "id": 456,
+  "name": "Modified Global Product",
+  "user_id": "uuid-string",
+  "is_global": false,
+  "created_at": "2025-10-19T10:30:00Z"
+}
+```
+*Zwraca 201 Created + Location header: `/api/products/456`*
+
 **Błędy:**
 - `400 Bad Request` - Nieprawidłowe dane (puste body, nieprawidłowa nazwa)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
-- `403 Forbidden` - Próba modyfikacji produktu globalnego
-- `404 Not Found` - Produkt nie istnieje lub nie należy do użytkownika
+- `404 Not Found` - Produkt nie istnieje lub należy do innego użytkownika
 - `409 Conflict` - Nowa nazwa już istnieje
 
 ### 4.5 Przepływ danych
 
+**Scenariusz A: Edycja własnego produktu prywatnego**
 ```
 1. [Client] → PATCH /api/products/123 {name: "New Name"}
 2. [Middleware] → Walidacja tokenu JWT
@@ -642,13 +672,24 @@ ProductDTO {
 4. [Handler] → Parse ID z params + body z request
 5. [Handler] → Walidacja przez Zod
 6. [Service] → ProductService.updateProduct(userId, productId, updateDto)
-7. [Service] → Pobierz istniejący produkt: SELECT WHERE id = $1 AND user_id = $2
+7. [Service] → Pobierz istniejący produkt: SELECT WHERE id = $1 AND (user_id IS NULL OR user_id = $2)
 8. [Service] → Jeśli brak → throw NotFoundError
-9. [Service] → Jeśli user_id IS NULL → throw ForbiddenError (global product)
-10. [Service] → Sprawdź unikalność nowej nazwy (jeśli zmieniona)
-11. [Database] → UPDATE products SET name = $1 WHERE id = $2 AND user_id = $3 RETURNING *
-12. [Service] → Transformacja na ProductDTO
-13. [Handler] → Response 200 z ProductDTO
+9. [Service] → Jeśli user_id nie należy do użytkownika (i nie jest NULL) → throw NotFoundError
+10. [Service] → Jeśli user_id IS NULL → przejdź do Scenariusza B (fork)
+11. [Service] → Sprawdź unikalność nowej nazwy (jeśli zmieniona)
+12. [Database] → UPDATE products SET name = $1 WHERE id = $2 AND user_id = $3 RETURNING *
+13. [Service] → Transformacja na ProductDTO
+14. [Handler] → Response 200 z ProductDTO
+```
+
+**Scenariusz B: Fork produktu globalnego**
+```
+7. [Service] → Produkt ma user_id = NULL (globalny)
+8. [Service] → Sprawdź czy użytkownik nie ma już produktu o tej nazwie
+9. [Service] → Jeśli istnieje → throw ConflictError
+10. [Database] → INSERT INTO products (user_id, name) VALUES ($userId, $newName) RETURNING *
+11. [Service] → Transformacja na ProductDTO
+12. [Handler] → Response 201 Created z ProductDTO + Location header
 ```
 
 ### 4.6 Względy bezpieczeństwa
@@ -657,18 +698,25 @@ ProductDTO {
 - Wymagany Bearer token z Supabase Auth
 
 **Autoryzacja:**
-- RLS Policy dla UPDATE: `USING (auth.uid() = user_id)`
-- Sprawdzenie, czy user_id IS NOT NULL (blokada global products)
-- Użytkownik może modyfikować tylko swoje produkty
+- RLS Policy dla UPDATE: `USING (auth.uid() = user_id)` - tylko swoje produkty
+- RLS Policy dla INSERT: `WITH CHECK (auth.uid() = user_id)` - dla fork'ów
+- Użytkownik może edytować tylko swoje prywatne produkty
+- Użytkownik może fork'ować produkty globalne (tworzy kopię jako swoje)
+- Użytkownik nie może edytować produktów innych użytkowników
 
 **Walidacja:**
 - Walidacja ID produktu
 - Trim i walidacja nowej nazwy
-- Case-insensitive uniqueness check
+- Case-insensitive uniqueness check (w kontekście produktów użytkownika)
 - Wymóg przynajmniej jednego pola w body
 
+**Business Logic:**
+- Fork produktu globalnego tworzy NOWY zasób (nie modyfikuje oryginału)
+- Oryginalny produkt globalny pozostaje niezmieniony
+- Każdy użytkownik może mieć swoją wersję produktu globalnego
+
 **Audit:**
-- Log akcji modyfikacji (opcjonalnie)
+- Log akcji modyfikacji i fork'owania (opcjonalnie)
 
 ### 4.7 Obsługa błędów
 
@@ -681,8 +729,8 @@ ProductDTO {
 | Nieprawidłowa nazwa | 400 | VALIDATION_ERROR | Zwróć szczegóły walidacji |
 | Produkt nie istnieje | 404 | NOT_FOUND | Zwróć: Product not found |
 | Produkt innego użytkownika | 404 | NOT_FOUND | Zwróć: Product not found |
-| Produkt globalny | 403 | FORBIDDEN | Zwróć: Cannot modify global products |
-| Duplikat nazwy | 409 | CONFLICT | Zwróć: Product name already exists |
+| Duplikat nazwy (własny) | 409 | CONFLICT | Zwróć: Product name already exists |
+| Duplikat nazwy (fork globalnego) | 409 | CONFLICT | Zwróć: You already have a product with this name |
 | Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
 
 ### 4.8 Wydajność
@@ -690,10 +738,16 @@ ProductDTO {
 **Optymalizacje:**
 - Zapytanie WHERE id + user_id używa indeksów
 - Sprawdzenie unikalności tylko gdy nazwa się zmienia
-- Pojedyncza transakcja dla check + update
+- Pojedyncza transakcja dla check + update/insert
+
+**Fork Performance:**
+- Fork produktu globalnego = INSERT (dodatkowy zasób, nie UPDATE)
+- Nie wpływa na wydajność odczytów produktów globalnych
+- Każdy użytkownik może mieć swoją kopię (potencjalnie wiele duplikatów z różnymi nazwami)
 
 **Cache invalidation:**
-- Usuń cache dla `product:user:{userId}:*` po aktualizacji
+- Usuń cache dla `product:user:{userId}:*` po aktualizacji lub fork'u
+- Produkty globalne pozostają w cache (nie są modyfikowane)
 
 ### 4.9 Etapy wdrożenia
 
@@ -708,33 +762,42 @@ ProductDTO {
    ```
 
 2. **Rozszerzenie ProductService**
-   - Dodaj metodę `updateProduct(userId, productId, data): Promise<ProductDTO>`
-   - SELECT produktu z WHERE id AND user_id
-   - Sprawdź user_id IS NOT NULL (nie global)
-   - Jeśli name się zmienia: sprawdź unikalność
-   - UPDATE z RETURNING *
-   - Transformuj na ProductDTO
+   - Dodaj metodę `updateProduct(userId, productId, data): Promise<{product: ProductDTO, isNewProduct: boolean}>`
+   - SELECT produktu z WHERE id AND (user_id IS NULL OR user_id = $userId)
+   - Jeśli brak → throw NotFoundError
+   - Sprawdź właściciela:
+     - **Przypadek A:** `user_id === userId` → aktualizuj istniejący
+       - Sprawdź unikalność nazwy (jeśli zmieniona)
+       - UPDATE z RETURNING *
+       - Return {product, isNewProduct: false}
+     - **Przypadek B:** `user_id === null` → fork globalnego
+       - Sprawdź czy użytkownik nie ma już produktu o tej nazwie
+       - INSERT INTO products (user_id, name) VALUES (userId, newName) RETURNING *
+       - Return {product, isNewProduct: true}
+     - **Przypadek C:** `user_id !== userId` → throw NotFoundError
 
 3. **Aktualizacja endpoint handlera**
    - W `src/pages/api/products/[id].ts` dodaj funkcję `PATCH`
    - Parse params.id i request body
    - Waliduj przez Zod
    - Wywołaj ProductService.updateProduct()
-   - Zwróć 200 z ProductDTO
+   - Jeśli `isNewProduct === true`:
+     - Zwróć 201 Created z ProductDTO
+     - Dodaj Location header: `/api/products/{newId}`
+   - Jeśli `isNewProduct === false`:
+     - Zwróć 200 OK z ProductDTO
 
-4. **Custom error dla Forbidden**
-   - Dodaj ForbiddenError do error classes
-   - Handler mapuje na 403
-
-5. **Testowanie**
-   - Test aktualizacji własnego produktu (200)
+4. **Testowanie**
+   - Test aktualizacji własnego produktu prywatnego (200)
+   - Test fork'owania produktu globalnego (201 + Location header)
    - Test produktu innego użytkownika (404)
-   - Test produktu globalnego (403)
    - Test nieistniejącego produktu (404)
-   - Test duplikatu nazwy (409)
+   - Test duplikatu nazwy przy edycji (409)
+   - Test duplikatu nazwy przy fork'u (409)
    - Test pustego body (400)
    - Test nieprawidłowej nazwy (400)
    - Test bez autoryzacji (401)
+   - Weryfikacja że globalny produkt pozostaje niezmieniony po fork'u
 
 ---
 
@@ -785,12 +848,13 @@ Brak body w request i response (204 No Content).
 4. [Handler] → Parse ID z params
 5. [Handler] → Walidacja ID
 6. [Service] → ProductService.deleteProduct(userId, productId)
-7. [Service] → Pobierz produkt: SELECT WHERE id = $1 AND user_id = $2
+7. [Service] → Pobierz produkt: SELECT WHERE id = $1 AND (user_id IS NULL OR user_id = $2)
 8. [Service] → Jeśli brak → throw NotFoundError
-9. [Service] → Jeśli user_id IS NULL → throw ForbiddenError
-10. [Database] → DELETE FROM products WHERE id = $1 AND user_id = $2
-11. [Database] → CASCADE: usuń powiązane user_products, recipe_ingredients
-12. [Handler] → Response 204 No Content
+9. [Service] → Jeśli user_id IS NULL → throw ForbiddenError (produkt globalny)
+10. [Service] → Jeśli user_id !== userId → throw NotFoundError (produkt innego użytkownika)
+11. [Database] → DELETE FROM products WHERE id = $1 AND user_id = $2
+12. [Database] → CASCADE: usuń powiązane user_products, recipe_ingredients
+13. [Handler] → Response 204 No Content
 ```
 
 ### 5.6 Względy bezpieczeństwa
@@ -859,11 +923,13 @@ Brak body w request i response (204 No Content).
 
 2. **Rozszerzenie ProductService**
    - Dodaj metodę `deleteProduct(userId, productId): Promise<void>`
-   - SELECT produktu: WHERE id AND user_id
-   - Sprawdź user_id IS NOT NULL
+   - SELECT produktu: WHERE id AND (user_id IS NULL OR user_id = userId)
+   - Jeśli brak → throw NotFoundError
+   - Jeśli user_id IS NULL → throw ForbiddenError (produkt globalny, nie można usunąć)
+   - Jeśli user_id !== userId → throw NotFoundError (produkt innego użytkownika)
    - Opcjonalnie: sprawdź usage count
-   - DELETE query
-   - Return void (lub count usuniętych)
+   - DELETE query z WHERE id AND user_id = userId
+   - Return void
 
 3. **Aktualizacja endpoint handlera**
    - W `src/pages/api/products/[id].ts` dodaj funkcję `DELETE`
@@ -908,8 +974,8 @@ src/
 │       └── pagination.ts                # Pagination utils
 └── pages/
     └── api/
+        ├── products.ts                  # GET, POST /api/products
         └── products/
-            ├── index.ts                 # GET, POST /api/products
             └── [id].ts                  # GET, PATCH, DELETE /api/products/:id
 ```
 
@@ -934,15 +1000,26 @@ function errorResponse(code: string, message: string, details?, status): Respons
 - Auth middleware (weryfikacja JWT) - wbudowane w Astro przez locals.supabase
 - Error handler middleware
 
+### Specjalne zachowanie API
+
+**PATCH /api/products/:id - Fork produktów globalnych:**
+- Gdy użytkownik próbuje edytować produkt globalny (user_id = null), API tworzy NOWY produkt prywatny
+- To jest "fork" - użytkownik otrzymuje własną kopię produktu z modyfikacjami
+- Oryginalny produkt globalny pozostaje niezmieniony
+- Response: 201 Created (nie 200 OK) + Location header ze ścieżką do nowego produktu
+- Każdy użytkownik może mieć swoją zmodyfikowaną wersję produktu globalnego
+
+**DELETE /api/products/:id - Ochrona produktów globalnych:**
+- Produkty globalne (user_id = null) nie mogą być usuwane
+- Próba usunięcia zwraca 403 Forbidden
+- Użytkownik może usuwać tylko swoje prywatne produkty
+
 ### Kolejność implementacji
 1. Setup: Error classes, response helpers, pagination utils
 2. ProductService: Wszystkie metody
 3. Validation schemas: Zod schemas dla wszystkich endpointów
-4. Endpoints: 
-   - GET /api/products (list)
-   - POST /api/products (create)
-   - GET /api/products/:id (get by id)
-   - PATCH /api/products/:id (update)
-   - DELETE /api/products/:id (delete)
+4. Endpoints:
+   - `src/pages/api/products.ts`: GET /api/products (list) + POST /api/products (create)
+   - `src/pages/api/products/[id].ts`: GET /api/products/:id + PATCH /api/products/:id + DELETE /api/products/:id
 <!-- 5. Testing: Unit tests dla service, integration tests dla endpoints -->
 
