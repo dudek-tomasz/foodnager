@@ -545,3 +545,99 @@ export enum ErrorCode {
   AI_SERVICE_ERROR = 'AI_SERVICE_ERROR',
 }
 
+// =============================================================================
+// VIEW MODEL TYPES (for frontend state management)
+// =============================================================================
+
+/**
+ * Status daty ważności produktu
+ */
+export type ExpiryStatus = 'expired' | 'expiring-soon' | 'fresh' | 'no-expiry';
+
+/**
+ * Pole sortowania w widoku lodówki
+ */
+export type SortField = 'name' | 'quantity' | 'expiry_date' | 'created_at';
+
+/**
+ * Stan głównego widoku lodówki
+ */
+export interface FridgeViewState {
+  // Dane
+  items: FridgeItemDTO[];
+  pagination: PaginationMetaDTO;
+  
+  // Filtrowanie i sortowanie
+  searchQuery: string;
+  sortBy: SortField;
+  sortOrder: SortOrderEnum;
+  expiredFilter: 'yes' | 'no' | 'all';
+  expiringSoonDays: number | undefined;
+  
+  // UI state
+  isLoading: boolean;
+  error: string | null;
+  
+  // Modals
+  isAddModalOpen: boolean;
+  isEditModalOpen: boolean;
+  editingItem: FridgeItemDTO | null;
+  
+  // Confirm dialog
+  isConfirmDialogOpen: boolean;
+  deletingItemId: number | null;
+  deletingItemName: string | null;
+  
+  // Stats
+  stats: {
+    totalCount: number;
+    expiredCount: number;
+  };
+}
+
+/**
+ * Stan formularza dodawania produktu
+ */
+export interface AddProductFormState {
+  product: ProductDTO | null;
+  quantity: number | null;
+  unit: UnitDTO | null;
+  expiryDate: string | null;
+  addAnother: boolean;
+  
+  // Validation errors
+  errors: {
+    product?: string;
+    quantity?: string;
+    unit?: string;
+    expiryDate?: string;
+  };
+}
+
+/**
+ * Stan formularza edycji produktu
+ */
+export interface EditProductFormState {
+  quantity: number | null;
+  unit: UnitDTO | null;
+  expiryDate: string | null;
+  
+  // Validation errors
+  errors: {
+    quantity?: string;
+    unit?: string;
+    expiryDate?: string;
+  };
+}
+
+/**
+ * Opcje autocomplete produktów
+ */
+export interface ProductAutocompleteState {
+  query: string;
+  results: ProductDTO[];
+  isLoading: boolean;
+  showCreateForm: boolean;
+  newProductName: string;
+}
+

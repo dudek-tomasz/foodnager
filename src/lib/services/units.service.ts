@@ -28,7 +28,7 @@ export class UnitsService {
       .from('units')
       .select('id, name, abbreviation, created_at')
       .order('name', { ascending: true });
-
+    console.log(data);
     if (error) {
       console.error('Error fetching units:', error);
       throw new Error('Failed to fetch units');

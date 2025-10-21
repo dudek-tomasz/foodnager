@@ -49,6 +49,9 @@ export async function GET(context: APIContext): Promise<Response> {
     // Note: Even though units are global, we require authentication
     getAuthenticatedUser(context);
 
+    // TEMPORARY: Clear cache to fix RLS issue
+    await cache.delete(CACHE_KEYS.UNITS_ALL);
+
     // Try cache first
     const cached = await cache.get<UnitsListResponseDTO>(CACHE_KEYS.UNITS_ALL);
     
