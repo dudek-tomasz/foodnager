@@ -1,0 +1,204 @@
+---
+/**
+ * Login Page (MVP - Mock Implementation)
+ * 
+ * For MVP, this is a simple login page with mock authentication.
+ * In production, this would integrate with Supabase Auth.
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+export const prerender = false;
+
+// For MVP, we'll just redirect to fridge after "login"
+// This is handled client-side with JavaScript
+---
+
+<Layout title="Logowanie - Foodnager" description="Zaloguj się do swojego konta Foodnager">
+  <div class="login-container">
+    <Card className="login-card">
+      <CardHeader>
+        <div class="logo-section">
+          <span class="logo-icon">🍳</span>
+          <CardTitle className="login-title">Zaloguj się do Foodnager</CardTitle>
+        </div>
+        <CardDescription>
+          Wprowadź swoje dane logowania aby uzyskać dostęp do swojej wirtualnej lodówki i przepisów
+        </CardDescription>
+      </CardHeader>
+
+      <form id="login-form">
+        <CardContent className="space-y-4">
+          <div class="form-field">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="twoj@email.pl"
+              required
+              autoComplete="email"
+            />
+          </div>
+
+          <div class="form-field">
+            <Label htmlFor="password">Hasło</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+              minLength={8}
+            />
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="remember"
+              name="remember"
+              class="checkbox"
+            />
+            <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+              Zapamiętaj mnie
+            </Label>
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex-col space-y-4">
+          <Button type="submit" className="w-full" size="lg">
+            Zaloguj się
+          </Button>
+
+          <p class="text-center text-sm text-muted-foreground">
+            Nie masz konta?{' '}
+            <a href="/register" class="text-primary hover:underline font-medium">
+              Zarejestruj się
+            </a>
+          </p>
+
+          <p class="text-center text-sm text-muted-foreground">
+            <a href="#" class="text-muted-foreground hover:text-primary hover:underline">
+              Zapomniałeś hasła?
+            </a>
+          </p>
+        </CardFooter>
+      </form>
+    </Card>
+
+    <div class="mvp-notice">
+      <p class="text-sm text-muted-foreground text-center">
+        <strong>MVP:</strong> W wersji testowej logowanie jest uproszczone. 
+        Wprowadź dowolne dane i kliknij "Zaloguj się" aby przejść do aplikacji.
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // MVP Mock Login - client-side only
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form');
+    
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // For MVP, just redirect to fridge
+        // In production, this would call Supabase Auth
+        
+        // Simulate loading state
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+          submitButton.textContent = 'Logowanie...';
+          submitButton.setAttribute('disabled', 'true');
+        }
+        
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Redirect to fridge (main app view)
+        window.location.href = '/fridge';
+      });
+    }
+  });
+</script>
+
+<style>
+  .login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px); /* Account for bottom nav on mobile */
+    padding: 24px;
+    background: linear-gradient(135deg, rgb(249 250 251) 0%, rgb(243 244 246) 100%);
+  }
+
+  @media (min-width: 1024px) {
+    .login-container {
+      min-height: 100vh; /* No bottom nav on desktop */
+    }
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+
+  .logo-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    font-size: 48px;
+    line-height: 1;
+  }
+
+  .login-title {
+    text-align: center;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid hsl(var(--border));
+    cursor: pointer;
+  }
+
+  .checkbox:checked {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+
+  .mvp-notice {
+    margin-top: 24px;
+    padding: 16px;
+    background-color: rgb(254 243 199 / 0.5); /* Amber 100 with opacity */
+    border: 1px solid rgb(251 191 36 / 0.3); /* Amber 400 with opacity */
+    border-radius: 8px;
+    max-width: 420px;
+  }
+
+  .mvp-notice strong {
+    color: rgb(217 119 6); /* Amber 600 */
+  }
+</style>
+

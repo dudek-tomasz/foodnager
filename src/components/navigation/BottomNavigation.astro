@@ -1,0 +1,228 @@
+---
+/**
+ * Bottom Navigation Component (Mobile/Tablet <1024px)
+ * Fixed bottom navigation bar with 5 buttons, center button enlarged
+ */
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+// Funkcja pomocnicza do określenia czy link jest aktywny
+const isActive = (path: string) => {
+  if (path === '/fridge') {
+    return currentPath === '/' || currentPath === '/fridge';
+  }
+  return currentPath.startsWith(path);
+};
+
+// Navigation items
+const navItems = [
+  {
+    href: '/fridge',
+    label: 'Lodówka',
+    icon: '🧊',
+    isActive: isActive('/fridge'),
+    isCTA: false,
+  },
+  {
+    href: '/recipes',
+    label: 'Przepisy',
+    icon: '📖',
+    isActive: isActive('/recipes'),
+    isCTA: false,
+  },
+  {
+    href: '/recipes/search',
+    label: 'Znajdź',
+    icon: '🔍',
+    isActive: isActive('/recipes/search'),
+    isCTA: true, // This is the center, enlarged button
+  },
+  {
+    href: '/history',
+    label: 'Historia',
+    icon: '📜',
+    isActive: isActive('/history'),
+    isCTA: false,
+  },
+  {
+    href: '/login',
+    label: 'Profil',
+    icon: '👤',
+    isActive: isActive('/login'),
+    isCTA: false,
+  },
+];
+---
+
+<nav class="bottom-navigation" aria-label="Główna nawigacja">
+  <ul class="nav-list">
+    {navItems.map((item) => (
+      <li class:list={['nav-item', { 'nav-item-cta': item.isCTA }]}>
+        <a
+          href={item.href}
+          class:list={[
+            'nav-link',
+            { active: item.isActive && !item.isCTA },
+            { 'nav-link-cta': item.isCTA },
+            { 'nav-link-cta-active': item.isCTA && item.isActive },
+          ]}
+          aria-current={item.isActive ? 'page' : undefined}
+        >
+          <span class="nav-icon" aria-hidden="true">{item.icon}</span>
+          <span class="nav-label">{item.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: hsl(var(--background));
+    border-top: 1px solid hsl(var(--border));
+    z-index: 50;
+    padding: 0 8px;
+  }
+
+  /* Hidden on desktop */
+  @media (min-width: 1024px) {
+    .bottom-navigation {
+      display: none;
+    }
+  }
+
+  .nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 100%;
+    gap: 4px;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* CTA item takes slightly more space and shifts up */
+  .nav-item-cta {
+    flex: 1.2;
+    position: relative;
+    top: -8px;
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: hsl(var(--muted-foreground));
+    transition: all 150ms ease;
+    width: 100%;
+    max-width: 80px;
+  }
+
+  .nav-link:hover {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--accent));
+  }
+
+  .nav-link:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .nav-link.active {
+    color: rgb(245 158 11); /* Amber 500 */
+  }
+
+  .nav-link.active .nav-icon {
+    transform: scale(1.1);
+  }
+
+  /* CTA Button Styling - larger and more prominent */
+  .nav-link-cta {
+    background: linear-gradient(135deg, rgb(245 158 11) 0%, rgb(217 119 6) 100%);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px -4px rgb(245 158 11 / 0.4);
+    max-width: 90px;
+  }
+
+  .nav-link-cta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 20px -4px rgb(245 158 11 / 0.5);
+    background: linear-gradient(135deg, rgb(251 191 36) 0%, rgb(245 158 11) 100%);
+  }
+
+  .nav-link-cta:active {
+    transform: scale(1);
+  }
+
+  .nav-link-cta .nav-icon {
+    font-size: 24px;
+  }
+
+  .nav-link-cta .nav-label {
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .nav-link-cta-active {
+    /* Maintain CTA styling even when active */
+    color: white;
+  }
+
+  .nav-icon {
+    font-size: 20px;
+    line-height: 1;
+    transition: transform 150ms ease;
+  }
+
+  .nav-label {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Smaller screens - adjust font sizes */
+  @media (max-width: 400px) {
+    .nav-icon {
+      font-size: 18px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+    }
+
+    .nav-link-cta .nav-icon {
+      font-size: 22px;
+    }
+
+    .nav-link-cta .nav-label {
+      font-size: 11px;
+    }
+  }
+</style>
+

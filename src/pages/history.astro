@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { CookingHistoryView } from '../components/cooking-history';
+
+export const prerender = false;
+
+// TODO: Opcjonalnie fetch SSR dla lepszej wydajności
+// const historyResponse = await fetch(`${Astro.url.origin}/api/cooking-history`);
+// const initialData = historyResponse.ok ? await historyResponse.json() : undefined;
+---
+
+<Layout title="Historia gotowania - Foodnager">
+  <CookingHistoryView 
+    client:load
+  />
+</Layout>
+

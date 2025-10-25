@@ -118,3 +118,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles for Shopping List Modal */
+@media print {
+  /* Ukryj elementy UI podczas drukowania */
+  .shopping-list-modal-footer,
+  .shopping-list-checkbox,
+  .shopping-list-remove-button,
+  [data-radix-dialog-overlay],
+  button[data-dialog-close] {
+    display: none !important;
+  }
+
+  /* Zapobiegaj łamaniu elementów listy między stronami */
+  .shopping-list-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Uproszczone stylowanie dla druku */
+  .shopping-list-content {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Ukryj tło dialog i shadow */
+  [data-radix-dialog-content] {
+    box-shadow: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}

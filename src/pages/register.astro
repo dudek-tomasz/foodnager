@@ -1,0 +1,227 @@
+---
+/**
+ * Register Page (MVP - Mock Implementation)
+ * 
+ * For MVP, this is a simple registration page that redirects to login.
+ * In production, this would integrate with Supabase Auth.
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+export const prerender = false;
+---
+
+<Layout title="Rejestracja - Foodnager" description="Utwórz nowe konto Foodnager">
+  <div class="register-container">
+    <Card className="register-card">
+      <CardHeader>
+        <div class="logo-section">
+          <span class="logo-icon">🍳</span>
+          <CardTitle className="register-title">Zarejestruj się</CardTitle>
+        </div>
+        <CardDescription>
+          Utwórz konto aby zarządzać swoją wirtualną lodówką i odkrywać przepisy
+        </CardDescription>
+      </CardHeader>
+
+      <form id="register-form">
+        <CardContent className="space-y-4">
+          <div class="form-field">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="twoj@email.pl"
+              required
+              autoComplete="email"
+            />
+          </div>
+
+          <div class="form-field">
+            <Label htmlFor="password">Hasło</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              autoComplete="new-password"
+              minLength={8}
+            />
+            <p class="text-xs text-muted-foreground">
+              Minimum 8 znaków
+            </p>
+          </div>
+
+          <div class="form-field">
+            <Label htmlFor="password-confirm">Potwierdź hasło</Label>
+            <Input
+              id="password-confirm"
+              type="password"
+              placeholder="••••••••"
+              required
+              autoComplete="new-password"
+              minLength={8}
+            />
+          </div>
+
+          <div class="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id="terms"
+              name="terms"
+              required
+              class="checkbox mt-1"
+            />
+            <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-tight">
+              Akceptuję{' '}
+              <a href="#" class="text-primary hover:underline">regulamin</a>
+              {' '}i{' '}
+              <a href="#" class="text-primary hover:underline">politykę prywatności</a>
+            </Label>
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex-col space-y-4">
+          <Button type="submit" className="w-full" size="lg">
+            Zarejestruj się
+          </Button>
+
+          <p class="text-center text-sm text-muted-foreground">
+            Masz już konto?{' '}
+            <a href="/login" class="text-primary hover:underline font-medium">
+              Zaloguj się
+            </a>
+          </p>
+        </CardFooter>
+      </form>
+    </Card>
+
+    <div class="mvp-notice">
+      <p class="text-sm text-muted-foreground text-center">
+        <strong>MVP:</strong> W wersji testowej rejestracja jest uproszczona. 
+        Wprowadź dowolne dane i kliknij "Zarejestruj się" aby przejść do logowania.
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // MVP Mock Registration - client-side only
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('register-form');
+    
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Basic password matching validation
+        const password = (document.getElementById('password') as HTMLInputElement)?.value;
+        const passwordConfirm = (document.getElementById('password-confirm') as HTMLInputElement)?.value;
+        
+        if (password !== passwordConfirm) {
+          alert('Hasła nie są zgodne. Spróbuj ponownie.');
+          return;
+        }
+        
+        // For MVP, just redirect to login after "registration"
+        // In production, this would call Supabase Auth
+        
+        // Simulate loading state
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+          submitButton.textContent = 'Rejestracja...';
+          submitButton.setAttribute('disabled', 'true');
+        }
+        
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Show success message
+        alert('Konto utworzone pomyślnie! Możesz się teraz zalogować.');
+        
+        // Redirect to login
+        window.location.href = '/login';
+      });
+    }
+  });
+</script>
+
+<style>
+  .register-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px); /* Account for bottom nav on mobile */
+    padding: 24px;
+    background: linear-gradient(135deg, rgb(249 250 251) 0%, rgb(243 244 246) 100%);
+  }
+
+  @media (min-width: 1024px) {
+    .register-container {
+      min-height: 100vh; /* No bottom nav on desktop */
+    }
+  }
+
+  .register-card {
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+
+  .logo-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    font-size: 48px;
+    line-height: 1;
+  }
+
+  .register-title {
+    text-align: center;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid hsl(var(--border));
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox:checked {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+
+  .mvp-notice {
+    margin-top: 24px;
+    padding: 16px;
+    background-color: rgb(254 243 199 / 0.5); /* Amber 100 with opacity */
+    border: 1px solid rgb(251 191 36 / 0.3); /* Amber 400 with opacity */
+    border-radius: 8px;
+    max-width: 420px;
+  }
+
+  .mvp-notice strong {
+    color: rgb(217 119 6); /* Amber 600 */
+  }
+</style>
+

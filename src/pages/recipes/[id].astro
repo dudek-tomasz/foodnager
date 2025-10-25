@@ -1,0 +1,45 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { RecipeDetailsView } from "@/components/recipe-details";
+
+export const prerender = false;
+
+// Parse recipe ID from URL params
+const { id } = Astro.params;
+const recipeId = id ? parseInt(id, 10) : null;
+
+// Parse query params
+const from = Astro.url.searchParams.get('from') || undefined;
+const matchScoreParam = Astro.url.searchParams.get('matchScore');
+const matchScore = matchScoreParam ? parseFloat(matchScoreParam) : undefined;
+
+// Validate recipe ID
+if (!recipeId || isNaN(recipeId)) {
+  return Astro.redirect('/recipes');
+}
+
+// Optional: Fetch recipe title for SEO (server-side)
+let pageTitle = 'Przepis - Foodnager';
+try {
+  const recipeResponse = await fetch(
+    `${import.meta.env.SITE || 'http://localhost:4321'}/api/recipes/${recipeId}`
+  );
+  if (recipeResponse.ok) {
+    const recipeData = await recipeResponse.json();
+    pageTitle = `${recipeData.title} - Foodnager`;
+  }
+} catch (error) {
+  console.error('Failed to fetch recipe title for SEO:', error);
+  // Continue with default title
+}
+---
+
+<Layout title={pageTitle}>
+  <RecipeDetailsView
+    client:load
+    recipeId={recipeId}
+    from={from}
+    matchScore={matchScore}
+  />
+</Layout>
+

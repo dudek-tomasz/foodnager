@@ -1,10 +1,7 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
-
+/**
+ * Home Page - Redirects to /fridge (Virtual Fridge)
+ * According to ui-plan.md, the default view is the fridge page
+ */
 return Astro.redirect("/fridge");
 ---
-
-<Layout>
-  <Welcome />
-</Layout>

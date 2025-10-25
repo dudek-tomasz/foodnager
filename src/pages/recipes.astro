@@ -1,0 +1,46 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { RecipeListView } from "@/components/recipes";
+
+export const prerender = false;
+
+// Optional: Fetch initial data server-side for better performance
+let initialData;
+let initialTags;
+let initialUnits;
+
+try {
+  // Fetch recipes
+  const recipesResponse = await fetch(`${import.meta.env.SITE || 'http://localhost:4321'}/api/recipes?page=1&limit=20`);
+  if (recipesResponse.ok) {
+    initialData = await recipesResponse.json();
+  }
+
+  // Fetch tags
+  const tagsResponse = await fetch(`${import.meta.env.SITE || 'http://localhost:4321'}/api/tags`);
+  if (tagsResponse.ok) {
+    const tagsData = await tagsResponse.json();
+    initialTags = tagsData.data;
+  }
+
+  // Fetch units
+  const unitsResponse = await fetch(`${import.meta.env.SITE || 'http://localhost:4321'}/api/units`);
+  if (unitsResponse.ok) {
+    const unitsData = await unitsResponse.json();
+    initialUnits = unitsData.data;
+  }
+} catch (error) {
+  console.error('Failed to fetch initial data:', error);
+  // Continue without initial data - component will fetch client-side
+}
+---
+
+<Layout title="Przepisy - Foodnager">
+  <RecipeListView 
+    client:load
+    initialData={initialData}
+    initialTags={initialTags}
+    initialUnits={initialUnits}
+  />
+</Layout>
+
