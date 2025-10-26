@@ -109,7 +109,13 @@ export class RecipeDiscoveryService {
       }
 
       // Step 4: Tier 3 - AI generation (last resort)
-      if (this.openRouterClient.isConfigured()) {
+      const isConfigured = this.openRouterClient.isConfigured();
+      console.log('🤖 [DEBUG] OpenRouter isConfigured:', isConfigured);
+      console.log('🤖 [DEBUG] API Key exists:', !!import.meta.env.OPENROUTER_API_KEY);
+      console.log('🤖 [DEBUG] API Key value:', import.meta.env.OPENROUTER_API_KEY ? `${import.meta.env.OPENROUTER_API_KEY.substring(0, 10)}...` : 'undefined');
+      
+      if (isConfigured) {
+        console.log('🤖 [DEBUG] Attempting AI generation (Tier 3)...');
         try {
           const tier3Results = await this.generateWithAI(
             userId,
@@ -119,12 +125,17 @@ export class RecipeDiscoveryService {
 
           if (tier3Results.length > 0) {
             const duration = Date.now() - startTime;
+            console.log('🤖 [DEBUG] AI generation SUCCESS! Recipe generated.');
             return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration);
+          } else {
+            console.log('🤖 [DEBUG] AI generation returned empty results');
           }
         } catch (error) {
-          console.error('Tier 3 (AI Generation) failed:', error);
+          console.error('❌ [DEBUG] Tier 3 (AI Generation) failed:', error);
           // Continue to fallback
         }
+      } else {
+        console.log('⚠️ [DEBUG] OpenRouter NOT configured - skipping AI generation');
       }
 
       // Fallback: Return Tier 1 results even if not "good" matches
@@ -260,12 +271,12 @@ export class RecipeDiscoveryService {
   }
 
   /**
-   * Tier 3: Generate recipe with AI
+   * Tier 3: Generate multiple recipes with AI
    * 
    * @param userId - User ID
    * @param availableProducts - Products available in fridge
    * @param searchDto - Search parameters
-   * @returns Array of recipe search results with match scores
+   * @returns Array of recipe search results with match scores (sorted by match score)
    */
   async generateWithAI(
     userId: string,
@@ -282,37 +293,86 @@ export class RecipeDiscoveryService {
       return [];
     }
 
-    // Build prompt
-    const prompt = this.promptBuilder.build(products, searchDto.preferences);
+    // Build user prompt
+    const userPrompt = this.promptBuilder.build(products, searchDto.preferences);
 
-    // Call AI API
-    const aiResponse = await this.openRouterClient.generateRecipe(prompt);
+    // Build system message based on preferences
+    const systemMessage = this.buildSystemMessage(searchDto.preferences);
 
-    // Validate response
-    const validatedRecipe = this.aiValidator.validate(aiResponse);
+    console.log('🤖 [AI] Requesting 5 recipes from OpenRouter...');
 
-    // Map and save AI recipe to database
-    const savedRecipe = await this.saveAIRecipe(
-      userId,
-      validatedRecipe,
-      products,
-      searchDto
-    );
+    // Call AI API with enhanced options (increased max_tokens for 5 recipes)
+    const aiResponse = await this.openRouterClient.generateRecipe(userPrompt, {
+      systemMessage,
+      temperature: 0.8, // Zwiększona kreatywność dla discovery
+      maxTokens: 4000, // Zwiększone tokeny dla 5 przepisów
+    });
 
-    // Calculate match score
-    const matchResult = this.matchScoreCalculator.calculate(
-      savedRecipe.ingredients,
-      availableProducts
-    );
+    // Validate response - expects array of recipes
+    const validatedRecipes = this.aiValidator.validateMultiple(aiResponse);
 
-    return [
-      {
-        recipe: savedRecipe,
-        match_score: matchResult.score,
-        available_ingredients: matchResult.available_ingredients,
-        missing_ingredients: matchResult.missing_ingredients,
-      },
-    ];
+    console.log(`🤖 [AI] Received ${validatedRecipes.length} recipes, saving to database...`);
+
+    // Save all recipes and calculate match scores
+    const results: RecipeSearchResultDTO[] = [];
+
+    for (const [index, validatedRecipe] of validatedRecipes.entries()) {
+      try {
+        console.log(`💾 [AI] Saving recipe ${index + 1}/${validatedRecipes.length}: "${validatedRecipe.title}"`);
+        
+        // Map and save AI recipe to database
+        const savedRecipe = await this.saveAIRecipe(
+          userId,
+          validatedRecipe,
+          products,
+          searchDto
+        );
+
+        // Calculate match score
+        const matchResult = this.matchScoreCalculator.calculate(
+          savedRecipe.ingredients,
+          availableProducts
+        );
+
+        results.push({
+          recipe: savedRecipe,
+          match_score: matchResult.score,
+          available_ingredients: matchResult.available_ingredients,
+          missing_ingredients: matchResult.missing_ingredients,
+        });
+
+        console.log(`✅ [AI] Recipe "${validatedRecipe.title}" saved with match score: ${matchResult.score.toFixed(2)}`);
+      } catch (error) {
+        console.error(`❌ [AI] Failed to save recipe "${validatedRecipe.title}":`, error);
+        // Continue with other recipes
+      }
+    }
+
+    // Sort by match score (descending - best first)
+    const sortedResults = results.sort((a, b) => b.match_score - a.match_score);
+
+    console.log(`🎯 [AI] Successfully generated and saved ${sortedResults.length} recipes`);
+
+    return sortedResults;
+  }
+
+  /**
+   * Build system message based on search preferences
+   * 
+   * @param preferences - Search preferences
+   * @returns System message for AI model
+   */
+  private buildSystemMessage(preferences?: SearchRecipesByFridgeDTO['preferences']): string {
+    let message = 'Jesteś profesjonalnym szefem kuchni z ekspertyzą w tworzeniu pysznych i praktycznych przepisów kulinarnych. Wszystkie przepisy generujesz WYŁĄCZNIE w języku polskim.';
+    
+    if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
+      const restrictions = preferences.dietary_restrictions.join(', ');
+      message += ` Wszystkie przepisy muszą być ${restrictions}.`;
+    }
+    
+    message += ' Skup się na jasnych instrukcjach i dokładnych proporcjach składników. Używaj polskich nazw produktów i jednostek miary (gram, sztuka, łyżka, itp.).';
+    
+    return message;
   }
 
   /**

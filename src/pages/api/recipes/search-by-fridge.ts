@@ -10,13 +10,22 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createClient, DEFAULT_USER_ID } from '../../../db/supabase.client';
 import { RecipeDiscoveryService } from '../../../lib/services/recipe-discovery.service';
 import { SearchRecipesByFridgeSchema } from '../../../lib/validations/recipe-discovery.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
 import { NotFoundError, ValidationError } from '../../../lib/errors';
 
 export const prerender = false;
+
+// TODO: Restore authentication after auth system is implemented
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(_context: APIContext): string {
+  return DEFAULT_USER_ID;
+}
 
 /**
  * POST /api/recipes/search-by-fridge
@@ -53,25 +62,14 @@ export const prerender = false;
  * }
  * 
  * Errors:
- * - 401 UNAUTHORIZED - Missing or invalid authentication
  * - 422 VALIDATION_ERROR - Invalid request body or query parameters
  * - 404 NOT_FOUND - Specified products not found in fridge
  * - 500 INTERNAL_ERROR - Server error
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse('UNAUTHORIZED', 'Authentication required', undefined, 401);
-    }
+    // Authenticate user (TEMPORARY: using default user)
+    const userId = getAuthenticatedUser(context);
 
     // Parse and validate request body
     let body;
@@ -95,8 +93,8 @@ export async function POST(context: APIContext): Promise<Response> {
     const searchDto = validationResult.data;
 
     // Create service and search recipes
-    const discoveryService = new RecipeDiscoveryService(supabase);
-    const result = await discoveryService.searchByFridge(user.id, searchDto);
+    const discoveryService = new RecipeDiscoveryService(context.locals.supabase);
+    const result = await discoveryService.searchByFridge(userId, searchDto);
 
     return successResponse(result, 200);
     

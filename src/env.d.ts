@@ -23,6 +23,11 @@ interface ImportMetaEnv {
   readonly OPENROUTER_API_URL?: string;
   readonly OPENROUTER_API_KEY?: string;
   readonly OPENROUTER_MODEL?: string;
+  readonly OPENROUTER_TEMPERATURE?: string;
+  readonly OPENROUTER_MAX_TOKENS?: string;
+  readonly OPENROUTER_TOP_P?: string;
+  readonly OPENROUTER_FREQUENCY_PENALTY?: string;
+  readonly OPENROUTER_PRESENCE_PENALTY?: string;
   
   // Recipe Discovery Thresholds
   readonly RECIPE_MATCH_THRESHOLD?: string;

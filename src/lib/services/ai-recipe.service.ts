@@ -65,13 +65,19 @@ export class AIRecipeService {
     // const cacheKey = buildAICacheKey(generateDto.product_ids, generateDto.preferences);
     // ... cache logic ...
 
-    // Step 3: Build prompt with cuisine support
-    const prompt = this.buildPromptWithCuisine(products, generateDto.preferences);
+    // Step 3: Build user prompt
+    const userPrompt = this.buildPromptWithCuisine(products, generateDto.preferences);
 
-    // Step 4: Call AI API
-    const aiResponse = await this.openRouterClient.generateRecipe(prompt);
+    // Step 4: Build system message
+    const systemMessage = this.buildSystemMessage(generateDto.preferences);
 
-    // Step 5: Validate response
+    // Step 5: Call AI API with enhanced options
+    const aiResponse = await this.openRouterClient.generateRecipe(userPrompt, {
+      systemMessage,
+      temperature: 0.8, // Nieco więcej kreatywności dla przepisów
+    });
+
+    // Step 6: Validate response
     const validatedRecipe = this.aiValidator.validate(aiResponse);
 
     // Step 6: Save to database if requested
@@ -100,7 +106,27 @@ export class AIRecipeService {
   }
 
   /**
-   * Build prompt with cuisine preference (extends base prompt builder)
+   * Build system message based on preferences
+   */
+  private buildSystemMessage(preferences?: GenerateRecipeDTO['preferences']): string {
+    let message = 'You are a professional chef with expertise in creating delicious and practical recipes.';
+    
+    if (preferences?.cuisine) {
+      message += ` You specialize in ${preferences.cuisine} cuisine.`;
+    }
+    
+    if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
+      const restrictions = preferences.dietary_restrictions.join(', ');
+      message += ` All recipes must be ${restrictions}.`;
+    }
+    
+    message += ' Focus on clear instructions and accurate ingredient measurements.';
+    
+    return message;
+  }
+
+  /**
+   * Build user prompt without system instructions (moved to system message)
    */
   private buildPromptWithCuisine(
     products: ProductReferenceDTO[],
@@ -110,10 +136,6 @@ export class AIRecipeService {
     
     const preferenceParts: string[] = [];
 
-    if (preferences?.cuisine) {
-      preferenceParts.push(`- Cuisine: ${preferences.cuisine}`);
-    }
-
     if (preferences?.max_cooking_time) {
       preferenceParts.push(`- Maximum cooking time: ${preferences.max_cooking_time} minutes`);
     }
@@ -122,49 +144,18 @@ export class AIRecipeService {
       preferenceParts.push(`- Difficulty: ${preferences.difficulty}`);
     }
 
-    if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
-      const restrictions = preferences.dietary_restrictions.join(', ');
-      preferenceParts.push(`- Dietary restrictions: ${restrictions} (must be ${restrictions})`);
-    }
-
     const preferencesText = preferenceParts.length > 0
-      ? `User preferences:\n${preferenceParts.join('\n')}\n`
+      ? `Constraints:\n${preferenceParts.join('\n')}\n`
       : '';
 
-    const prompt = `You are a professional chef. Generate a recipe using the following ingredients:
+    // Uproszczony prompt - instrukcje systemowe przeniesione do system message
+    return `Generate a recipe using these ingredients:
 
 ${productList}
 
 ${preferencesText}
 
-IMPORTANT: Return ONLY a valid JSON object with this exact structure (no additional text, no markdown):
-{
-  "title": "Recipe title (concise and appetizing)",
-  "description": "Brief one-sentence description of the dish",
-  "instructions": "Step-by-step cooking instructions (numbered steps, detailed)",
-  "cooking_time": 30,
-  "difficulty": "easy",
-  "ingredients": [
-    {
-      "product_name": "Tomato",
-      "quantity": 4,
-      "unit": "piece"
-    }
-  ],
-  "tags": ["vegetarian", "quick meal"]
-}
-
-Requirements:
-- Use primarily the provided ingredients
-- You may add common pantry items (salt, pepper, oil, water) if needed
-- Keep cooking_time realistic (in minutes)
-- difficulty must be one of: "easy", "medium", "hard"
-- Include all provided ingredients in the ingredients array
-- Tags should include dietary information (vegetarian, vegan, gluten-free, etc.) and meal type
-- Instructions should be clear, detailed, and numbered
-- Return ONLY the JSON object, nothing else`;
-
-    return prompt;
+You may add common pantry items (salt, pepper, oil, water) if needed, but prioritize the provided ingredients.`;
   }
 
   /**
