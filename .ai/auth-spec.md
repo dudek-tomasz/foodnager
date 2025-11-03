@@ -54,18 +54,22 @@ Niniejsza specyfikacja definiuje architekturę systemu autentykacji dla aplikacj
 - **Powód**: PRD nie wymaga statystyk w profilu
 - **Działanie**: ProfileView może pokazać podstawowe info (email, data rejestracji) bez statystyk
 
-### Uproszczona Tabela Profiles dla MVP
+### ⚠️ WAŻNE: Tabela Profiles NIE JEST POTRZEBNA dla MVP
 
-```sql
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+**Decyzja**: Tabela `profiles` jest **ZBĘDNA** dla MVP.
 
-Opcjonalnie: `display_name TEXT` (dla przyszłości, ale NULL i nieużywane w MVP)
+**Uzasadnienie**: 
+- Supabase Auth (`auth.users`) już zawiera wszystkie potrzebne dane: `id`, `email`, `created_at`, `updated_at`
+- Dla MVP nie potrzebujemy żadnych dodatkowych pól
+- `display_name` można w przyszłości zapisać w `raw_user_meta_data` jeśli będzie potrzebne
+- Zmniejsza to złożoność systemu i liczbę migracji
+
+**Dane dostępne z auth.users przez session/user object**:
+- `user.id` - UUID użytkownika
+- `user.email` - email użytkownika  
+- `user.created_at` - data rejestracji
+- `user.email_confirmed_at` - data weryfikacji email (opcjonalnie)
+- `user.user_metadata` - dodatkowe dane (dla przyszłości)
 
 ## 1. ARCHITEKTURA INTERFEJSU UŻYTKOWNIKA
 
@@ -272,8 +276,8 @@ if (!token) {
 
 **Logika server-side**:
 - Protected route - wymaga zalogowanego użytkownika
-- Pobranie danych profilu z tabeli profiles
-- Pobranie statystyk użytkownika (liczba przepisów, produktów w lodówce, historia gotowania)
+- Pobranie danych użytkownika z Astro.locals.user (z auth.users)
+- Opcjonalnie: pobranie podstawowych statystyk (liczba przepisów, produktów - dla przyszłości)
 
 **Funkcjonalności**:
 - Wyświetlenie informacji o użytkowniku (email, data rejestracji)
@@ -792,10 +796,9 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Logika (MVP - Uproszczona)**:
 1. Walidacja danych wejściowych (Zod)
 2. Wywołanie authService.login(email, password)
-3. Utworzenie sesji w Supabase Auth
-4. Ustawienie cookies (access_token, refresh_token)
-5. Utworzenie profilu jeśli nie istnieje (first login after registration)
-6. Zwrócenie danych użytkownika
+3. Utworzenie sesji w Supabase Auth (Supabase zarządza automatycznie)
+4. Ustawienie cookies (access_token, refresh_token - automatycznie przez Supabase)
+5. Zwrócenie danych użytkownika z auth.users
 
 **Obsługa błędów**:
 - 400 Bad Request - nieprawidłowe dane wejściowe
@@ -1402,129 +1405,48 @@ W panelu Supabase (Authentication > Email Templates) skonfigurować:
 **3. Magic link** (opcjonalnie dla przyszłości):
 - Subject: "Twój link do logowania - Foodnager"
 
-### 3.2. Baza Danych - Tabela Profiles
+### 3.2. Baza Danych - BRAK Dodatkowych Tabel dla MVP
 
-#### 3.2.1. Migracja - Utworzenie Tabeli Profiles
+**⚠️ WAŻNE**: Dla MVP **NIE TWORZYMY** tabeli `profiles`.
 
-**Plik**: `supabase/migrations/20251031000000_create_profiles_table.sql`
+**Uzasadnienie**:
+- Wszystkie potrzebne dane są już w `auth.users` (zarządzane przez Supabase Auth)
+- Supabase Auth zapewnia: `id`, `email`, `created_at`, `updated_at`, `email_confirmed_at`
+- MVP nie wymaga żadnych dodatkowych pól użytkownika
+- Upraszcza to architekturę i zmniejsza liczbę migracji
 
-```sql
--- ============================================================================
--- Tabela profiles - przechowuje dodatkowe dane użytkowników
--- ============================================================================
-
--- MVP: Uproszczona struktura - bez avatar_url, display_name opcjonalny (dla przyszłości)
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  display_name TEXT, -- Opcjonalne, NULL dla MVP, może być użyte w przyszłości
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-COMMENT ON TABLE public.profiles IS 'Tabela z dodatkowymi danymi użytkowników';
-COMMENT ON COLUMN public.profiles.id IS 'ID użytkownika (FK do auth.users)';
-COMMENT ON COLUMN public.profiles.email IS 'Email użytkownika (duplikat z auth.users dla łatwiejszego dostępu)';
-COMMENT ON COLUMN public.profiles.display_name IS 'Wyświetlana nazwa użytkownika (opcjonalna, NULL dla MVP)';
-
--- Włącz RLS
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- Polityki RLS
-CREATE POLICY "Użytkownicy mogą odczytać tylko swój profil"
-  ON public.profiles
-  FOR SELECT
-  USING (auth.uid() = id);
-
-CREATE POLICY "Użytkownicy mogą aktualizować tylko swój profil"
-  ON public.profiles
-  FOR UPDATE
-  USING (auth.uid() = id);
-
--- Indeks na email (dla szybkich wyszukiwań)
-CREATE INDEX idx_profiles_email ON public.profiles(email);
-
--- ============================================================================
--- Trigger - automatyczne tworzenie profilu po rejestracji
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, display_name)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'display_name', SPLIT_PART(NEW.email, '@', 1))
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW
-  EXECUTE FUNCTION public.handle_new_user();
-
--- ============================================================================
--- Trigger - aktualizacja updated_at
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION public.update_profiles_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER profiles_updated_at
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_profiles_updated_at();
-```
-
-#### 3.2.2. Aktualizacja Typów TypeScript
-
-**Plik**: `src/db/database.types.ts` (fragment - dodanie do istniejących typów)
-
+**Dostęp do danych użytkownika**:
 ```typescript
-// MVP: Uproszczona struktura profiles - bez avatar_url
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: {
-          id: string;
-          email: string;
-          display_name: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id: string;
-          email: string;
-          display_name?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string;
-          display_name?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      // ... pozostałe tabele
-    };
-  };
-}
+// Z session object (w middleware lub API endpoints)
+const user = Astro.locals.user;
+// user.id - UUID użytkownika
+// user.email - email użytkownika
+// user.created_at - data rejestracji
+// user.email_confirmed_at - data weryfikacji (opcjonalnie)
+
+// Lub bezpośrednio z Supabase
+const { data: { user } } = await supabaseClient.auth.getUser();
 ```
 
-**Wygenerowanie typów**:
-```bash
-npx supabase gen types typescript --project-id your-project-id > src/db/database.types.ts
+**Przyszłość** (Post-MVP):
+- Jeśli będą potrzebne dodatkowe pola (avatar, bio, preferences), można wtedy utworzyć tabelę `profiles`
+- Alternatywnie: można używać `user_metadata` w `auth.users` dla prostych dodatkowych danych
+
+**Typy TypeScript**:
+```typescript
+// Używamy typów z @supabase/supabase-js
+import type { User } from '@supabase/supabase-js';
+
+// User zawiera już wszystkie potrzebne pola
+interface User {
+  id: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  email_confirmed_at?: string;
+  user_metadata: Record<string, any>;
+  // ... inne pola Supabase Auth
+}
 ```
 
 ### 3.3. Row Level Security (RLS)
@@ -1533,7 +1455,7 @@ npx supabase gen types typescript --project-id your-project-id > src/db/database
 
 Wszystkie istniejące tabele muszą mieć zaktualizowane polityki RLS aby używały `auth.uid()` zamiast hardcoded USER_ID:
 
-**Plik**: `supabase/migrations/20251031000100_update_rls_policies.sql`
+**Plik**: `supabase/migrations/20251031000000_update_rls_policies.sql`
 
 ```sql
 -- ============================================================================
@@ -2011,13 +1933,14 @@ describe('AuthService', () => {
 
 **Krok 1: Przygotowanie bazy danych**
 ```bash
-# Uruchom migracje
+# Uruchom migrację RLS policies
 npx supabase db push
 
 # Lub indywidualnie
-psql $DATABASE_URL -f supabase/migrations/20251031000000_create_profiles_table.sql
-psql $DATABASE_URL -f supabase/migrations/20251031000100_update_rls_policies.sql
+psql $DATABASE_URL -f supabase/migrations/20251031000000_update_rls_policies.sql
 ```
+
+**Uwaga**: Nie ma potrzeby tworzenia tabeli `profiles` dla MVP - wszystkie dane są w `auth.users`
 
 **Krok 2: Aktualizacja kodu**
 - Implementacja wszystkich komponentów auth
@@ -2075,10 +1998,10 @@ W przypadku problemów:
    ```sql
    -- Usunięcie nowych polityk RLS
    DROP POLICY IF EXISTS "user_products_select_policy" ON public.user_products;
-   -- itd.
-   
-   -- Usunięcie tabeli profiles
-   DROP TABLE IF EXISTS public.profiles CASCADE;
+   DROP POLICY IF EXISTS "user_products_insert_policy" ON public.user_products;
+   DROP POLICY IF EXISTS "user_products_update_policy" ON public.user_products;
+   DROP POLICY IF EXISTS "user_products_delete_policy" ON public.user_products;
+   -- itd. dla pozostałych tabel
    
    -- Przywrócenie starych polityk (disable)
    -- ...
@@ -2086,6 +2009,7 @@ W przypadku problemów:
 3. **Tymczasowe wyłączenie RLS** (ostateczność):
    ```sql
    ALTER TABLE public.user_products DISABLE ROW LEVEL SECURITY;
+   -- Uwaga: tylko na czas debugowania!
    ```
 
 ---
@@ -2150,13 +2074,12 @@ src/
 │   └── ...
 ├── db/
 │   ├── supabase.client.ts       # MODYFIKACJA - config auth
-│   └── database.types.ts        # MODYFIKACJA - dodanie profiles
+│   └── database.types.ts        # BEZ ZMIAN - profiles nie jest potrzebne
 └── env.d.ts                     # MODYFIKACJA - Astro.locals types
 
 supabase/
 └── migrations/
-    ├── 20251031000000_create_profiles_table.sql          # NOWA
-    └── 20251031000100_update_rls_policies.sql            # NOWA
+    └── 20251031000000_update_rls_policies.sql            # NOWA - aktualizacja RLS dla auth.uid()
 ```
 
 ### 6.2. Checklisty dla Deweloperów
@@ -2205,9 +2128,9 @@ supabase/
 4. **Walidacje Zod** - schematy dla wszystkich formularzy auth
 
 **Database**:
-1. **Tabela profiles** - dodatkowe dane użytkowników
-2. **RLS Policies** - zabezpieczenie wszystkich tabel
-3. **Triggers** - automatyczne tworzenie profilu po rejestracji
+1. **BRAK dodatkowych tabel** - używamy `auth.users` z Supabase Auth
+2. **RLS Policies** - zabezpieczenie wszystkich tabel używając `auth.uid()`
+3. **Dane użytkownika** - pobierane bezpośrednio z session/user object
 
 ### 7.2. Przepływ Danych
 
@@ -2281,15 +2204,16 @@ LogoutButton → POST /api/auth/logout → authService.logout()
 7. **Resend verification email** - ponowne wysłanie linku weryfikacyjnego
 
 **Dodatkowe funkcjonalności do rozważenia**:
-8. **OAuth providers** (Google, Facebook login)
-9. **Two-factor authentication** (2FA)
-10. **Email change** z weryfikacją
-11. **Account deletion** z potwierdzeniem
-12. **Session management** - wyświetlenie aktywnych sesji
-13. **Security logs** - historia logowań
-14. **Password strength meter** w formularzu rejestracji
-15. **Remember device** - trusted devices
-16. **Magic links** zamiast hasła (passwordless)
+8. **Tabela `profiles`** - jeśli będą potrzebne dodatkowe pola (avatar, bio, preferences, ustawienia)
+9. **OAuth providers** (Google, Facebook login)
+10. **Two-factor authentication** (2FA)
+11. **Email change** z weryfikacją
+12. **Account deletion** z potwierdzeniem
+13. **Session management** - wyświetlenie aktywnych sesji
+14. **Security logs** - historia logowań
+15. **Password strength meter** w formularzu rejestracji
+16. **Remember device** - trusted devices
+17. **Magic links** zamiast hasła (passwordless)
 
 ---
 
