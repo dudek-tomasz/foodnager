@@ -6,16 +6,28 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { CookingHistoryService } from '../../../lib/services/cooking-history.service';
 import {
   ListCookingHistoryQuerySchema,
   CreateCookingHistorySchema,
 } from '../../../lib/validations/cooking-history.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError, InsufficientIngredientsError } from '../../../lib/errors';
+import { NotFoundError, InsufficientIngredientsError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
+
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
+}
 
 /**
  * GET /api/cooking-history
@@ -35,18 +47,14 @@ export const prerender = false;
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse('UNAUTHORIZED', 'Authentication required', undefined, 401);
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate query parameters
     const url = new URL(context.request.url);
@@ -67,7 +75,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Create service and fetch cooking history
     const cookingHistoryService = new CookingHistoryService(supabase);
-    const result = await cookingHistoryService.listCookingHistory(user.id, query);
+    const result = await cookingHistoryService.listCookingHistory(userId, query);
 
     return successResponse(result, 200);
   } catch (error) {
@@ -98,18 +106,14 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse('UNAUTHORIZED', 'Authentication required', undefined, 401);
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
@@ -134,7 +138,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Create cooking history entry (handles fridge update atomically)
     const cookingHistoryService = new CookingHistoryService(supabase);
-    const result = await cookingHistoryService.createCookingHistoryEntry(user.id, recipe_id);
+    const result = await cookingHistoryService.createCookingHistoryEntry(userId, recipe_id);
 
     // Return 201 Created with Location header
     return successResponse(

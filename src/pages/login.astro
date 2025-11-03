@@ -4,10 +4,15 @@
  * 
  * Authentication page using AuthLayout and LoginForm component.
  * Features:
- * - Server-side rendering
- * - Redirect if already logged in (will be implemented with backend)
+ * - Server-side rendering with session check
+ * - Redirects logged-in users to /fridge
  * - Clean, centered design without navigation
  * - Query param support for redirect after login
+ * 
+ * Following auth-spec.md:
+ * - Uses Astro.locals.user populated by middleware
+ * - Public route (accessible without auth)
+ * - Redirects authenticated users away
  */
 
 import AuthLayout from "@/layouts/AuthLayout.astro";
@@ -15,14 +20,22 @@ import LoginForm from "@/components/auth/LoginForm";
 
 export const prerender = false;
 
-// TODO: When implementing backend, add this logic:
-// const { data: { session } } = await Astro.locals.supabase.auth.getSession();
-// if (session) {
-//   return Astro.redirect("/fridge");
-// }
+// Check if user is already logged in (populated by middleware)
+const user = Astro.locals.user;
 
-// Get redirect URL from query params (optional)
+// If user is already authenticated, redirect to fridge
+// Middleware also handles this, but double-check for safety
+if (user) {
+  return Astro.redirect("/fridge");
+}
+
+// Get redirect URL from query params (fallback to /fridge)
 const redirectTo = Astro.url.searchParams.get("redirect") || "/fridge";
+
+// Check for error/success messages in query params
+const verified = Astro.url.searchParams.get("verified") === "true";
+const resetSuccess = Astro.url.searchParams.get("reset") === "success";
+const sessionExpired = Astro.url.searchParams.get("session_expired") === "true";
 ---
 
 <AuthLayout title="Logowanie - Foodnager" description="Zaloguj się do swojego konta Foodnager">
@@ -37,6 +50,25 @@ const redirectTo = Astro.url.searchParams.get("redirect") || "/fridge";
         Zarządzaj przepisami i wirtualną lodówką
       </p>
     </div>
+
+    <!-- Success/Info Messages -->
+    {verified && (
+      <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
+        ✅ Email zweryfikowany pomyślnie! Możesz się teraz zalogować.
+      </div>
+    )}
+    
+    {resetSuccess && (
+      <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
+        ✅ Hasło zostało zmienione. Zaloguj się używając nowego hasła.
+      </div>
+    )}
+    
+    {sessionExpired && (
+      <div class="p-3 text-sm text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-900">
+        ⚠️ Sesja wygasła. Zaloguj się ponownie.
+      </div>
+    )}
 
     <!-- Login Form -->
     <LoginForm client:load redirectTo={redirectTo} />

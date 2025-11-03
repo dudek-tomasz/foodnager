@@ -1,14 +1,15 @@
 /**
- * ResetPasswordForm - Password reset form using token from email
+ * ResetPasswordForm - Password reset form with token verification
  * 
  * Features:
- * - New password and confirmation fields
- * - Token validation (passed as prop)
+ * - Password and password confirmation fields
  * - Client-side validation using Zod
  * - Password strength requirements display
  * - Loading state during submission
- * - Success state with redirect to login
- * - Error handling for invalid/expired tokens
+ * - Success state with auto-redirect to login
+ * - Error handling for expired/invalid tokens
+ * 
+ * Following auth-spec.md US-001.7
  */
 
 import React, { useState } from 'react';
@@ -16,23 +17,28 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations/auth.validation';
+import { resetPasswordSchema } from '@/lib/validations/auth.validation';
 
 interface ResetPasswordFormProps {
   token: string;
 }
 
+type FormData = {
+  password: string;
+  passwordConfirm: string;
+};
+
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     password: '',
     passwordConfirm: '',
   });
-  const [errors, setErrors] = useState<Partial<Record<'password' | 'passwordConfirm', string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (field: 'password' | 'passwordConfirm') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
     // Clear field error on change
     if (errors[field]) {
@@ -55,13 +61,13 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       password: formData.password,
       passwordConfirm: formData.passwordConfirm,
     });
-    
+
     if (!result.success) {
-      const fieldErrors: Partial<Record<'password' | 'passwordConfirm', string>> = {};
+      const fieldErrors: Partial<Record<keyof FormData, string>> = {};
       result.error.errors.forEach((error) => {
         const field = error.path[0];
-        if (field === 'password' || field === 'passwordConfirm') {
-          fieldErrors[field] = error.message;
+        if (field && field !== 'token') {
+          fieldErrors[field as keyof FormData] = error.message;
         }
       });
       setErrors(fieldErrors);
@@ -71,13 +77,30 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to /api/auth/reset-password
-      console.log('Reset password with token:', token);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // On success, show success message
+      // Call reset password API endpoint
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          password: formData.password,
+          passwordConfirm: formData.passwordConfirm,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Handle API errors
+        const errorMessage = data.error?.message || 'Wystąpił błąd podczas resetowania hasła';
+        setGeneralError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      // Success! Show success message
       setSuccess(true);
       
       // Redirect to login after 3 seconds
@@ -85,7 +108,8 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         window.location.href = '/login?reset=success';
       }, 3000);
     } catch (error) {
-      setGeneralError('Link resetujący wygasł lub jest nieprawidłowy.');
+      console.error('Reset password error:', error);
+      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
       setIsLoading(false);
     }
   };
@@ -118,9 +142,12 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-lg font-medium">Hasło zostało zmienione</p>
+            <p className="text-lg font-medium">Twoje hasło zostało zmienione!</p>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Możesz się teraz zalogować używając nowego hasła.
+            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-500">
+              Przekierowanie do logowania za 3 sekundy...
             </p>
           </div>
         </CardContent>
@@ -140,9 +167,9 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Resetowanie hasła</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">Nowe hasło</CardTitle>
         <CardDescription className="text-center">
-          Wprowadź nowe hasło do swojego konta
+          Wprowadź nowe, bezpieczne hasło
         </CardDescription>
       </CardHeader>
 
@@ -212,7 +239,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             {isLoading ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Zmiana hasła...
+                Zmienianie hasła...
               </>
             ) : (
               'Zmień hasło'
@@ -221,9 +248,8 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
           {/* Back to Login Link */}
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-            Pamiętasz hasło?{' '}
             <a href="/login" className="text-primary font-medium hover:underline">
-              Zaloguj się
+              Wróć do logowania
             </a>
           </p>
         </CardFooter>
@@ -231,4 +257,3 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     </Card>
   );
 }
-

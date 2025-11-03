@@ -4,10 +4,15 @@
  * GET /api/fridge/:id - Get fridge item by ID
  * PATCH /api/fridge/:id - Update fridge item
  * DELETE /api/fridge/:id - Delete fridge item
+ * 
+ * Following auth implementation:
+ * - Uses context.locals.user from middleware
+ * - Creates supabase instance per request
  */
 
 import type { APIContext } from 'astro';
 import { FridgeService } from '../../../lib/services/fridge.service';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import {
   fridgeItemIdSchema,
   updateFridgeItemSchema,
@@ -17,35 +22,23 @@ import {
   noContentResponse,
   handleError,
 } from '../../../lib/utils/api-response';
-import { ValidationError } from '../../../lib/errors';
-import { DEFAULT_USER_ID } from '../../../db/supabase.client';
+import { ValidationError, UnauthorizedError } from '../../../lib/errors';
 
 // Disable pre-rendering for API routes
 export const prerender = false;
 
-// TODO: Restore authentication after auth system is implemented
 /**
  * Helper function to get authenticated user from request
  * @throws UnauthorizedError if user is not authenticated
  */
-// async function getAuthenticatedUser(context: APIContext): Promise<string> {
-//   const supabase = context.locals.supabase;
-//   
-//   const { data: { user }, error } = await supabase.auth.getUser();
-//
-//   if (error || !user) {
-//     throw new UnauthorizedError('Authentication required');
-//   }
-//
-//   return user.id;
-// }
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
 
-/**
- * TEMPORARY: Returns default user ID for development
- * TODO: Replace with real authentication
- */
-function getAuthenticatedUser(_context: APIContext): string {
-  return DEFAULT_USER_ID;
+  return user.id;
 }
 
 /**
@@ -74,14 +67,20 @@ function parseFridgeItemId(context: APIContext): number {
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate item ID
     const itemId = parseFridgeItemId(context);
 
     // Call service
-    const fridgeService = new FridgeService(context.locals.supabase);
+    const fridgeService = new FridgeService(supabase);
     const item = await fridgeService.getFridgeItemById(userId, itemId);
 
     return successResponse(item, 200);
@@ -97,8 +96,14 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function PATCH(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate item ID
     const itemId = parseFridgeItemId(context);
@@ -121,7 +126,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     }
 
     // Call service
-    const fridgeService = new FridgeService(context.locals.supabase);
+    const fridgeService = new FridgeService(supabase);
     const item = await fridgeService.updateFridgeItem(
       userId,
       itemId,
@@ -141,14 +146,20 @@ export async function PATCH(context: APIContext): Promise<Response> {
  */
 export async function DELETE(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate item ID
     const itemId = parseFridgeItemId(context);
 
     // Call service
-    const fridgeService = new FridgeService(context.locals.supabase);
+    const fridgeService = new FridgeService(supabase);
     await fridgeService.deleteFridgeItem(userId, itemId);
 
     // Return 204 No Content on success

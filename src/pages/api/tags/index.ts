@@ -17,24 +17,27 @@ import {
   handleError,
 } from '../../../lib/utils/api-response';
 import { cache, CACHE_KEYS, CACHE_TTL } from '../../../lib/utils/cache';
-import { DEFAULT_USER_ID } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import {
   listTagsQuerySchema,
   createTagSchema,
 } from '../../../lib/validations/tags.validation';
 import { ZodError } from 'zod';
-import { ConflictError } from '../../../lib/errors';
+import { ConflictError, UnauthorizedError } from '../../../lib/errors';
 
 // Disable pre-rendering for API routes
 export const prerender = false;
 
-// TODO: Restore authentication after auth system is implemented
 /**
- * TEMPORARY: Returns default user ID for development
- * TODO: Replace with real authentication
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
  */
-function getAuthenticatedUser(_context: APIContext): string {
-  return DEFAULT_USER_ID;
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
 }
 
 /**
@@ -55,9 +58,15 @@ function getAuthenticatedUser(_context: APIContext): string {
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     // Note: Even though tags are global, we require authentication
     getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate query parameters
     const url = new URL(context.request.url);
@@ -81,7 +90,7 @@ export async function GET(context: APIContext): Promise<Response> {
     }
 
     // Cache MISS - fetch from database
-    const tagsService = new TagsService(context.locals.supabase);
+    const tagsService = new TagsService(supabase);
     const tags = await tagsService.listTags(validatedQuery.search);
 
     const response: TagsListResponseDTO = {
@@ -128,15 +137,21 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     const body = await context.request.json();
     const validatedData = createTagSchema.parse(body);
 
     // Create tag
-    const tagsService = new TagsService(context.locals.supabase);
+    const tagsService = new TagsService(supabase);
     const tag = await tagsService.createTag(validatedData.name);
 
     // Invalidate all tag caches (both 'all' and all search caches)

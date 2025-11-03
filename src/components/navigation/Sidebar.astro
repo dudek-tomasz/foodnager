@@ -1,14 +1,20 @@
 ---
 /**
  * Sidebar Navigation Component (Desktop ≥1024px)
- * Persistent sidebar with logo, main navigation links, and CTA button
+ * Persistent sidebar with logo, main navigation links, CTA button, and user info
+ * Following auth-spec.md US-001.6: User info + logout in desktop sidebar
  */
+
+import UserInfoDisplay from '@/components/auth/UserInfoDisplay';
 
 interface Props {
   currentPath: string;
+  user?: {
+    email: string;
+  } | null;
 }
 
-const { currentPath } = Astro.props;
+const { currentPath, user } = Astro.props;
 
 // Funkcja pomocnicza do określenia czy link jest aktywny
 const isActive = (path: string) => {
@@ -77,6 +83,13 @@ const navLinks = [
       <span class="cta-label">Znajdź przepis</span>
     </a>
   </div>
+
+  <!-- User Info Section (Desktop - US-001.6) -->
+  {user && (
+    <div class="sidebar-user">
+      <UserInfoDisplay user={user} variant="sidebar" client:load />
+    </div>
+  )}
 </aside>
 
 <style>

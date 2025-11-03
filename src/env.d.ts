@@ -1,12 +1,32 @@
 /// <reference types="astro/client" />
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import type { Database } from './db/database.types.ts';
 
 declare global {
   namespace App {
     interface Locals {
-      supabase: SupabaseClient<Database>;
+      /**
+       * Supabase client instance (legacy)
+       * @deprecated Use createSupabaseServerInstance instead
+       */
+      supabase?: SupabaseClient<Database>;
+      
+      /**
+       * Current authenticated user
+       * Available after middleware processes the request
+       */
+      user: {
+        id: string;
+        email: string;
+      } | null;
+      
+      /**
+       * Current session
+       * Available after middleware processes the request
+       */
+      session: Session | null;
     }
   }
 }

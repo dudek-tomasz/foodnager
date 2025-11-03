@@ -1,19 +1,16 @@
 /**
- * UserInfoDisplay - Component for displaying user information
+ * UserInfoDisplay - Component for displaying user info with logout option
  * 
- * Features:
- * - Avatar with email initials
- * - Email display
- * - Logout button (only for sidebar variant)
- * - Responsive design for different variants
- * 
- * Variants:
- * - sidebar: For desktop sidebar with logout button
- * - mobile: For mobile profile page (logout handled separately)
+ * Following auth-spec.md MVP specifications:
+ * - Display avatar (initials from email)
+ * - Display email
+ * - Logout button (only for variant="sidebar")
+ * - Two variants: sidebar (desktop) and mobile (profile page)
  * 
  * MVP Simplifications:
- * - No display name (only email)
- * - No avatar URL (only initials)
+ * - No avatar upload
+ * - No display name (uses email only)
+ * - Simple design
  */
 
 import React from 'react';
@@ -27,57 +24,52 @@ interface UserInfoDisplayProps {
 }
 
 export default function UserInfoDisplay({ user, variant }: UserInfoDisplayProps) {
-  // Generate initials from email (first two letters before @)
-  const getInitials = (email: string): string => {
-    const username = email.split('@')[0];
-    return username.slice(0, 2).toUpperCase();
-  };
-
-  const initials = getInitials(user.email);
+  // Get initials from email (first letter before @)
+  const initials = user.email.charAt(0).toUpperCase();
 
   if (variant === 'sidebar') {
+    // Desktop sidebar variant
     return (
-      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-4">
-        <div className="flex items-center gap-3 mb-3">
+      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center space-x-3 mb-3">
           {/* Avatar */}
-          <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-semibold text-primary">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-bold text-primary">
               {initials}
             </span>
           </div>
-          
-          {/* Email */}
+          {/* User Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+            <p className="text-sm font-medium truncate">
               {user.email}
             </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Twoje konto
+              Użytkownik
             </p>
           </div>
         </div>
-
         {/* Logout Button */}
-        <LogoutButton variant="outline" size="sm" className="w-full" />
+        <LogoutButton 
+          variant="outline" 
+          className="w-full text-sm"
+          showIcon={true}
+        />
       </div>
     );
   }
 
-  // Mobile variant (for profile page)
+  // Mobile variant (for profile page - but ProfileView handles this now)
   return (
-    <div className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
+    <div className="flex items-center space-x-4">
       {/* Avatar */}
-      <div className="h-16 w-16 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
-        <span className="text-xl font-semibold text-primary">
+      <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+        <span className="text-2xl font-bold text-primary">
           {initials}
         </span>
       </div>
-      
-      {/* Email */}
-      <div className="flex-1 min-w-0">
-        <p className="text-base font-medium text-neutral-900 dark:text-neutral-100 truncate">
-          {user.email}
-        </p>
+      {/* User Info */}
+      <div>
+        <p className="text-lg font-medium">{user.email}</p>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Użytkownik Foodnager
         </p>
@@ -85,4 +77,3 @@ export default function UserInfoDisplay({ user, variant }: UserInfoDisplayProps)
     </div>
   );
 }
-

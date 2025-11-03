@@ -67,13 +67,30 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to /api/auth/register
-      console.log('Register with:', { email: formData.email });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // On success, show success message
+      // Call register API endpoint
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          passwordConfirm: formData.passwordConfirm,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Handle API errors
+        const errorMessage = data.error?.message || 'Wystąpił błąd podczas rejestracji';
+        setGeneralError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      // Success! Show success message
       setSuccess(true);
       
       // Redirect to login after 3 seconds
@@ -81,7 +98,8 @@ export default function RegisterForm() {
         window.location.href = '/login';
       }, 3000);
     } catch (error) {
-      setGeneralError('Wystąpił błąd podczas rejestracji. Spróbuj ponownie.');
+      console.error('Registration error:', error);
+      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
       setIsLoading(false);
     }
   };

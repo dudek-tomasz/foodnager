@@ -17,35 +17,22 @@ import {
   noContentResponse,
   handleError,
 } from '../../../lib/utils/api-response';
-import { ValidationError } from '../../../lib/errors';
-import { DEFAULT_USER_ID } from '../../../db/supabase.client';
+import { ValidationError, UnauthorizedError } from '../../../lib/errors';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 
 // Disable pre-rendering for API routes
 export const prerender = false;
 
-// TODO: Restore authentication after auth system is implemented
 /**
  * Helper function to get authenticated user from request
  * @throws UnauthorizedError if user is not authenticated
  */
-// async function getAuthenticatedUser(context: APIContext): Promise<string> {
-//   const supabase = context.locals.supabase;
-//   
-//   const { data: { user }, error } = await supabase.auth.getUser();
-//
-//   if (error || !user) {
-//     throw new UnauthorizedError('Authentication required');
-//   }
-//
-//   return user.id;
-// }
-
-/**
- * TEMPORARY: Returns default user ID for development
- * TODO: Replace with real authentication
- */
-function getAuthenticatedUser(_context: APIContext): string {
-  return DEFAULT_USER_ID;
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
 }
 
 /**
@@ -74,14 +61,20 @@ function parseProductId(context: APIContext): number {
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate product ID
     const productId = parseProductId(context);
 
     // Call service
-    const productService = new ProductService(context.locals.supabase);
+    const productService = new ProductService(supabase);
     const product = await productService.getProductById(userId, productId);
 
     return successResponse(product, 200);
@@ -101,8 +94,14 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function PATCH(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate product ID
     const productId = parseProductId(context);
@@ -125,7 +124,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     }
 
     // Call service
-    const productService = new ProductService(context.locals.supabase);
+    const productService = new ProductService(supabase);
     const result = await productService.updateProduct(
       userId,
       productId,
@@ -153,14 +152,20 @@ export async function PATCH(context: APIContext): Promise<Response> {
  */
 export async function DELETE(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Validate product ID
     const productId = parseProductId(context);
 
     // Call service
-    const productService = new ProductService(context.locals.supabase);
+    const productService = new ProductService(supabase);
     await productService.deleteProduct(userId, productId);
 
     // Return 204 No Content on success

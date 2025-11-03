@@ -8,13 +8,25 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { ShoppingListService } from '../../../lib/services/shopping-list.service';
 import { generateShoppingListSchema } from '../../../lib/validations/shopping-list.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError } from '../../../lib/errors';
+import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
+
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
+}
 
 /**
  * POST /api/shopping-list/generate
@@ -52,18 +64,14 @@ export const prerender = false;
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse('UNAUTHORIZED', 'Authentication required', undefined, 401);
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
@@ -88,7 +96,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Create service and generate shopping list
     const shoppingListService = new ShoppingListService(supabase);
-    const result = await shoppingListService.generateShoppingList(user.id, recipe_id);
+    const result = await shoppingListService.generateShoppingList(userId, recipe_id);
 
     // Return 200 OK with shopping list
     return successResponse(result, 200);

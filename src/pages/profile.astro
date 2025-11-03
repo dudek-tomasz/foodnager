@@ -2,18 +2,14 @@
 /**
  * Profile Page
  * 
- * User profile page using standard Layout and ProfileView component.
- * Features:
- * - Protected route (requires authentication - will be implemented with backend)
- * - Display user information
- * - Account creation date
- * - Logout button (mobile)
- * - Clean card-based layout
+ * User profile page displaying account information and logout option.
+ * Following auth-spec.md and PRD US-001.6:
+ * - Protected route (requires authentication)
+ * - Shows user email and account creation date
+ * - Logout button for mobile users
+ * - Desktop users can logout from Sidebar
  * 
- * MVP Simplifications:
- * - No statistics
- * - No password change
- * - No avatar upload
+ * MVP: Simple profile without statistics or avatar upload
  */
 
 import Layout from "@/layouts/Layout.astro";
@@ -21,29 +17,23 @@ import ProfileView from "@/components/profile/ProfileView";
 
 export const prerender = false;
 
-// TODO: When implementing backend, add this logic:
-// const user = Astro.locals.user;
-// if (!user) {
-//   return Astro.redirect('/login?redirect=/profile');
-// }
+// Get user from middleware (required for protected route)
+const user = Astro.locals.user;
 
-// Mock user data for UI development
-// Replace with actual user data from Astro.locals.user when backend is ready
-const mockUser = {
-  id: "550e8400-e29b-41d4-a716-446655440000",
-  email: "uzytkownik@example.com",
-  createdAt: new Date().toISOString(),
+// If not authenticated, redirect to login
+// Middleware already handles this, but double-check
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+// Prepare user data for ProfileView
+const userData = {
+  id: user.id,
+  email: user.email,
+  createdAt: Astro.locals.session?.user?.created_at || new Date().toISOString(),
 };
-
-// For production, use:
-// const userData = {
-//   id: user.id,
-//   email: user.email,
-//   createdAt: user.created_at,
-// };
 ---
 
-<Layout title="Profil - Foodnager" description="Twój profil użytkownika">
-  <ProfileView client:load user={mockUser} />
+<Layout title="Profil - Foodnager">
+  <ProfileView client:load user={userData} />
 </Layout>
-

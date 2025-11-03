@@ -4,11 +4,16 @@
  * 
  * User registration page using AuthLayout and RegisterForm component.
  * Features:
- * - Server-side rendering
- * - Redirect if already logged in (will be implemented with backend)
+ * - Server-side rendering with session check
+ * - Redirects logged-in users to /fridge
  * - Clean, centered design without navigation
  * - Password strength validation
  * - Success state with auto-redirect to login
+ * 
+ * Following auth-spec.md:
+ * - Uses Astro.locals.user populated by middleware
+ * - Public route (accessible without auth)
+ * - Redirects authenticated users away
  */
 
 import AuthLayout from "@/layouts/AuthLayout.astro";
@@ -16,11 +21,14 @@ import RegisterForm from "@/components/auth/RegisterForm";
 
 export const prerender = false;
 
-// TODO: When implementing backend, add this logic:
-// const { data: { session } } = await Astro.locals.supabase.auth.getSession();
-// if (session) {
-//   return Astro.redirect("/fridge");
-// }
+// Check if user is already logged in (populated by middleware)
+const user = Astro.locals.user;
+
+// If user is already authenticated, redirect to fridge
+// Middleware also handles this, but double-check for safety
+if (user) {
+  return Astro.redirect("/fridge");
+}
 ---
 
 <AuthLayout title="Rejestracja - Foodnager" description="Utwórz nowe konto Foodnager">

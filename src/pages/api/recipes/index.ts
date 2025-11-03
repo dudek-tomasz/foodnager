@@ -6,16 +6,28 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { RecipeService } from '../../../lib/services/recipe.service';
 import {
   listRecipesQuerySchema,
   createRecipeSchema,
 } from '../../../lib/validations/recipe.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError } from '../../../lib/errors';
+import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
+
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
+}
 
 /**
  * GET /api/recipes
@@ -23,18 +35,14 @@ export const prerender = false;
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse(401, 'UNAUTHORIZED', 'Authentication required');
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate query parameters
     const url = new URL(context.request.url);
@@ -44,10 +52,10 @@ export async function GET(context: APIContext): Promise<Response> {
 
     if (!validationResult.success) {
       return errorResponse(
-        422,
         'VALIDATION_ERROR',
         'Invalid query parameters',
-        validationResult.error.flatten().fieldErrors
+        validationResult.error.flatten().fieldErrors,
+        422
       );
     }
 
@@ -55,12 +63,12 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Create service and fetch recipes
     const recipeService = new RecipeService(supabase);
-    const result = await recipeService.listRecipes(user.id, query);
+    const result = await recipeService.listRecipes(userId, query);
 
-    return successResponse(200, result);
+    return successResponse(result, 200);
   } catch (error) {
     console.error('Error in GET /api/recipes:', error);
-    return errorResponse(500, 'INTERNAL_ERROR', 'Failed to fetch recipes');
+    return errorResponse('INTERNAL_ERROR', 'Failed to fetch recipes', undefined, 500);
   }
 }
 
@@ -70,35 +78,31 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse(401, 'UNAUTHORIZED', 'Authentication required');
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
     try {
       body = await context.request.json();
     } catch {
-      return errorResponse(400, 'VALIDATION_ERROR', 'Invalid JSON body');
+      return errorResponse('VALIDATION_ERROR', 'Invalid JSON body', undefined, 400);
     }
 
     const validationResult = createRecipeSchema.safeParse(body);
 
     if (!validationResult.success) {
       return errorResponse(
-        400,
         'VALIDATION_ERROR',
         'Invalid request body',
-        validationResult.error.flatten().fieldErrors
+        validationResult.error.flatten().fieldErrors,
+        400
       );
     }
 
@@ -106,24 +110,24 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Create recipe
     const recipeService = new RecipeService(supabase);
-    const recipe = await recipeService.createRecipe(user.id, createDto);
+    const recipe = await recipeService.createRecipe(userId, createDto);
 
     // Return 201 Created with Location header
     return successResponse(
-      201,
       recipe,
-      new Headers({
+      201,
+      {
         Location: `/api/recipes/${recipe.id}`,
-      })
+      }
     );
   } catch (error) {
     console.error('Error in POST /api/recipes:', error);
 
     if (error instanceof NotFoundError) {
-      return errorResponse(404, 'NOT_FOUND', error.message);
+      return errorResponse('NOT_FOUND', error.message, undefined, 404);
     }
 
-    return errorResponse(500, 'INTERNAL_ERROR', 'Failed to create recipe');
+    return errorResponse('INTERNAL_ERROR', 'Failed to create recipe', undefined, 500);
   }
 }
 

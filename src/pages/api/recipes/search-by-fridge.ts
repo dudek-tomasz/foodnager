@@ -10,21 +10,24 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient, DEFAULT_USER_ID } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { RecipeDiscoveryService } from '../../../lib/services/recipe-discovery.service';
 import { SearchRecipesByFridgeSchema } from '../../../lib/validations/recipe-discovery.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError, ValidationError } from '../../../lib/errors';
+import { NotFoundError, ValidationError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
 
-// TODO: Restore authentication after auth system is implemented
 /**
  * Helper function to get authenticated user from request
  * @throws UnauthorizedError if user is not authenticated
  */
-function getAuthenticatedUser(_context: APIContext): string {
-  return DEFAULT_USER_ID;
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
 }
 
 /**
@@ -68,8 +71,14 @@ function getAuthenticatedUser(_context: APIContext): string {
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
@@ -93,7 +102,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const searchDto = validationResult.data;
 
     // Create service and search recipes
-    const discoveryService = new RecipeDiscoveryService(context.locals.supabase);
+    const discoveryService = new RecipeDiscoveryService(supabase);
     const result = await discoveryService.searchByFridge(userId, searchDto);
 
     return successResponse(result, 200);

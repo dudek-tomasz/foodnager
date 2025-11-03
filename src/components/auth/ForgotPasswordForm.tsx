@@ -1,5 +1,5 @@
 /**
- * ForgotPasswordForm - Password recovery form
+ * ForgotPasswordForm - Password reset request form
  * 
  * Features:
  * - Single email field
@@ -7,7 +7,9 @@
  * - Loading state during submission
  * - Success state with message
  * - Link back to login
- * - Always returns success (security best practice - don't reveal if email exists)
+ * - Auto-redirect to login after 5 seconds on success
+ * 
+ * Following auth-spec.md US-001.7
  */
 
 import React, { useState } from 'react';
@@ -28,11 +30,10 @@ export default function ForgotPasswordForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ email: e.target.value });
-    // Clear field error on change
+    // Clear errors on change
     if (errors.email) {
       setErrors({});
     }
-    // Clear general error on change
     if (generalError) {
       setGeneralError(null);
     }
@@ -59,13 +60,26 @@ export default function ForgotPasswordForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to /api/auth/forgot-password
-      console.log('Forgot password for:', formData.email);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Always show success (security best practice)
+      // Call forgot password API endpoint
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Handle API errors
+        const errorMessage = data.error?.message || 'Wystąpił błąd podczas wysyłania linku resetującego';
+        setGeneralError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      // Success! Show success message
       setSuccess(true);
       
       // Redirect to login after 5 seconds
@@ -73,7 +87,8 @@ export default function ForgotPasswordForm() {
         window.location.href = '/login';
       }, 5000);
     } catch (error) {
-      setGeneralError('Wystąpił błąd. Spróbuj ponownie.');
+      console.error('Forgot password error:', error);
+      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
       setIsLoading(false);
     }
   };
@@ -84,7 +99,7 @@ export default function ForgotPasswordForm() {
       <Card className="w-full shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-green-600 dark:text-green-400">
-            Email wysłany
+            Link wysłany!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-center">
@@ -106,24 +121,22 @@ export default function ForgotPasswordForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-neutral-700 dark:text-neutral-300">
-              Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.
+            <p className="text-lg font-medium">Sprawdź swoją skrzynkę email</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              Jeśli konto z podanym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.
             </p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Sprawdź swoją skrzynkę email (w tym folder spam).
+            <p className="text-xs text-neutral-500 dark:text-neutral-500">
+              Przekierowanie do logowania za 5 sekund...
             </p>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
+        <CardFooter>
           <Button
             onClick={() => window.location.href = '/login'}
             className="w-full"
           >
-            Powrót do logowania
+            Wróć do logowania
           </Button>
-          <p className="text-xs text-center text-neutral-500 dark:text-neutral-400">
-            Przekierowanie za 5 sekund...
-          </p>
         </CardFooter>
       </Card>
     );
@@ -192,7 +205,7 @@ export default function ForgotPasswordForm() {
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
             Pamiętasz hasło?{' '}
             <a href="/login" className="text-primary font-medium hover:underline">
-              Zaloguj się
+              Wróć do logowania
             </a>
           </p>
         </CardFooter>
@@ -200,4 +213,3 @@ export default function ForgotPasswordForm() {
     </Card>
   );
 }
-

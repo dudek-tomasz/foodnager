@@ -1,27 +1,33 @@
 /**
- * LogoutButton - Button component for logging out
+ * LogoutButton - Button component for user logout
  * 
  * Features:
- * - Calls logout API endpoint
+ * - Calls /api/auth/logout endpoint
  * - Loading state during logout
- * - Error handling
- * - Redirect to login after successful logout
- * - Can be used in ProfileView (mobile) or UserInfoDisplay (desktop)
+ * - Redirects to /login after successful logout
+ * - Error handling with toast notifications
+ * - Can be used in Sidebar (desktop) or Profile page (mobile)
+ * 
+ * Props:
+ * - variant: 'default' | 'ghost' | 'outline' - button style
+ * - className: optional additional CSS classes
+ * - showIcon: whether to show logout icon (default: true)
  */
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface LogoutButtonProps {
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  variant?: 'default' | 'ghost' | 'outline' | 'destructive';
   className?: string;
+  showIcon?: boolean;
 }
 
 export default function LogoutButton({ 
   variant = 'outline', 
-  size = 'default',
-  className = '' 
+  className = '',
+  showIcon = true 
 }: LogoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,27 +35,42 @@ export default function LogoutButton({
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to /api/auth/logout
-      console.log('Logging out...');
+      // Call logout API endpoint
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Handle API errors
+        const errorMessage = data.error?.message || 'Nie udało się wylogować';
+        toast.error(errorMessage);
+        return;
+      }
+
+      // Success! Show toast and redirect to login
+      toast.success('Wylogowano pomyślnie');
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // On success, redirect to login
-      window.location.href = '/login';
+      // Small delay for toast to be visible
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 500);
     } catch (error) {
       console.error('Logout error:', error);
+      toast.error('Nie udało się połączyć z serwerem');
+    } finally {
       setIsLoading(false);
-      // Optionally show toast error
-      alert('Wystąpił błąd podczas wylogowywania. Spróbuj ponownie.');
     }
   };
 
   return (
     <Button
-      variant={variant}
-      size={size}
       onClick={handleLogout}
+      variant={variant}
       disabled={isLoading}
       className={className}
     >
@@ -60,23 +81,10 @@ export default function LogoutButton({
         </>
       ) : (
         <>
-          <svg
-            className="mr-2 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
+          {showIcon && <span className="mr-2">🚪</span>}
           Wyloguj się
         </>
       )}
     </Button>
   );
 }
-

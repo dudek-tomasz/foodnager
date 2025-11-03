@@ -67,19 +67,29 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to /api/auth/login
-      console.log('Login with:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // On success, redirect
-      // window.location.href = redirectTo;
-      
-      // For now, show success message
-      setGeneralError('Funkcja logowania będzie dostępna po implementacji backendu');
+      // Call login API endpoint
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Handle API errors
+        const errorMessage = data.error?.message || 'Wystąpił błąd podczas logowania';
+        setGeneralError(errorMessage);
+        return;
+      }
+
+      // Success! Redirect to intended page
+      window.location.href = redirectTo;
     } catch (error) {
-      setGeneralError('Wystąpił błąd podczas logowania. Spróbuj ponownie.');
+      console.error('Login error:', error);
+      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
     } finally {
       setIsLoading(false);
     }

@@ -7,16 +7,28 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { RecipeService } from '../../../lib/services/recipe.service';
 import {
   recipeIdSchema,
   updateRecipeSchema,
 } from '../../../lib/validations/recipe.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError } from '../../../lib/errors';
+import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
+
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
+}
 
 /**
  * GET /api/recipes/:id
@@ -24,18 +36,14 @@ export const prerender = false;
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse(401, 'UNAUTHORIZED', 'Authentication required');
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate recipe ID
     const idValidation = recipeIdSchema.safeParse(context.params.id);
@@ -48,7 +56,7 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Fetch recipe
     const recipeService = new RecipeService(supabase);
-    const recipe = await recipeService.getRecipeById(user.id, recipeId);
+    const recipe = await recipeService.getRecipeById(userId, recipeId);
 
     return successResponse(200, recipe);
   } catch (error) {
@@ -68,18 +76,14 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function PATCH(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse(401, 'UNAUTHORIZED', 'Authentication required');
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate recipe ID
     const idValidation = recipeIdSchema.safeParse(context.params.id);
@@ -113,7 +117,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
     // Update recipe
     const recipeService = new RecipeService(supabase);
-    const recipe = await recipeService.updateRecipe(user.id, recipeId, updateDto);
+    const recipe = await recipeService.updateRecipe(userId, recipeId, updateDto);
 
     return successResponse(200, recipe);
   } catch (error) {
@@ -133,18 +137,14 @@ export async function PATCH(context: APIContext): Promise<Response> {
  */
 export async function DELETE(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse(401, 'UNAUTHORIZED', 'Authentication required');
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate recipe ID
     const idValidation = recipeIdSchema.safeParse(context.params.id);
@@ -157,7 +157,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
 
     // Delete recipe
     const recipeService = new RecipeService(supabase);
-    await recipeService.deleteRecipe(user.id, recipeId);
+    await recipeService.deleteRecipe(userId, recipeId);
 
     // Return 204 No Content
     return new Response(null, { status: 204 });

@@ -11,13 +11,25 @@
  */
 
 import type { APIContext } from 'astro';
-import { createClient } from '../../../db/supabase.client';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import { AIRecipeService } from '../../../lib/services/ai-recipe.service';
 import { GenerateRecipeSchema } from '../../../lib/validations/recipe-discovery.validation';
 import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError } from '../../../lib/errors';
+import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
 
 export const prerender = false;
+
+/**
+ * Helper function to get authenticated user from request
+ * @throws UnauthorizedError if user is not authenticated
+ */
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+  return user.id;
+}
 
 /**
  * POST /api/recipes/generate
@@ -50,18 +62,14 @@ export const prerender = false;
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Create Supabase client with user context
-    const supabase = createClient(context);
+    // Authenticate user
+    const userId = getAuthenticatedUser(context);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return errorResponse('UNAUTHORIZED', 'Authentication required', undefined, 401);
-    }
+    // Create Supabase instance
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
@@ -88,7 +96,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const aiRecipeService = new AIRecipeService(supabase);
     
     try {
-      const result = await aiRecipeService.generateRecipe(user.id, generateDto);
+      const result = await aiRecipeService.generateRecipe(userId, generateDto);
       
       // Return 201 Created
       return successResponse(result, 201);

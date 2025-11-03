@@ -3,10 +3,16 @@
  * 
  * GET /api/fridge - List all fridge items with filtering and sorting
  * POST /api/fridge - Add new item to fridge
+ * 
+ * Following auth implementation:
+ * - Uses context.locals.user from middleware
+ * - Creates supabase instance per request using createSupabaseServerInstance
+ * - Protected endpoint (middleware ensures user is authenticated)
  */
 
 import type { APIContext } from 'astro';
 import { FridgeService } from '../../../lib/services/fridge.service';
+import { createSupabaseServerInstance } from '../../../db/supabase.client';
 import {
   listFridgeQuerySchema,
   createFridgeItemSchema,
@@ -16,35 +22,24 @@ import {
   errorResponse,
   handleError,
 } from '../../../lib/utils/api-response';
-import { ValidationError } from '../../../lib/errors';
-import { DEFAULT_USER_ID } from '../../../db/supabase.client';
+import { ValidationError, UnauthorizedError } from '../../../lib/errors';
 
 // Disable pre-rendering for API routes
 export const prerender = false;
 
-// TODO: Restore authentication after auth system is implemented
 /**
  * Helper function to get authenticated user from request
+ * Uses context.locals.user populated by middleware
  * @throws UnauthorizedError if user is not authenticated
  */
-// async function getAuthenticatedUser(context: APIContext): Promise<string> {
-//   const supabase = context.locals.supabase;
-//   
-//   const { data: { user }, error } = await supabase.auth.getUser();
-//
-//   if (error || !user) {
-//     throw new UnauthorizedError('Authentication required');
-//   }
-//
-//   return user.id;
-// }
+function getAuthenticatedUser(context: APIContext): string {
+  const user = context.locals.user;
+  
+  if (!user) {
+    throw new UnauthorizedError('Authentication required');
+  }
 
-/**
- * TEMPORARY: Returns default user ID for development
- * TODO: Replace with real authentication
- */
-function getAuthenticatedUser(_context: APIContext): string {
-  return DEFAULT_USER_ID;
+  return user.id;
 }
 
 /**
@@ -54,8 +49,14 @@ function getAuthenticatedUser(_context: APIContext): string {
  */
 export async function GET(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user (from middleware via context.locals.user)
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance for this request
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate query parameters
     const url = new URL(context.request.url);
@@ -78,8 +79,8 @@ export async function GET(context: APIContext): Promise<Response> {
       );
     }
 
-    // Call service
-    const fridgeService = new FridgeService(context.locals.supabase);
+    // Call service with supabase instance
+    const fridgeService = new FridgeService(supabase);
     const result = await fridgeService.listFridgeItems(userId, validationResult.data);
 
     return successResponse(result, 200);
@@ -94,8 +95,14 @@ export async function GET(context: APIContext): Promise<Response> {
  */
 export async function POST(context: APIContext): Promise<Response> {
   try {
-    // Authenticate user (TEMPORARY: using default user)
+    // Authenticate user (from middleware via context.locals.user)
     const userId = getAuthenticatedUser(context);
+
+    // Create Supabase instance for this request
+    const supabase = createSupabaseServerInstance({
+      cookies: context.cookies,
+      headers: context.request.headers,
+    });
 
     // Parse and validate request body
     let body;
@@ -114,8 +121,8 @@ export async function POST(context: APIContext): Promise<Response> {
       );
     }
 
-    // Call service
-    const fridgeService = new FridgeService(context.locals.supabase);
+    // Call service with supabase instance
+    const fridgeService = new FridgeService(supabase);
     const item = await fridgeService.addItemToFridge(userId, validationResult.data);
 
     // Return 201 Created with Location header

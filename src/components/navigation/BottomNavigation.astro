@@ -2,6 +2,7 @@
 /**
  * Bottom Navigation Component (Mobile/Tablet <1024px)
  * Fixed bottom navigation bar with 5 buttons, center button enlarged
+ * Following auth-spec.md US-001.6: Profile link for mobile users
  */
 
 interface Props {
@@ -49,10 +50,10 @@ const navItems = [
     isCTA: false,
   },
   {
-    href: '/login',
+    href: '/profile',
     label: 'Profil',
     icon: '👤',
-    isActive: isActive('/login'),
+    isActive: isActive('/profile'),
     isCTA: false,
   },
 ];

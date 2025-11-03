@@ -1,4 +1,14 @@
 ---
+/**
+ * Main Layout
+ * 
+ * Standard layout for authenticated pages with navigation.
+ * Following auth-spec.md:
+ * - Passes user data to Sidebar for UserInfoDisplay (US-001.6)
+ * - Desktop: Sidebar with user info and logout button
+ * - Mobile: BottomNavigation with profile link
+ */
+
 import "../styles/global.css";
 import { Toaster } from "@/components/ui/sonner";
 import Sidebar from "@/components/navigation/Sidebar.astro";
@@ -16,6 +26,12 @@ const {
 
 // Pobierz aktualną ścieżkę dla nawigacji
 const currentPath = Astro.url.pathname;
+
+// Pobierz dane użytkownika z middleware (Astro.locals.user)
+const user = Astro.locals.user;
+
+// Przygotuj dane użytkownika dla Sidebar (tylko email potrzebny)
+const userData = user ? { email: user.email } : null;
 ---
 
 <!doctype html>
@@ -30,7 +46,7 @@ const currentPath = Astro.url.pathname;
   </head>
   <body>
     <!-- Desktop Sidebar Navigation (≥1024px) -->
-    <Sidebar currentPath={currentPath} />
+    <Sidebar currentPath={currentPath} user={userData} />
 
     <!-- Main Content Area -->
     <main class="main-content">
