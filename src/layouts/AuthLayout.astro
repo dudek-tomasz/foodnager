@@ -1,0 +1,95 @@
+---
+/**
+ * AuthLayout - Dedicated layout for authentication pages
+ * 
+ * This layout is used for login, register, forgot-password, and reset-password pages.
+ * Features:
+ * - No navigation (sidebar/bottom nav)
+ * - Full-screen centered layout
+ * - Gradient background for aesthetics
+ * - Responsive design
+ * - Toast system for notifications
+ * - Global styles imported
+ */
+
+import "../styles/global.css";
+import { Toaster } from "@/components/ui/sonner";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { 
+  title, 
+  description = "Foodnager - Zarządzaj przepisami i lodówką" 
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="auth-layout">
+      <div class="auth-container">
+        <slot />
+      </div>
+    </div>
+
+    <!-- Global Toast Notifications -->
+    <Toaster client:load />
+  </body>
+</html>
+
+<style>
+  html {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .auth-layout {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, 
+      rgb(249 250 251) 0%, 
+      rgb(255 255 255) 50%,
+      rgb(243 244 246) 100%
+    );
+  }
+
+  .auth-container {
+    width: 100%;
+    max-width: 520px; /* Szerszy modal - było 448px (md) */
+  }
+
+  /* Jasne tło również w dark mode dla lepszej czytelności */
+  @media (prefers-color-scheme: dark) {
+    .auth-layout {
+      background: linear-gradient(135deg, 
+        rgb(241 245 249) 0%, 
+        rgb(248 250 252) 50%,
+        rgb(241 245 249) 100%
+      );
+    }
+  }
+</style>
+
