@@ -302,6 +302,7 @@ export interface UpdateRecipeDTO {
   instructions?: string;
   cooking_time?: number | null;
   difficulty?: DifficultyEnum | null;
+  source?: SourceEnum;
   ingredients?: CreateRecipeIngredientDTO[];
   tag_ids?: number[];
 }

@@ -66,12 +66,12 @@ export const GenerateRecipePreferencesSchema = z.object({
  * 
  * Validation rules:
  * - product_ids is required with 1-20 products (practical limit for AI)
- * - save_to_recipes defaults to true
+ * - save_to_recipes defaults to false (user must explicitly save)
  */
 export const GenerateRecipeSchema = z.object({
   product_ids: z.array(z.number().int().positive()).min(1).max(20),
   preferences: GenerateRecipePreferencesSchema,
-  save_to_recipes: z.boolean().default(true)
+  save_to_recipes: z.boolean().default(false)
 });
 
 // =============================================================================

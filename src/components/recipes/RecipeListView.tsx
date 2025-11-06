@@ -14,6 +14,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRecipeList } from '@/hooks/useRecipeList';
+import { RecipeDetailsModal } from '@/components/recipe-details';
 import { RecipeListHeader } from './RecipeListHeader';
 import { RecipeToolbar } from './RecipeToolbar';
 import { RecipeGrid } from './RecipeGrid';
@@ -62,6 +63,10 @@ export function RecipeListView({
     id: number;
     name: string;
   } | null>(null);
+
+  // Recipe details modal state
+  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Calculate statistics
   const stats = calculateRecipeStats(recipes);
@@ -137,10 +142,21 @@ export function RecipeListView({
   };
 
   /**
-   * Navigates to recipe details page
+   * Opens recipe details modal
    */
   const handleRecipeClick = (id: number) => {
-    window.location.href = `/recipes/${id}`;
+    setSelectedRecipeId(id);
+    setIsDetailsModalOpen(true);
+  };
+
+  /**
+   * Closes recipe details modal
+   */
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedRecipeId(null);
+    // Refresh list in case recipe was deleted or saved from modal
+    refreshList();
   };
 
   /**
@@ -266,6 +282,16 @@ export function RecipeListView({
           recipeName={recipeToDelete.name}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
+        />
+      )}
+
+      {/* Recipe Details Modal */}
+      {selectedRecipeId && (
+        <RecipeDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={handleCloseDetailsModal}
+          recipeId={selectedRecipeId}
+          from="recipes"
         />
       )}
     </main>

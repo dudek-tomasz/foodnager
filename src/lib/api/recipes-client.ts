@@ -7,6 +7,7 @@ import { apiClient } from '../api-client';
 import type {
   RecipeDTO,
   CreateRecipeDTO,
+  UpdateRecipeDTO,
   RecipesListResponseDTO,
   ListRecipesQueryDTO,
 } from '../../types';
@@ -42,6 +43,20 @@ export async function createRecipe(
   recipe: CreateRecipeDTO
 ): Promise<RecipeDTO> {
   return apiClient.post<RecipeDTO>('/api/recipes', recipe);
+}
+
+/**
+ * Aktualizuje przepis użytkownika
+ * @param recipeId - ID przepisu do zaktualizowania
+ * @param updateDto - Dane do aktualizacji
+ * @returns Zaktualizowany przepis
+ * @throws ApiError jeśli przepis nie istnieje (404) lub brak uprawnień
+ */
+export async function updateRecipe(
+  recipeId: number,
+  updateDto: UpdateRecipeDTO
+): Promise<RecipeDTO> {
+  return apiClient.patch<RecipeDTO>(`/api/recipes/${recipeId}`, updateDto);
 }
 
 /**

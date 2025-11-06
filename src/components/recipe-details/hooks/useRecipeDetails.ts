@@ -14,15 +14,21 @@ import type {
   RecipeViewModel,
   RecipeDetailsUIState,
 } from '../../../lib/types/recipe-view-models';
-import { fetchRecipe, deleteRecipe, saveRecipeAsCopy } from '../../../lib/api/recipes-client';
+import { fetchRecipe, deleteRecipe, updateRecipe, createRecipe } from '../../../lib/api/recipes-client';
 import { fetchAllFridgeItems } from '../../../lib/api/fridge-client';
 import { cookRecipe } from '../../../lib/api/cooking-history-client';
 import { createRecipeViewModel, validateIngredientsAvailability } from '../../../lib/utils/recipe-utils';
 import { ApiError } from '../../../lib/api-client';
+import type { ExternalRecipe } from '../../../lib/services/external-api.service';
 
 interface UseRecipeDetailsParams {
-  recipeId: number;
+  recipeId?: number;
+  externalRecipe?: ExternalRecipe;
   initialMatchScore?: number;
+  // Callbacks for modal mode
+  onSaveSuccess?: () => void;
+  onDeleteSuccess?: () => void;
+  onCookSuccess?: () => void;
 }
 
 interface UseRecipeDetailsReturn {
@@ -56,7 +62,11 @@ interface UseRecipeDetailsReturn {
  */
 export function useRecipeDetails({
   recipeId,
+  externalRecipe,
   initialMatchScore,
+  onSaveSuccess,
+  onDeleteSuccess,
+  onCookSuccess,
 }: UseRecipeDetailsParams): UseRecipeDetailsReturn {
   // State
   const [uiState, setUiState] = useState<RecipeDetailsUIState>({
@@ -74,6 +84,64 @@ export function useRecipeDetails({
 
   const [fridgeItems, setFridgeItems] = useState<FridgeItemDTO[]>([]);
   const [recipe, setRecipe] = useState<RecipeViewModel | null>(null);
+  
+  // Track if this is an external recipe (not yet saved to DB)
+  const [isExternalRecipe, setIsExternalRecipe] = useState(!!externalRecipe);
+
+  // =============================================================================
+  // HELPER FUNCTIONS
+  // =============================================================================
+
+  /**
+   * Konwertuje ExternalRecipe do RecipeDTO format
+   * Używane dla wyświetlenia external recipe bez zapisywania do bazy
+   */
+  const convertExternalRecipeToDTO = async (
+    external: ExternalRecipe,
+    fridgeData: FridgeItemDTO[]
+  ): Promise<RecipeDTO> => {
+    // Create a temporary RecipeDTO-like object for display
+    // Note: This won't have a real ID until saved
+    // Ingredients will be matched to fridge items by name
+    const recipeDTO: RecipeDTO = {
+      id: 0, // Temporary ID - will be set on save
+      title: external.title,
+      description: external.description || null,
+      instructions: external.instructions,
+      cooking_time: external.cooking_time || null,
+      difficulty: external.difficulty || 'medium',
+      source: 'api', // External recipe
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      metadata: {
+        external_id: external.id,
+        image_url: external.image_url,
+        source_url: external.source_url,
+      },
+      // Map external ingredients to RecipeIngredientDTO format
+      // Match by name with fridge items
+      ingredients: external.ingredients.map((ing, index) => ({
+        product: {
+          id: 0, // Temporary - will be resolved on save
+          name: ing.name,
+        },
+        quantity: ing.quantity,
+        unit: {
+          id: 0, // Temporary - will be resolved on save
+          name: ing.unit,
+          abbreviation: ing.unit,
+        },
+      })),
+      // Tags from external recipe
+      tags: (external.tags || []).map((tagName, index) => ({
+        id: 0, // Temporary - will be resolved on save
+        name: tagName,
+        created_at: new Date().toISOString(),
+      })),
+    };
+    
+    return recipeDTO;
+  };
 
   // =============================================================================
   // FETCH DATA
@@ -81,16 +149,30 @@ export function useRecipeDetails({
 
   /**
    * Pobiera dane przepisu i lodówki równolegle
+   * Obsługuje zarówno saved recipes (recipeId) jak i external recipes
    */
   const fetchRecipeAndFridge = useCallback(async () => {
     setUiState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      // Parallel fetch
-      const [recipeData, fridgeData] = await Promise.all([
-        fetchRecipe(recipeId),
-        fetchAllFridgeItems(),
-      ]);
+      // Always fetch fridge data
+      const fridgeData = await fetchAllFridgeItems();
+      setFridgeItems(fridgeData);
+
+      let recipeData: RecipeDTO;
+
+      // Mode 1: External recipe (not yet saved to DB)
+      if (externalRecipe && isExternalRecipe) {
+        // Convert ExternalRecipe to RecipeDTO format
+        // External recipes don't have an ID yet, use temporary ID
+        recipeData = await convertExternalRecipeToDTO(externalRecipe, fridgeData);
+      }
+      // Mode 2: Saved recipe (has ID in DB)
+      else if (recipeId) {
+        recipeData = await fetchRecipe(recipeId);
+      } else {
+        throw new Error('Either recipeId or externalRecipe must be provided');
+      }
 
       // Transform do RecipeViewModel z availability check
       const viewModel = createRecipeViewModel(
@@ -100,7 +182,6 @@ export function useRecipeDetails({
       );
 
       setRecipe(viewModel);
-      setFridgeItems(fridgeData);
       setUiState((prev) => ({
         ...prev,
         isLoading: false,
@@ -127,7 +208,7 @@ export function useRecipeDetails({
         error: errorMessage,
       }));
     }
-  }, [recipeId, initialMatchScore]);
+  }, [recipeId, externalRecipe, isExternalRecipe, initialMatchScore]);
 
   // Fetch on mount
   useEffect(() => {
@@ -177,6 +258,15 @@ export function useRecipeDetails({
   const confirmCook = useCallback(async () => {
     if (!recipe) return;
 
+    // Prevent cooking external recipes that haven't been saved yet
+    if (isExternalRecipe || recipe.id === 0) {
+      toast.error('Zapisz przepis', {
+        description: 'Aby ugotować ten przepis, musisz najpierw go zapisać.',
+      });
+      closeCookDialog();
+      return;
+    }
+
     setUiState((prev) => ({ ...prev, isCooking: true }));
     closeCookDialog();
 
@@ -189,8 +279,13 @@ export function useRecipeDetails({
         description: `Zaktualizowano ${result.updated_fridge_items.length} produktów w lodówce.`,
       });
 
-      // Redirect do historii
-      window.location.href = '/history';
+      // Call callback if provided (for modal close)
+      if (onCookSuccess) {
+        onCookSuccess();
+      } else {
+        // Redirect do historii (only if not in modal mode)
+        window.location.href = '/history';
+      }
     } catch (error) {
       console.error('Error cooking recipe:', error);
       
@@ -210,7 +305,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isCooking: false }));
     }
-  }, [recipe, closeCookDialog]);
+  }, [recipe, isExternalRecipe, closeCookDialog, onCookSuccess]);
 
   // =============================================================================
   // DELETE RECIPE
@@ -237,6 +332,15 @@ export function useRecipeDetails({
   const confirmDelete = useCallback(async () => {
     if (!recipe) return;
 
+    // Can't delete external recipes that haven't been saved
+    if (isExternalRecipe || recipe.id === 0) {
+      toast.error('Nie można usunąć', {
+        description: 'Ten przepis nie jest jeszcze zapisany w bazie danych.',
+      });
+      closeDeleteDialog();
+      return;
+    }
+
     setUiState((prev) => ({ ...prev, isDeleting: true }));
     closeDeleteDialog();
 
@@ -247,8 +351,13 @@ export function useRecipeDetails({
         description: 'Przepis został pomyślnie usunięty.',
       });
 
-      // Redirect do listy przepisów
-      window.location.href = '/recipes';
+      // Call callback if provided (for modal close)
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      } else {
+        // Redirect do listy przepisów (only if not in modal mode)
+        window.location.href = '/recipes';
+      }
     } catch (error) {
       console.error('Error deleting recipe:', error);
       
@@ -264,7 +373,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isDeleting: false }));
     }
-  }, [recipe, closeDeleteDialog]);
+  }, [recipe, isExternalRecipe, closeDeleteDialog, onDeleteSuccess]);
 
   // =============================================================================
   // SAVE RECIPE (COPY)
@@ -272,26 +381,84 @@ export function useRecipeDetails({
 
   /**
    * Handler dla akcji "Zapisz do moich przepisów"
-   * Tworzy kopię przepisu jako przepis użytkownika
+   * 
+   * Two modes:
+   * 1. External recipe (not in DB yet) - creates new recipe
+   * 2. Saved recipe (already in DB) - updates source to 'user'
    */
   const handleSave = useCallback(async () => {
-    if (!recipe) return;
+    if (!recipe && !externalRecipe) return;
 
     setUiState((prev) => ({ ...prev, isSaving: true }));
 
     try {
-      const savedRecipe: RecipeDTO = await saveRecipeAsCopy(recipe);
+      let savedRecipeId: number;
 
-      toast.success('Przepis zapisany!', {
-        description: 'Przepis został dodany do Twojej kolekcji.',
-        action: {
-          label: 'Zobacz przepis',
-          onClick: () => {
-            window.location.href = `/recipes/${savedRecipe.id}`;
+      // Mode 1: External recipe - create new recipe in DB
+      if (isExternalRecipe && externalRecipe) {
+        // For now, we'll use the /api/recipes/generate endpoint through fetch
+        // or convert via ExternalRecipeMapper
+        // Simple approach: Call POST /api/recipes with external data converted
+        const response = await fetch('/api/recipes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        },
-      });
+          body: JSON.stringify({
+            title: externalRecipe.title,
+            description: externalRecipe.description || null,
+            instructions: externalRecipe.instructions,
+            cooking_time: externalRecipe.cooking_time || null,
+            difficulty: externalRecipe.difficulty || 'medium',
+            source: 'user', // Save as user recipe
+            ingredients: externalRecipe.ingredients.map(ing => ({
+              product_name: ing.name,
+              quantity: ing.quantity,
+              unit_name: ing.unit,
+            })),
+            tags: externalRecipe.tags || [],
+          }),
+        });
 
+        if (!response.ok) {
+          throw new Error('Failed to save recipe');
+        }
+
+        const createdRecipe = await response.json();
+        savedRecipeId = createdRecipe.id;
+        
+        // After saving, switch to saved mode
+        setIsExternalRecipe(false);
+        
+        toast.success('Przepis zapisany!', {
+          description: 'Przepis został dodany do Twojej kolekcji.',
+        });
+
+        // Call callback if provided (for modal close)
+        if (onSaveSuccess) {
+          onSaveSuccess();
+        }
+      }
+      // Mode 2: Already saved recipe - just update source
+      else if (recipe && recipe.id) {
+        await updateRecipe(recipe.id, { source: 'user' });
+        savedRecipeId = recipe.id;
+        
+        toast.success('Przepis zapisany!', {
+          description: 'Przepis został dodany do Twojej kolekcji.',
+        });
+
+        // Refetch recipe to update UI
+        await fetchRecipeAndFridge();
+        
+        // Call callback if provided (for modal close)
+        if (onSaveSuccess) {
+          onSaveSuccess();
+        }
+      } else {
+        throw new Error('No recipe data available to save');
+      }
+      
       setUiState((prev) => ({ ...prev, isSaving: false }));
     } catch (error) {
       console.error('Error saving recipe:', error);
@@ -308,7 +475,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isSaving: false }));
     }
-  }, [recipe]);
+  }, [recipe, externalRecipe, isExternalRecipe, fetchRecipeAndFridge, onSaveSuccess]);
 
   // =============================================================================
   // GENERATE SHOPPING LIST

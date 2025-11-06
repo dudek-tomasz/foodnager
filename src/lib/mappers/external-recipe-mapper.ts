@@ -113,34 +113,55 @@ export class ExternalRecipeMapper {
 
   /**
    * Find existing unit or create new one
+   * Searches by name first, then by abbreviation
    * 
-   * @param unitName - Unit name (e.g., "cup", "tablespoon")
+   * @param unitName - Unit name or abbreviation (e.g., "cup", "ml", "tablespoon")
    * @returns Unit object
    */
   private async findOrCreateUnit(unitName: string): Promise<UnitReferenceDTO> {
     const normalizedName = unitName.toLowerCase().trim();
 
-    // Try to find existing unit (case-insensitive)
-    const { data: existingUnits, error: searchError } = await this.supabase
+    // Step 1: Try to find existing unit by name (case-insensitive)
+    const { data: unitsByName, error: nameSearchError } = await this.supabase
       .from('units')
       .select('id, name, abbreviation')
       .ilike('name', normalizedName)
       .limit(1);
 
-    if (searchError) {
-      console.error('Error searching units:', searchError);
+    if (nameSearchError) {
+      console.error('Error searching units by name:', nameSearchError);
       throw new Error('Failed to search units');
     }
 
-    if (existingUnits && existingUnits.length > 0) {
+    if (unitsByName && unitsByName.length > 0) {
       return {
-        id: existingUnits[0].id,
-        name: existingUnits[0].name,
-        abbreviation: existingUnits[0].abbreviation,
+        id: unitsByName[0].id,
+        name: unitsByName[0].name,
+        abbreviation: unitsByName[0].abbreviation,
       };
     }
 
-    // Create new unit if not found
+    // Step 2: Try to find existing unit by abbreviation (case-insensitive)
+    const { data: unitsByAbbr, error: abbrSearchError } = await this.supabase
+      .from('units')
+      .select('id, name, abbreviation')
+      .ilike('abbreviation', normalizedName)
+      .limit(1);
+
+    if (abbrSearchError) {
+      console.error('Error searching units by abbreviation:', abbrSearchError);
+      throw new Error('Failed to search units');
+    }
+
+    if (unitsByAbbr && unitsByAbbr.length > 0) {
+      return {
+        id: unitsByAbbr[0].id,
+        name: unitsByAbbr[0].name,
+        abbreviation: unitsByAbbr[0].abbreviation,
+      };
+    }
+
+    // Step 3: Create new unit if not found by name or abbreviation
     const abbreviation = this.generateUnitAbbreviation(unitName);
 
     const { data: newUnit, error: createError } = await this.supabase

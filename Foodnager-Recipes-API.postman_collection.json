@@ -1,0 +1,591 @@
+{
+  "info": {
+    "name": "Foodnager - Recipes API",
+    "description": "Complete test collection for Recipes endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4321",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "YOUR_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. List Recipes",
+      "item": [
+        {
+          "name": "List All Recipes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "List with Pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search by Text",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?search=tomato",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "search", "value": "tomato"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Difficulty",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?difficulty=easy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "difficulty", "value": "easy"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Max Cooking Time",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?max_cooking_time=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "max_cooking_time", "value": "30"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?tags=1,2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "tags", "value": "1,2"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sort by Title (ASC)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?sort=title&order=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "sort", "value": "title"},
+                {"key": "order", "value": "asc"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complex Query",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?search=soup&difficulty=easy&max_cooking_time=45&sort=created_at&order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "search", "value": "soup"},
+                {"key": "difficulty", "value": "easy"},
+                {"key": "max_cooking_time", "value": "45"},
+                {"key": "sort", "value": "created_at"},
+                {"key": "order", "value": "desc"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create Recipes",
+      "item": [
+        {
+          "name": "Create Simple Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tomato Soup\",\n  \"instructions\": \"1. Chop tomatoes\\n2. Cook in pot for 20 minutes\\n3. Blend and serve\",\n  \"ingredients\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 5,\n      \"unit_id\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Create Full Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spaghetti Carbonara\",\n  \"description\": \"Traditional Italian pasta\",\n  \"instructions\": \"1. Cook pasta\\n2. Fry bacon\\n3. Mix eggs with cheese\\n4. Combine all\\n5. Serve\",\n  \"cooking_time\": 25,\n  \"difficulty\": \"medium\",\n  \"ingredients\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 400,\n      \"unit_id\": 2\n    },\n    {\n      \"product_id\": 2,\n      \"quantity\": 200,\n      \"unit_id\": 2\n    }\n  ],\n  \"tag_ids\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Create Easy Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Quick Scrambled Eggs\",\n  \"description\": \"Simple breakfast\",\n  \"instructions\": \"1. Beat eggs\\n2. Heat pan\\n3. Cook while stirring\\n4. Serve\",\n  \"cooking_time\": 5,\n  \"difficulty\": \"easy\",\n  \"ingredients\": [\n    {\n      \"product_id\": 3,\n      \"quantity\": 3,\n      \"unit_id\": 1\n    }\n  ],\n  \"tag_ids\": [1]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Get Recipe by ID",
+      "item": [
+        {
+          "name": "Get Recipe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Non-existent Recipe (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "99999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Update Recipe",
+      "item": [
+        {
+          "name": "Update Title",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Recipe Title\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Cooking Time & Difficulty",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cooking_time\": 30,\n  \"difficulty\": \"hard\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Replace Ingredients",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredients\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 8,\n      \"unit_id\": 1\n    },\n    {\n      \"product_id\": 2,\n      \"quantity\": 3,\n      \"unit_id\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Replace Tags",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag_ids\": [3, 4]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Multiple Fields",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Perfect Tomato Soup\",\n  \"description\": \"The ultimate recipe\",\n  \"cooking_time\": 35,\n  \"difficulty\": \"medium\",\n  \"ingredients\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 10,\n      \"unit_id\": 1\n    }\n  ],\n  \"tag_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Delete Recipe",
+      "item": [
+        {
+          "name": "Delete Recipe",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Non-existent (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "99999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Error Cases",
+      "item": [
+        {
+          "name": "Missing Auth (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Query Params (422)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes?page=0&limit=200",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "limit", "value": "200"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Missing Required Fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Incomplete Recipe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Duplicate Ingredients (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Invalid Recipe\",\n  \"instructions\": \"Test\",\n  \"ingredients\": [\n    {\"product_id\": 1, \"quantity\": 5, \"unit_id\": 1},\n    {\"product_id\": 1, \"quantity\": 3, \"unit_id\": 1}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Empty Update Body (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

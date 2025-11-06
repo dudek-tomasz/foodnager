@@ -383,6 +383,7 @@ export class RecipeService {
     if (updateDto.instructions !== undefined) updateData.instructions = updateDto.instructions;
     if (updateDto.cooking_time !== undefined) updateData.cooking_time = updateDto.cooking_time;
     if (updateDto.difficulty !== undefined) updateData.difficulty = updateDto.difficulty;
+    if (updateDto.source !== undefined) updateData.source = updateDto.source;
 
     // Update recipe base data if any fields provided
     if (Object.keys(updateData).length > 0) {

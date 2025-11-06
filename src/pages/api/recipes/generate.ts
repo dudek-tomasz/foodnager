@@ -45,7 +45,7 @@ function getAuthenticatedUser(context: APIContext): string {
  *     "difficulty": "easy",
  *     "dietary_restrictions": ["vegetarian"]
  *   },
- *   "save_to_recipes": true // optional, default true
+ *   "save_to_recipes": false // optional, default false (user must explicitly save)
  * }
  * 
  * Response: 201 Created

@@ -112,6 +112,7 @@ export const updateRecipeSchema = z
       .nullable()
       .optional(),
     difficulty: z.enum(['easy', 'medium', 'hard']).nullable().optional(),
+    source: z.enum(['user', 'api', 'ai']).optional(),
     ingredients: z
       .array(recipeIngredientSchema)
       .min(1, { message: 'at least one ingredient is required' })

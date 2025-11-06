@@ -1,6 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { RecipeDetailsView } from "@/components/recipe-details";
+import { RecipeService } from "@/lib/services/recipe.service";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
 
 export const prerender = false;
 
@@ -21,12 +23,22 @@ if (!recipeId || isNaN(recipeId)) {
 // Optional: Fetch recipe title for SEO (server-side)
 let pageTitle = 'Przepis - Foodnager';
 try {
-  const recipeResponse = await fetch(
-    `${import.meta.env.SITE || 'http://localhost:4321'}/api/recipes/${recipeId}`
-  );
-  if (recipeResponse.ok) {
-    const recipeData = await recipeResponse.json();
-    pageTitle = `${recipeData.title} - Foodnager`;
+  // Get authenticated user
+  const user = Astro.locals.user;
+  
+  if (user) {
+    // Create Supabase client
+    const supabase = createSupabaseServerInstance({
+      cookies: Astro.cookies,
+      headers: Astro.request.headers,
+    });
+
+    // Create service instance
+    const recipeService = new RecipeService(supabase);
+    
+    // Fetch recipe directly from service
+    const recipe = await recipeService.getRecipeById(user.id, recipeId);
+    pageTitle = `${recipe.title} - Foodnager`;
   }
 } catch (error) {
   console.error('Failed to fetch recipe title for SEO:', error);

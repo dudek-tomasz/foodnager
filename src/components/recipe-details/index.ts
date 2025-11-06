@@ -3,6 +3,7 @@
  */
 
 export { default as RecipeDetailsView } from './RecipeDetailsView';
+export { default as RecipeDetailsModal } from './RecipeDetailsModal';
 
 // Subcomponents (optional exports for external use)
 export { default as RecipeHeader } from './RecipeHeader';

@@ -149,7 +149,7 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       // For now, use empty array (API will use all fridge items)
       const generateDto = {
         product_ids: [], // Will be replaced with actual fridge product IDs
-        save_to_recipes: true,
+        save_to_recipes: false, // Don't auto-save, let user decide
       };
 
       const { generateRecipeWithAI } = await import('@/lib/api/recipe-search.api');

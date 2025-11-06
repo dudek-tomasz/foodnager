@@ -311,17 +311,17 @@ export class RecipeDiscoveryService {
     // Validate response - expects array of recipes
     const validatedRecipes = this.aiValidator.validateMultiple(aiResponse);
 
-    console.log(`🤖 [AI] Received ${validatedRecipes.length} recipes, saving to database...`);
+    console.log(`🤖 [AI] Received ${validatedRecipes.length} recipes, building temporary results...`);
 
-    // Save all recipes and calculate match scores
+    // Build temporary recipes WITHOUT saving to database
     const results: RecipeSearchResultDTO[] = [];
 
     for (const [index, validatedRecipe] of validatedRecipes.entries()) {
       try {
-        console.log(`💾 [AI] Saving recipe ${index + 1}/${validatedRecipes.length}: "${validatedRecipe.title}"`);
+        console.log(`🔨 [AI] Building temporary recipe ${index + 1}/${validatedRecipes.length}: "${validatedRecipe.title}"`);
         
-        // Map and save AI recipe to database
-        const savedRecipe = await this.saveAIRecipe(
+        // Build temporary AI recipe (NOT saved to database)
+        const temporaryRecipe = await this.buildTemporaryAIRecipe(
           userId,
           validatedRecipe,
           products,
@@ -330,20 +330,20 @@ export class RecipeDiscoveryService {
 
         // Calculate match score
         const matchResult = this.matchScoreCalculator.calculate(
-          savedRecipe.ingredients,
+          temporaryRecipe.ingredients,
           availableProducts
         );
 
         results.push({
-          recipe: savedRecipe,
+          recipe: temporaryRecipe,
           match_score: matchResult.score,
           available_ingredients: matchResult.available_ingredients,
           missing_ingredients: matchResult.missing_ingredients,
         });
 
-        console.log(`✅ [AI] Recipe "${validatedRecipe.title}" saved with match score: ${matchResult.score.toFixed(2)}`);
+        console.log(`✅ [AI] Recipe "${validatedRecipe.title}" built with match score: ${matchResult.score.toFixed(2)}`);
       } catch (error) {
-        console.error(`❌ [AI] Failed to save recipe "${validatedRecipe.title}":`, error);
+        console.error(`❌ [AI] Failed to build recipe "${validatedRecipe.title}":`, error);
         // Continue with other recipes
       }
     }
@@ -351,7 +351,7 @@ export class RecipeDiscoveryService {
     // Sort by match score (descending - best first)
     const sortedResults = results.sort((a, b) => b.match_score - a.match_score);
 
-    console.log(`🎯 [AI] Successfully generated and saved ${sortedResults.length} recipes`);
+    console.log(`🎯 [AI] Successfully generated ${sortedResults.length} temporary recipes (not saved)`);
 
     return sortedResults;
   }
@@ -376,15 +376,16 @@ export class RecipeDiscoveryService {
   }
 
   /**
-   * Save AI-generated recipe to database
+   * Build temporary AI-generated recipe WITHOUT saving to database
+   * User can save it later by clicking "Add to My Recipes" button
    * 
    * @param userId - User ID
    * @param aiRecipe - Validated AI recipe
    * @param originalProducts - Original products used for generation
    * @param searchDto - Original search DTO
-   * @returns Saved recipe as RecipeSummaryDTO
+   * @returns Temporary recipe as RecipeSummaryDTO (with id=0 indicating unsaved)
    */
-  private async saveAIRecipe(
+  private async buildTemporaryAIRecipe(
     userId: string,
     aiRecipe: AIRecipe,
     originalProducts: ProductReferenceDTO[],
@@ -403,124 +404,52 @@ export class RecipeDiscoveryService {
     // Map tags
     const tagIds = await this.externalRecipeMapper['mapTags'](aiRecipe.tags || []);
 
-    // Insert recipe with source='ai' and metadata
-    const { data: recipe, error: recipeError } = await this.supabase
-      .from('recipes')
-      .insert({
-        user_id: userId,
-        title: aiRecipe.title,
-        description: aiRecipe.description || null,
-        instructions: aiRecipe.instructions,
-        cooking_time: aiRecipe.cooking_time || null,
-        difficulty: aiRecipe.difficulty || null,
-        source: 'ai',
-        metadata: {
-          ai_model: import.meta.env.OPENROUTER_MODEL || 'anthropic/claude-3-haiku',
-          generation_timestamp: new Date().toISOString(),
-          input_products: originalProducts.map(p => p.id),
-          preferences: searchDto.preferences ? {
-            max_cooking_time: searchDto.preferences.max_cooking_time,
-            difficulty: searchDto.preferences.difficulty,
-            dietary_restrictions: searchDto.preferences.dietary_restrictions,
-          } : {},
-        } as any,
+    // Fetch tag details
+    const { data: tags } = await this.supabase
+      .from('tags')
+      .select('id, name, created_at')
+      .in('id', tagIds);
+
+    // Fetch product and unit details for ingredients
+    const ingredientDTOs = await Promise.all(
+      mappedIngredients.map(async (ing) => {
+        const { data: product } = await this.supabase
+          .from('products')
+          .select('id, name')
+          .eq('id', ing.product_id)
+          .single();
+
+        const { data: unit } = await this.supabase
+          .from('units')
+          .select('id, name, abbreviation')
+          .eq('id', ing.unit_id)
+          .single();
+
+        return {
+          product: { id: product!.id, name: product!.name },
+          quantity: ing.quantity,
+          unit: { id: unit!.id, name: unit!.name, abbreviation: unit!.abbreviation },
+        };
       })
-      .select('*')
-      .single();
+    );
 
-    if (recipeError || !recipe) {
-      console.error('Error creating AI recipe:', recipeError);
-      throw new Error('Failed to create AI recipe');
-    }
-
-    // Insert ingredients
-    if (mappedIngredients.length > 0) {
-      const ingredientRows = mappedIngredients.map((ing) => ({
-        recipe_id: recipe.id,
-        product_id: ing.product_id,
-        quantity: ing.quantity,
-        unit_id: ing.unit_id,
-      }));
-
-      const { error: ingredientsError } = await this.supabase
-        .from('recipe_ingredients')
-        .insert(ingredientRows);
-
-      if (ingredientsError) {
-        console.error('Error inserting AI recipe ingredients:', ingredientsError);
-        throw new Error('Failed to insert ingredients');
-      }
-    }
-
-    // Insert tags
-    if (tagIds.length > 0) {
-      const tagRows = tagIds.map((tagId) => ({
-        recipe_id: recipe.id,
-        tag_id: tagId,
-      }));
-
-      const { error: tagsError } = await this.supabase
-        .from('recipe_tags')
-        .insert(tagRows);
-
-      if (tagsError) {
-        console.error('Error inserting AI recipe tags:', tagsError);
-        throw new Error('Failed to insert tags');
-      }
-    }
-
-    // Fetch complete recipe
-    const { data: completeRecipe, error: fetchError } = await this.supabase
-      .from('recipes')
-      .select(`
-        *,
-        recipe_ingredients (
-          quantity,
-          product_id,
-          products!inner(id, name),
-          unit_id,
-          units!inner(id, name, abbreviation)
-        ),
-        recipe_tags (
-          tags!inner(id, name, created_at)
-        )
-      `)
-      .eq('id', recipe.id)
-      .single();
-
-    if (fetchError || !completeRecipe) {
-      console.error('Error fetching complete AI recipe:', fetchError);
-      throw new Error('Failed to fetch complete recipe');
-    }
-
-    // Transform to RecipeSummaryDTO
+    // Return RecipeSummaryDTO without saving (id=0 indicates unsaved)
     return {
-      id: completeRecipe.id,
-      title: completeRecipe.title,
-      description: completeRecipe.description,
-      instructions: completeRecipe.instructions,
-      cooking_time: completeRecipe.cooking_time,
-      difficulty: completeRecipe.difficulty,
-      source: completeRecipe.source,
-      tags: (completeRecipe.recipe_tags || []).map((rt: any) => ({
-        id: rt.tags.id,
-        name: rt.tags.name,
-        created_at: rt.tags.created_at,
+      id: 0, // No ID = temporary/unsaved recipe
+      title: aiRecipe.title,
+      description: aiRecipe.description || null,
+      instructions: aiRecipe.instructions,
+      cooking_time: aiRecipe.cooking_time || null,
+      difficulty: aiRecipe.difficulty || null,
+      source: 'ai',
+      tags: (tags || []).map(t => ({
+        id: t.id,
+        name: t.name,
+        created_at: t.created_at,
       })),
-      ingredients: (completeRecipe.recipe_ingredients || []).map((ri: any) => ({
-        product: {
-          id: ri.products.id,
-          name: ri.products.name,
-        },
-        quantity: ri.quantity,
-        unit: {
-          id: ri.unit_id,
-          name: ri.units.name,
-          abbreviation: ri.units.abbreviation,
-        },
-      })),
-      created_at: completeRecipe.created_at,
-      updated_at: completeRecipe.updated_at,
+      ingredients: ingredientDTOs,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
   }
 

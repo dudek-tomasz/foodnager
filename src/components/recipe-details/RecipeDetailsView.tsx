@@ -16,17 +16,29 @@ import DeleteConfirmationDialog from './dialogs/DeleteConfirmationDialog';
 import { ShoppingListModal } from '@/components/shopping-list';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorState from '@/components/ui/error-state';
+import type { ExternalRecipe } from '@/lib/services/external-api.service';
 
 export interface RecipeDetailsViewProps {
-  recipeId: number;
+  recipeId?: number;
+  externalRecipe?: ExternalRecipe;
   from?: string;
   matchScore?: number;
+  hideHistory?: boolean;
+  // Callbacks for modal mode
+  onSaveSuccess?: () => void;
+  onDeleteSuccess?: () => void;
+  onCookSuccess?: () => void;
 }
 
 export default function RecipeDetailsView({
   recipeId,
+  externalRecipe,
   from,
   matchScore,
+  hideHistory = false,
+  onSaveSuccess,
+  onDeleteSuccess,
+  onCookSuccess,
 }: RecipeDetailsViewProps) {
   // Main hook managing all state and logic
   const {
@@ -48,7 +60,11 @@ export default function RecipeDetailsView({
     closeShoppingListModal,
   } = useRecipeDetails({
     recipeId,
+    externalRecipe,
     initialMatchScore: matchScore,
+    onSaveSuccess,
+    onDeleteSuccess,
+    onCookSuccess,
   });
 
   // Scroll visibility for sticky bottom bar
