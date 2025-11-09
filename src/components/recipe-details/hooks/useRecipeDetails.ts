@@ -427,11 +427,11 @@ export function useRecipeDetails({
             difficulty: aiRecipe.difficulty || 'medium',
             source: 'user', // Save as user recipe (from AI)
             ingredients: aiRecipe.ingredients.map(ing => ({
-              product_name: ing.product.name,
+              product_id: ing.product.id,
               quantity: ing.quantity,
-              unit_name: ing.unit.name,
+              unit_id: ing.unit.id,
             })),
-            tags: aiRecipe.tags.map(tag => tag.name),
+            tag_ids: aiRecipe.tags.map(tag => tag.id),
           }),
         });
 
@@ -456,7 +456,7 @@ export function useRecipeDetails({
       }
       // Mode 2: External recipe - create new recipe in DB
       else if (isExternalRecipe && externalRecipe) {
-        const response = await fetch('/api/recipes', {
+        const response = await fetch('/api/recipes/from-external', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -467,13 +467,15 @@ export function useRecipeDetails({
             instructions: externalRecipe.instructions,
             cooking_time: externalRecipe.cooking_time || null,
             difficulty: externalRecipe.difficulty || 'medium',
-            source: 'user', // Save as user recipe
             ingredients: externalRecipe.ingredients.map(ing => ({
               product_name: ing.name,
               quantity: ing.quantity,
               unit_name: ing.unit,
             })),
             tags: externalRecipe.tags || [],
+            external_id: externalRecipe.id,
+            image_url: externalRecipe.image_url,
+            source_url: externalRecipe.source_url,
           }),
         });
 
