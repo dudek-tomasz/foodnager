@@ -17,7 +17,65 @@ import type {
   FormattedMatchScore,
   SearchError,
 } from '@/types/recipe-search.types';
+import type { RecipeSummaryDTO, FridgeItemDTO, RecipeIngredientDTO } from '@/types';
 import { SEARCH_TIMEOUTS } from '@/types/recipe-search.types';
+
+/**
+ * Calculate match score between recipe ingredients and available fridge items
+ * Frontend version of MatchScoreCalculator logic
+ * 
+ * @param recipeIngredients - Recipe ingredients
+ * @param fridgeItems - Available fridge items
+ * @returns Match score (0.0 - 1.0)
+ */
+function calculateMatchScore(
+  recipeIngredients: RecipeIngredientDTO[],
+  fridgeItems: FridgeItemDTO[]
+): number {
+  if (recipeIngredients.length === 0) {
+    return 0;
+  }
+
+  // Create a map of fridge items by product ID for quick lookup
+  const fridgeMap: Record<number, FridgeItemDTO> = {};
+  for (const item of fridgeItems) {
+    fridgeMap[item.product.id] = item;
+  }
+
+  let fullyAvailableCount = 0; // Ingredients with sufficient quantity
+  let partiallyAvailableCount = 0; // Ingredients present but insufficient quantity
+
+  // Check each recipe ingredient against fridge
+  for (const ingredient of recipeIngredients) {
+    const fridgeItem = fridgeMap[ingredient.product.id];
+    const requiredQuantity = ingredient.quantity;
+
+    if (fridgeItem) {
+      // Product exists in fridge
+      const availableQuantity = fridgeItem.quantity;
+
+      // Check if units match (simple ID comparison)
+      const unitsMatch = ingredient.unit.id === fridgeItem.unit.id;
+
+      if (unitsMatch) {
+        if (availableQuantity >= requiredQuantity) {
+          // Sufficient quantity available
+          fullyAvailableCount++;
+        } else {
+          // Insufficient quantity (partially available)
+          partiallyAvailableCount++;
+        }
+      }
+      // If units don't match, treat as missing (no credit)
+    }
+    // If product not in fridge, it's missing (no credit)
+  }
+
+  // Formula: (fully_available + 0.5 * partially_available) / total
+  const score = (fullyAvailableCount + (partiallyAvailableCount * 0.5)) / recipeIngredients.length;
+
+  return Math.max(0, Math.min(1, score)); // Clamp between 0 and 1
+}
 
 /**
  * Custom hook for recipe search functionality
@@ -153,7 +211,14 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       };
 
       const { generateRecipeWithAI } = await import('@/lib/api/recipe-search.api');
+      const { fetchAllFridgeItems } = await import('@/lib/api/fridge-client');
+      
+      // Fetch fridge items to calculate real match score
+      const fridgeItems = await fetchAllFridgeItems();
       const data = await generateRecipeWithAI(generateDto, controller.signal);
+
+      // Calculate real match score based on fridge availability
+      const realMatchScore = calculateMatchScore(data.recipe.ingredients, fridgeItems);
 
       // Convert generated recipe to search result format
       setState((prev) => ({
@@ -163,7 +228,7 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         results: [
           {
             recipe: data.recipe,
-            match_score: 1.0, // AI generated recipe has perfect match
+            match_score: realMatchScore, // Use calculated match score instead of 1.0
             available_ingredients: [],
             missing_ingredients: [],
           },

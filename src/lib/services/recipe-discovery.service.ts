@@ -414,6 +414,16 @@ export class RecipeDiscoveryService {
   }
 
   /**
+   * Generate temporary ID for AI-generated recipe (not saved to database yet)
+   * Range: 100000-1000000 to avoid conflicts with real database IDs
+   * 
+   * @returns Temporary ID for unsaved AI recipe
+   */
+  private generateTemporaryId(): number {
+    return Math.floor(Math.random() * 900000) + 100000;
+  }
+
+  /**
    * Build temporary AI-generated recipe WITHOUT saving to database
    * User can save it later by clicking "Add to My Recipes" button
    * 
@@ -421,7 +431,7 @@ export class RecipeDiscoveryService {
    * @param aiRecipe - Validated AI recipe
    * @param originalProducts - Original products used for generation
    * @param searchDto - Original search DTO
-   * @returns Temporary recipe as RecipeSummaryDTO (with id=0 indicating unsaved)
+   * @returns Temporary recipe as RecipeSummaryDTO (with temporary ID for React keys)
    */
   private async buildTemporaryAIRecipe(
     userId: string,
@@ -471,9 +481,12 @@ export class RecipeDiscoveryService {
       })
     );
 
-    // Return RecipeSummaryDTO without saving (id=0 indicates unsaved)
+    // Generate temporary ID for React keys (not saved to database)
+    const temporaryId = this.generateTemporaryId();
+
+    // Return RecipeSummaryDTO without saving (temporary ID will be replaced on save)
     return {
-      id: 0, // No ID = temporary/unsaved recipe
+      id: temporaryId, // Temporary ID in range 100000-1000000
       title: aiRecipe.title,
       description: aiRecipe.description || null,
       instructions: aiRecipe.instructions,

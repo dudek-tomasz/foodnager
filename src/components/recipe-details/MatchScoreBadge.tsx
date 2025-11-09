@@ -11,11 +11,12 @@ interface MatchScoreBadgeProps {
 }
 
 export default function MatchScoreBadge({ matchScore }: MatchScoreBadgeProps) {
-  const colorClass = getMatchScoreColor(matchScore);
+  const percentage = Math.round(matchScore * 100);
+  const colorClass = getMatchScoreColor(percentage);
 
   return (
     <Badge className={`border ${colorClass}`} variant="outline">
-      Dopasowanie: {Math.round(matchScore)}%
+      Dopasowanie: {percentage}%
     </Badge>
   );
 }

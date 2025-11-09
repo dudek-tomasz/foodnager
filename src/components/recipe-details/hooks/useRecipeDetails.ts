@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import type {
   RecipeDTO,
+  RecipeSummaryDTO,
   FridgeItemDTO,
   CreateCookingHistoryResponseDTO,
 } from '../../../types';
@@ -24,6 +25,7 @@ import type { ExternalRecipe } from '../../../lib/services/external-api.service'
 interface UseRecipeDetailsParams {
   recipeId?: number;
   externalRecipe?: ExternalRecipe;
+  aiRecipe?: RecipeSummaryDTO; // For AI-generated recipes with temporary IDs
   initialMatchScore?: number;
   // Callbacks for modal mode
   onSaveSuccess?: () => void;
@@ -63,6 +65,7 @@ interface UseRecipeDetailsReturn {
 export function useRecipeDetails({
   recipeId,
   externalRecipe,
+  aiRecipe,
   initialMatchScore,
   onSaveSuccess,
   onDeleteSuccess,
@@ -87,6 +90,9 @@ export function useRecipeDetails({
   
   // Track if this is an external recipe (not yet saved to DB)
   const [isExternalRecipe, setIsExternalRecipe] = useState(!!externalRecipe);
+  
+  // Track if this is an AI-generated recipe with temporary ID (not yet saved to DB)
+  const [isAIRecipe, setIsAIRecipe] = useState(!!aiRecipe);
 
   // =============================================================================
   // HELPER FUNCTIONS
@@ -149,7 +155,7 @@ export function useRecipeDetails({
 
   /**
    * Pobiera dane przepisu i lodówki równolegle
-   * Obsługuje zarówno saved recipes (recipeId) jak i external recipes
+   * Obsługuje saved recipes (recipeId), external recipes, i AI recipes
    */
   const fetchRecipeAndFridge = useCallback(async () => {
     setUiState((prev) => ({ ...prev, isLoading: true, error: null }));
@@ -161,17 +167,28 @@ export function useRecipeDetails({
 
       let recipeData: RecipeDTO;
 
-      // Mode 1: External recipe (not yet saved to DB)
-      if (externalRecipe && isExternalRecipe) {
+      // Mode 1: AI-generated recipe with temporary ID (not yet saved to DB)
+      if (aiRecipe && isAIRecipe) {
+        // AI recipe already in RecipeSummaryDTO format, just add metadata field
+        recipeData = {
+          ...aiRecipe,
+          metadata: {
+            temporary_id: aiRecipe.id, // Store original temporary ID
+            ai_generated: true,
+          },
+        };
+      }
+      // Mode 2: External recipe (not yet saved to DB)
+      else if (externalRecipe && isExternalRecipe) {
         // Convert ExternalRecipe to RecipeDTO format
         // External recipes don't have an ID yet, use temporary ID
         recipeData = await convertExternalRecipeToDTO(externalRecipe, fridgeData);
       }
-      // Mode 2: Saved recipe (has ID in DB)
+      // Mode 3: Saved recipe (has ID in DB)
       else if (recipeId) {
         recipeData = await fetchRecipe(recipeId);
       } else {
-        throw new Error('Either recipeId or externalRecipe must be provided');
+        throw new Error('Either recipeId, externalRecipe, or aiRecipe must be provided');
       }
 
       // Transform do RecipeViewModel z availability check
@@ -258,8 +275,8 @@ export function useRecipeDetails({
   const confirmCook = useCallback(async () => {
     if (!recipe) return;
 
-    // Prevent cooking external recipes that haven't been saved yet
-    if (isExternalRecipe || recipe.id === 0) {
+    // Prevent cooking AI or external recipes that haven't been saved yet
+    if (isAIRecipe || isExternalRecipe || recipe.id === 0) {
       toast.error('Zapisz przepis', {
         description: 'Aby ugotować ten przepis, musisz najpierw go zapisać.',
       });
@@ -305,7 +322,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isCooking: false }));
     }
-  }, [recipe, isExternalRecipe, closeCookDialog, onCookSuccess]);
+  }, [recipe, isAIRecipe, isExternalRecipe, closeCookDialog, onCookSuccess]);
 
   // =============================================================================
   // DELETE RECIPE
@@ -332,8 +349,8 @@ export function useRecipeDetails({
   const confirmDelete = useCallback(async () => {
     if (!recipe) return;
 
-    // Can't delete external recipes that haven't been saved
-    if (isExternalRecipe || recipe.id === 0) {
+    // Can't delete AI or external recipes that haven't been saved
+    if (isAIRecipe || isExternalRecipe || recipe.id === 0) {
       toast.error('Nie można usunąć', {
         description: 'Ten przepis nie jest jeszcze zapisany w bazie danych.',
       });
@@ -373,7 +390,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isDeleting: false }));
     }
-  }, [recipe, isExternalRecipe, closeDeleteDialog, onDeleteSuccess]);
+  }, [recipe, isAIRecipe, isExternalRecipe, closeDeleteDialog, onDeleteSuccess]);
 
   // =============================================================================
   // SAVE RECIPE (COPY)
@@ -382,23 +399,63 @@ export function useRecipeDetails({
   /**
    * Handler dla akcji "Zapisz do moich przepisów"
    * 
-   * Two modes:
-   * 1. External recipe (not in DB yet) - creates new recipe
-   * 2. Saved recipe (already in DB) - updates source to 'user'
+   * Three modes:
+   * 1. AI recipe (not in DB yet) - creates new recipe from RecipeSummaryDTO
+   * 2. External recipe (not in DB yet) - creates new recipe from ExternalRecipe
+   * 3. Saved recipe (already in DB) - updates source to 'user'
    */
   const handleSave = useCallback(async () => {
-    if (!recipe && !externalRecipe) return;
+    if (!recipe && !externalRecipe && !aiRecipe) return;
 
     setUiState((prev) => ({ ...prev, isSaving: true }));
 
     try {
       let savedRecipeId: number;
 
-      // Mode 1: External recipe - create new recipe in DB
-      if (isExternalRecipe && externalRecipe) {
-        // For now, we'll use the /api/recipes/generate endpoint through fetch
-        // or convert via ExternalRecipeMapper
-        // Simple approach: Call POST /api/recipes with external data converted
+      // Mode 1: AI-generated recipe - save RecipeSummaryDTO to DB
+      if (isAIRecipe && aiRecipe) {
+        const response = await fetch('/api/recipes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: aiRecipe.title,
+            description: aiRecipe.description || null,
+            instructions: aiRecipe.instructions,
+            cooking_time: aiRecipe.cooking_time || null,
+            difficulty: aiRecipe.difficulty || 'medium',
+            source: 'user', // Save as user recipe (from AI)
+            ingredients: aiRecipe.ingredients.map(ing => ({
+              product_name: ing.product.name,
+              quantity: ing.quantity,
+              unit_name: ing.unit.name,
+            })),
+            tags: aiRecipe.tags.map(tag => tag.name),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save AI recipe');
+        }
+
+        const createdRecipe = await response.json();
+        savedRecipeId = createdRecipe.id;
+        
+        // After saving, switch to saved mode
+        setIsAIRecipe(false);
+        
+        toast.success('Przepis AI zapisany!', {
+          description: 'Przepis został dodany do Twojej kolekcji.',
+        });
+
+        // Call callback if provided (for modal close)
+        if (onSaveSuccess) {
+          onSaveSuccess();
+        }
+      }
+      // Mode 2: External recipe - create new recipe in DB
+      else if (isExternalRecipe && externalRecipe) {
         const response = await fetch('/api/recipes', {
           method: 'POST',
           headers: {
@@ -439,7 +496,7 @@ export function useRecipeDetails({
           onSaveSuccess();
         }
       }
-      // Mode 2: Already saved recipe - just update source
+      // Mode 3: Already saved recipe - just update source
       else if (recipe && recipe.id) {
         await updateRecipe(recipe.id, { source: 'user' });
         savedRecipeId = recipe.id;
@@ -475,7 +532,7 @@ export function useRecipeDetails({
 
       setUiState((prev) => ({ ...prev, isSaving: false }));
     }
-  }, [recipe, externalRecipe, isExternalRecipe, fetchRecipeAndFridge, onSaveSuccess]);
+  }, [recipe, externalRecipe, aiRecipe, isExternalRecipe, isAIRecipe, fetchRecipeAndFridge, onSaveSuccess]);
 
   // =============================================================================
   // GENERATE SHOPPING LIST

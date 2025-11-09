@@ -36,4 +36,5 @@ export { useScrollVisibility } from './hooks/useScrollVisibility';
 
 // Types
 export type { RecipeDetailsViewProps } from './RecipeDetailsView';
+export type { RecipeDetailsModalProps } from './RecipeDetailsModal';
 

@@ -12,9 +12,12 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import RecipeDetailsView from './RecipeDetailsView';
 import type { ExternalRecipe } from '@/lib/services/external-api.service';
+import type { RecipeSummaryDTO } from '@/types';
 
 export interface RecipeDetailsModalProps {
   // Control state
@@ -24,6 +27,7 @@ export interface RecipeDetailsModalProps {
   // Data source - one of these is required
   recipeId?: number;
   externalRecipe?: ExternalRecipe;
+  aiRecipe?: RecipeSummaryDTO; // For AI-generated recipes with temporary IDs
   
   // Optional params
   from?: string;
@@ -38,18 +42,19 @@ export default function RecipeDetailsModal({
   onClose,
   recipeId,
   externalRecipe,
+  aiRecipe,
   from,
   matchScore,
   hideHistory = false,
 }: RecipeDetailsModalProps) {
   // Validate that exactly one data source is provided
-  if (!recipeId && !externalRecipe) {
-    console.error('RecipeDetailsModal: Either recipeId or externalRecipe must be provided');
+  if (!recipeId && !externalRecipe && !aiRecipe) {
+    console.error('RecipeDetailsModal: Either recipeId, externalRecipe, or aiRecipe must be provided');
     return null;
   }
 
-  if (recipeId && externalRecipe) {
-    console.warn('RecipeDetailsModal: Both recipeId and externalRecipe provided, using recipeId');
+  if ((recipeId && externalRecipe) || (recipeId && aiRecipe) || (externalRecipe && aiRecipe)) {
+    console.warn('RecipeDetailsModal: Multiple data sources provided, using priority: recipeId > aiRecipe > externalRecipe');
   }
 
   return (
@@ -58,14 +63,18 @@ export default function RecipeDetailsModal({
         className="max-w-4xl max-h-[90vh] overflow-y-auto p-0"
         showCloseButton={true}
       >
+        <VisuallyHidden>
+          <DialogTitle>Szczegóły przepisu</DialogTitle>
+        </VisuallyHidden>
         {/* 
-          Pass recipeId or externalRecipe to RecipeDetailsView
-          View will handle both cases internally
+          Pass recipeId, externalRecipe, or aiRecipe to RecipeDetailsView
+          View will handle all cases internally
         */}
         <div className="p-6">
           <RecipeDetailsView
             recipeId={recipeId}
             externalRecipe={externalRecipe}
+            aiRecipe={aiRecipe}
             from={from}
             matchScore={matchScore}
             hideHistory={hideHistory}

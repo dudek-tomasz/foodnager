@@ -17,10 +17,12 @@ import { ShoppingListModal } from '@/components/shopping-list';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorState from '@/components/ui/error-state';
 import type { ExternalRecipe } from '@/lib/services/external-api.service';
+import type { RecipeSummaryDTO } from '@/types';
 
 export interface RecipeDetailsViewProps {
   recipeId?: number;
   externalRecipe?: ExternalRecipe;
+  aiRecipe?: RecipeSummaryDTO; // For AI-generated recipes with temporary IDs
   from?: string;
   matchScore?: number;
   hideHistory?: boolean;
@@ -33,6 +35,7 @@ export interface RecipeDetailsViewProps {
 export default function RecipeDetailsView({
   recipeId,
   externalRecipe,
+  aiRecipe,
   from,
   matchScore,
   hideHistory = false,
@@ -61,6 +64,7 @@ export default function RecipeDetailsView({
   } = useRecipeDetails({
     recipeId,
     externalRecipe,
+    aiRecipe,
     initialMatchScore: matchScore,
     onSaveSuccess,
     onDeleteSuccess,
