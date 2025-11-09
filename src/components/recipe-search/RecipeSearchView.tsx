@@ -7,8 +7,9 @@
  * 3. Results - Displays search results with match scores
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRecipeSearch } from '@/hooks/useRecipeSearch';
+import { RecipeDetailsModal } from '@/components/recipe-details';
 import SourceSelectionView from './SourceSelectionView';
 import SearchLoadingView from './SearchLoadingView';
 import SearchResultsView from './SearchResultsView';
@@ -20,8 +21,28 @@ interface RecipeSearchViewProps {
 export default function RecipeSearchView({ initialFridgeItemCount = 0 }: RecipeSearchViewProps) {
   const { state, actions } = useRecipeSearch(initialFridgeItemCount);
 
+  // Recipe details modal state
+  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   // TODO: Fetch actual user recipe count from API
   const userRecipeCount = 0;
+
+  /**
+   * Opens recipe details modal
+   */
+  const handleRecipeClick = (id: number) => {
+    setSelectedRecipeId(id);
+    setIsDetailsModalOpen(true);
+  };
+
+  /**
+   * Closes recipe details modal
+   */
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedRecipeId(null);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -51,9 +72,17 @@ export default function RecipeSearchView({ initialFridgeItemCount = 0 }: RecipeS
           source={state.source}
           onBack={actions.goBack}
           onGenerateAI={actions.generateWithAI}
-          onRecipeClick={(recipeId) => {
-            window.location.href = `/recipes/${recipeId}`;
-          }}
+          onRecipeClick={handleRecipeClick}
+        />
+      )}
+
+      {/* Recipe Details Modal */}
+      {selectedRecipeId && (
+        <RecipeDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={handleCloseDetailsModal}
+          recipeId={selectedRecipeId}
+          from="search"
         />
       )}
     </div>

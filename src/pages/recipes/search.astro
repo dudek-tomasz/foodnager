@@ -8,12 +8,57 @@
 
 import Layout from '@/layouts/Layout.astro';
 import RecipeSearchView from '@/components/recipe-search/RecipeSearchView';
+import { FridgeService } from '@/lib/services/fridge.service';
+import { RecipeService } from '@/lib/services/recipe.service';
+import { createSupabaseServerInstance } from '@/db/supabase.client';
 
-// TODO: Optionally fetch fridge item count on server-side for SSR
-// const fridgeItemCount = await getFridgeItemCount();
+export const prerender = false;
+
+// Fetch counts server-side for SSR
+let fridgeItemCount = 0;
+let userRecipeCount = 0;
+
+try {
+  // Get authenticated user
+  const user = Astro.locals.user;
+  
+  if (user) {
+    // Create Supabase client
+    const supabase = createSupabaseServerInstance({
+      cookies: Astro.cookies,
+      headers: Astro.request.headers,
+    });
+
+    // Create service instances
+    const fridgeService = new FridgeService(supabase);
+    const recipeService = new RecipeService(supabase);
+
+    // Fetch counts in parallel
+    const [fridgeData, recipesData] = await Promise.all([
+      fridgeService.listFridgeItems(user.id, {
+        page: 1,
+        limit: 1, // Potrzebujemy tylko count, nie wszystkich danych
+      }),
+      recipeService.listRecipes(user.id, {
+        page: 1,
+        limit: 1, // Potrzebujemy tylko count, nie wszystkich danych
+      }),
+    ]);
+    
+    fridgeItemCount = fridgeData.pagination.total;
+    userRecipeCount = recipesData.pagination.total;
+  }
+} catch (error) {
+  console.error('Failed to fetch counts:', error);
+  // Continue with default counts of 0
+}
 ---
 
 <Layout title="Wyszukiwanie przepisów - Foodnager">
-  <RecipeSearchView client:load />
+  <RecipeSearchView 
+    client:load 
+    initialFridgeItemCount={fridgeItemCount}
+    initialUserRecipeCount={userRecipeCount}
+  />
 </Layout>
 

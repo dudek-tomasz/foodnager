@@ -70,11 +70,11 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
     }));
 
     try {
-      // TODO: Map source to appropriate search preferences
-      // For now, use all fridge items with default settings
+      // Map source to appropriate search parameters
       const searchDto = {
         use_all_fridge_items: true,
         max_results: 10,
+        source: source, // Pass the selected source to the API
       };
 
       const { searchRecipesByFridge } = await import('@/lib/api/recipe-search.api');

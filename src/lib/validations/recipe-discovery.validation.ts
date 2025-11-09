@@ -28,12 +28,14 @@ export const SearchRecipePreferencesSchema = z.object({
  * - use_all_fridge_items is required
  * - If use_all_fridge_items is false, custom_product_ids must be provided
  * - max_results must be between 1 and 50
+ * - source determines which tier to search (user, api, ai, or all for hierarchical)
  */
 export const SearchRecipesByFridgeSchema = z.object({
   use_all_fridge_items: z.boolean(),
   custom_product_ids: z.array(z.number().int().positive()).optional(),
   max_results: z.number().int().min(1).max(50).default(10),
-  preferences: SearchRecipePreferencesSchema
+  preferences: SearchRecipePreferencesSchema,
+  source: z.enum(['user', 'api', 'ai', 'all']).default('all')
 }).refine(
   (data) => {
     // If not using all fridge items, custom_product_ids must be provided

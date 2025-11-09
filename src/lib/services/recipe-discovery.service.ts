@@ -78,6 +78,44 @@ export class RecipeDiscoveryService {
         throw new ValidationError('No products available in fridge');
       }
 
+      const requestedSource = searchDto.source || 'all';
+
+      // If specific source requested, search only that tier
+      if (requestedSource === 'user') {
+        const tier1Results = await this.searchUserRecipes(userId, availableProducts, searchDto);
+        const duration = Date.now() - startTime;
+        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration);
+      }
+
+      if (requestedSource === 'api') {
+        try {
+          const tier2Results = await this.searchExternalAPI(userId, availableProducts, searchDto);
+          const duration = Date.now() - startTime;
+          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration);
+        } catch (error) {
+          console.error('External API search failed:', error);
+          const duration = Date.now() - startTime;
+          return this.buildResponse([], 'external_api', 0, duration);
+        }
+      }
+
+      if (requestedSource === 'ai') {
+        const isConfigured = this.openRouterClient.isConfigured();
+        if (!isConfigured) {
+          throw new ValidationError('AI service is not configured. Please set OPENROUTER_API_KEY.');
+        }
+
+        try {
+          const tier3Results = await this.generateWithAI(userId, availableProducts, searchDto);
+          const duration = Date.now() - startTime;
+          return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration);
+        } catch (error) {
+          console.error('AI generation failed:', error);
+          throw error;
+        }
+      }
+
+      // Hierarchical search (source = 'all')
       // Step 2: Tier 1 - Search user recipes
       const tier1Results = await this.searchUserRecipes(
         userId,

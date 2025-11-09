@@ -336,6 +336,7 @@ export interface SearchRecipesByFridgeDTO {
   custom_product_ids?: number[];
   max_results?: number;
   preferences?: SearchRecipePreferencesDTO;
+  source?: 'user' | 'api' | 'ai' | 'all';
 }
 
 /**
@@ -467,9 +468,13 @@ export interface FridgeStateDTO {
  */
 export interface UpdatedFridgeItemDTO {
   product_id: number;
+  product_name?: string;
   old_quantity: number;
   new_quantity: number;
+  required_quantity?: number;
+  deducted_quantity?: number;
   unit: string;
+  was_sufficient?: boolean;
 }
 
 /**
