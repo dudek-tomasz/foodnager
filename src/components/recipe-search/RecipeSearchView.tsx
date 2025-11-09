@@ -17,6 +17,7 @@ import SearchResultsView from './SearchResultsView';
 
 interface RecipeSearchViewProps {
   initialFridgeItemCount?: number;
+  initialUserRecipeCount?: number;
 }
 
 /**
@@ -32,15 +33,15 @@ const isTemporaryId = (id: number): boolean => {
   return id >= TEMP_ID_MIN && id < TEMP_ID_MAX;
 };
 
-export default function RecipeSearchView({ initialFridgeItemCount = 0 }: RecipeSearchViewProps) {
+export default function RecipeSearchView({ 
+  initialFridgeItemCount = 0,
+  initialUserRecipeCount = 0 
+}: RecipeSearchViewProps) {
   const { state, actions } = useRecipeSearch(initialFridgeItemCount);
 
   // Recipe details modal state - store full recipe data for AI recipes
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeSearchResultDTO | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-
-  // TODO: Fetch actual user recipe count from API
-  const userRecipeCount = 0;
 
   /**
    * Opens recipe details modal
@@ -71,7 +72,7 @@ export default function RecipeSearchView({ initialFridgeItemCount = 0 }: RecipeS
       {state.step === 'source_selection' && (
         <SourceSelectionView
           fridgeItemCount={initialFridgeItemCount}
-          userRecipeCount={userRecipeCount}
+          userRecipeCount={initialUserRecipeCount}
           onSourceSelect={actions.selectSource}
         />
       )}
