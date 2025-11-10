@@ -21,12 +21,14 @@ import type {
   CookingValidationResult,
 } from '../types/recipe-view-models';
 
+import { checkAvailabilityWithConversion } from './unit-conversion.utils';
+
 // =============================================================================
 // AVAILABILITY CHECKING
 // =============================================================================
 
 /**
- * Sprawdza dostępność pojedynczego składnika w lodówce
+ * Sprawdza dostępność pojedynczego składnika w lodówce z obsługą konwersji jednostek
  * @param ingredient - składnik z przepisu
  * @param fridgeItems - lista produktów w lodówce
  * @returns rezultat sprawdzenia dostępności
@@ -34,34 +36,75 @@ import type {
 export function checkIngredientAvailability(
   ingredient: RecipeIngredientDTO,
   fridgeItems: FridgeItemDTO[]
-): IngredientAvailabilityCheckResult {
-  // Znajdź matching product w lodówce (po ID i jednostce)
+): IngredientAvailabilityCheckResult & { fridgeUnit?: string; requiresManualConversion?: boolean } {
+  const requiredQuantity = ingredient.quantity;
+  const requiredUnit = ingredient.unit.abbreviation;
+  
+  // Znajdź matching product w lodówce (tylko po ID produktu, nie po jednostce!)
   const fridgeItem = fridgeItems.find(
-    (item) =>
-      item.product.id === ingredient.product.id &&
-      item.unit.id === ingredient.unit.id
+    (item) => item.product.id === ingredient.product.id
   );
 
-  const requiredQuantity = ingredient.quantity;
-  const availableQuantity = fridgeItem?.quantity ?? 0;
-
-  // Oblicz brakującą ilość
-  const missingQuantity = Math.max(0, requiredQuantity - availableQuantity);
-
-  // Ustal status
-  let status: 'full' | 'partial' | 'none';
-  if (availableQuantity >= requiredQuantity) {
-    status = 'full';
-  } else if (availableQuantity > 0) {
-    status = 'partial';
-  } else {
-    status = 'none';
+  // Jeśli nie ma produktu w lodówce
+  if (!fridgeItem) {
+    return {
+      status: 'none',
+      availableQuantity: 0,
+      missingQuantity: requiredQuantity,
+    };
   }
 
-  return {
-    status,
+  const availableQuantity = fridgeItem.quantity;
+  const availableUnit = fridgeItem.unit.abbreviation;
+
+  // Sprawdź konwersję jednostek
+  const conversionResult = checkAvailabilityWithConversion(
+    requiredQuantity,
+    requiredUnit,
     availableQuantity,
-    missingQuantity,
+    availableUnit
+  );
+
+  // Jeśli wymaga ręcznej konwersji
+  if (conversionResult.requiresManual) {
+    return {
+      status: 'unknown',
+      availableQuantity: availableQuantity,
+      missingQuantity: 0, // Nieznana wartość
+      fridgeUnit: availableUnit,
+      requiresManualConversion: true,
+    };
+  }
+
+  // Jeśli konwersja jest możliwa
+  if (conversionResult.compatible && conversionResult.availableInRequiredUnit !== null) {
+    const convertedAvailable = conversionResult.availableInRequiredUnit;
+    const missingQuantity = Math.max(0, requiredQuantity - convertedAvailable);
+
+    let status: 'full' | 'partial' | 'none';
+    if (convertedAvailable >= requiredQuantity) {
+      status = 'full';
+    } else if (convertedAvailable > 0) {
+      status = 'partial';
+    } else {
+      status = 'none';
+    }
+
+    return {
+      status,
+      availableQuantity: convertedAvailable,
+      missingQuantity,
+      fridgeUnit: availableUnit !== requiredUnit ? availableUnit : undefined,
+    };
+  }
+
+  // Fallback - jednostki niekompatybilne
+  return {
+    status: 'unknown',
+    availableQuantity: availableQuantity,
+    missingQuantity: 0,
+    fridgeUnit: availableUnit,
+    requiresManualConversion: true,
   };
 }
 
@@ -89,6 +132,8 @@ export function calculateRecipeAvailability(
         availableQuantity: availabilityCheck.availableQuantity,
         requiredQuantity: ingredient.quantity,
         missingQuantity: availabilityCheck.missingQuantity,
+        fridgeUnit: availabilityCheck.fridgeUnit,
+        requiresManualConversion: availabilityCheck.requiresManualConversion,
       };
     });
 
@@ -97,7 +142,7 @@ export function calculateRecipeAvailability(
     (ing) => ing.availabilityStatus === 'full'
   );
 
-  // Sprawdź czy są jakieś brakujące składniki
+  // Sprawdź czy są jakieś brakujące składniki (none lub unknown)
   const hasMissingIngredients = enrichedIngredients.some(
     (ing) => ing.availabilityStatus !== 'full'
   );
@@ -264,7 +309,7 @@ export function getMatchScoreColor(score: number): string {
  * @param status - status dostępności
  * @returns obiekt z klasami dla różnych elementów
  */
-export function getAvailabilityColors(status: 'full' | 'partial' | 'none'): {
+export function getAvailabilityColors(status: 'full' | 'partial' | 'none' | 'unknown'): {
   text: string;
   bg: string;
   icon: string;
@@ -284,6 +329,11 @@ export function getAvailabilityColors(status: 'full' | 'partial' | 'none'): {
       text: 'text-red-700',
       bg: 'bg-red-50',
       icon: 'text-red-600',
+    },
+    unknown: {
+      text: 'text-yellow-700',
+      bg: 'bg-yellow-50',
+      icon: 'text-yellow-600',
     },
   };
 

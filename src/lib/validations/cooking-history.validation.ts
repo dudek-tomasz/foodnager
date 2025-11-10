@@ -44,9 +44,14 @@ export const ListCookingHistoryQuerySchema = z.object({
  * 
  * Validates:
  * - recipe_id: required positive integer
+ * - manual_conversions: optional object with product_id -> quantity mappings
  */
 export const CreateCookingHistorySchema = z.object({
-  recipe_id: z.number().int().positive('recipe_id must be a positive integer')
+  recipe_id: z.number().int().positive('recipe_id must be a positive integer'),
+  manual_conversions: z.record(
+    z.string(), // product_id as string (JSON keys are strings)
+    z.number().nonnegative('Quantity must be non-negative')
+  ).optional()
 });
 
 /**

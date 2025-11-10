@@ -504,6 +504,12 @@ export interface ListCookingHistoryQueryDTO {
  */
 export interface CreateCookingHistoryDTO {
   recipe_id: number;
+  /** 
+   * Opcjonalne ręczne konwersje dla składników z różnymi jednostkami
+   * Klucz: product_id, Wartość: ilość do odjęcia z lodówki (w jednostce z lodówki)
+   * Jeśli wartość = 0, składnik nie zostanie odjęty z lodówki
+   */
+  manual_conversions?: Record<number, number>;
 }
 
 /**

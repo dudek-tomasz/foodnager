@@ -118,20 +118,23 @@ export class CookingHistoryService {
    * 
    * @param userId - The authenticated user's ID
    * @param recipeId - The recipe that was cooked
+   * @param manualConversions - Optional manual conversions for ingredients with incompatible units
    * @returns Created cooking history entry with update details
    * @throws NotFoundError if recipe doesn't exist or doesn't belong to user
    * @throws InsufficientIngredientsError if not enough ingredients in fridge
    */
   async createCookingHistoryEntry(
     userId: string,
-    recipeId: number
+    recipeId: number,
+    manualConversions?: Record<number, number>
   ): Promise<CreateCookingHistoryResponseDTO> {
     try {
       // Call PostgreSQL function to handle the complex transaction
       // Note: Type assertion needed because function not yet in database.types.ts
       const { data, error } = await (this.supabase.rpc as any)('record_cooking_event', {
         p_user_id: userId,
-        p_recipe_id: recipeId
+        p_recipe_id: recipeId,
+        p_manual_conversions: manualConversions || {}
       });
 
       if (error) {

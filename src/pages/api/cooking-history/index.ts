@@ -134,11 +134,15 @@ export async function POST(context: APIContext): Promise<Response> {
       );
     }
 
-    const { recipe_id } = validationResult.data;
+    const { recipe_id, manual_conversions } = validationResult.data;
 
     // Create cooking history entry (handles fridge update atomically)
     const cookingHistoryService = new CookingHistoryService(supabase);
-    const result = await cookingHistoryService.createCookingHistoryEntry(userId, recipe_id);
+    const result = await cookingHistoryService.createCookingHistoryEntry(
+      userId, 
+      recipe_id, 
+      manual_conversions
+    );
 
     // Return 201 Created with Location header
     return successResponse(

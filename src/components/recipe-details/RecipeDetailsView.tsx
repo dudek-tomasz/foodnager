@@ -13,6 +13,7 @@ import RecipeInstructionsSection from './RecipeInstructionsSection';
 import StickyBottomBar from './StickyBottomBar';
 import CookConfirmationDialog from './dialogs/CookConfirmationDialog';
 import DeleteConfirmationDialog from './dialogs/DeleteConfirmationDialog';
+import ManualConversionModal from './ManualConversionModal';
 import { ShoppingListModal } from '@/components/shopping-list';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorState from '@/components/ui/error-state';
@@ -61,6 +62,10 @@ export default function RecipeDetailsView({
     confirmDelete,
     openShoppingListModal,
     closeShoppingListModal,
+    openManualConversionModal,
+    closeManualConversionModal,
+    handleManualConversionConfirm,
+    unknownIngredients,
   } = useRecipeDetails({
     recipeId,
     externalRecipe,
@@ -240,6 +245,14 @@ export default function RecipeDetailsView({
         recipeTitle={recipe.title}
         isOpen={uiState.showShoppingListModal}
         onClose={closeShoppingListModal}
+      />
+
+      {/* Manual Conversion Modal */}
+      <ManualConversionModal
+        open={uiState.showManualConversionModal}
+        ingredients={unknownIngredients}
+        onConfirm={handleManualConversionConfirm}
+        onCancel={closeManualConversionModal}
       />
     </div>
   );

@@ -14,6 +14,7 @@ import type {
 import type {
   RecipeViewModel,
   RecipeDetailsUIState,
+  IngredientWithAvailability,
 } from '../../../lib/types/recipe-view-models';
 import { fetchRecipe, deleteRecipe, updateRecipe, createRecipe } from '../../../lib/api/recipes-client';
 import { fetchAllFridgeItems } from '../../../lib/api/fridge-client';
@@ -50,12 +51,18 @@ interface UseRecipeDetailsReturn {
   // Dialog controls
   openCookDialog: () => void;
   closeCookDialog: () => void;
-  confirmCook: () => void;
+  confirmCook: (manualConversions?: Record<number, number>) => void;
   openDeleteDialog: () => void;
   closeDeleteDialog: () => void;
   confirmDelete: () => void;
   openShoppingListModal: () => void;
   closeShoppingListModal: () => void;
+  openManualConversionModal: () => void;
+  closeManualConversionModal: () => void;
+  handleManualConversionConfirm: (conversions: Record<number, number>) => void;
+  
+  // Składniki wymagające ręcznej konwersji
+  unknownIngredients: IngredientWithAvailability[];
 }
 
 /**
@@ -79,6 +86,7 @@ export function useRecipeDetails({
     showDeleteDialog: false,
     showCookDialog: false,
     showShoppingListModal: false,
+    showManualConversionModal: false,
     isDeleting: false,
     isCooking: false,
     isSaving: false,
@@ -93,6 +101,11 @@ export function useRecipeDetails({
   
   // Track if this is an AI-generated recipe with temporary ID (not yet saved to DB)
   const [isAIRecipe, setIsAIRecipe] = useState(!!aiRecipe);
+  
+  // Składniki wymagające ręcznej konwersji
+  const unknownIngredients = recipe?.enrichedIngredients.filter(
+    (ing) => ing.availabilityStatus === 'unknown'
+  ) || [];
 
   // =============================================================================
   // HELPER FUNCTIONS
@@ -246,17 +259,25 @@ export function useRecipeDetails({
 
   /**
    * Handler dla przycisku "Ugotuj to"
-   * Waliduje dostępność składników i otwiera confirmation dialog
+   * Waliduje dostępność składników i otwiera odpowiedni dialog
    */
   const handleCook = useCallback(() => {
     if (!recipe) return;
 
-    // Walidacja dostępności składników
-    const validation = validateIngredientsAvailability(recipe.enrichedIngredients);
+    // Sprawdź czy są składniki wymagające ręcznej konwersji
+    const unknownIngs = recipe.enrichedIngredients.filter(
+      (ing) => ing.availabilityStatus === 'unknown'
+    );
 
-    if (!validation.canCook) {
+    // Sprawdź czy są brakujące składniki (partial lub none)
+    const missingIngs = recipe.enrichedIngredients.filter(
+      (ing) => ing.availabilityStatus === 'partial' || ing.availabilityStatus === 'none'
+    );
+
+    // Jeśli są missing, nie możemy gotować
+    if (missingIngs.length > 0) {
       toast.error('Brak składników', {
-        description: validation.message || 'Nie masz wystarczających składników w lodówce.',
+        description: `Brakuje ${missingIngs.length} składników do ugotowania tego przepisu.`,
         action: {
           label: 'Generuj listę zakupów',
           onClick: handleGenerateShoppingList,
@@ -265,14 +286,21 @@ export function useRecipeDetails({
       return;
     }
 
-    // Otwórz confirmation dialog
+    // Jeśli są składniki unknown, pokaż modal ręcznej konwersji
+    if (unknownIngs.length > 0) {
+      openManualConversionModal();
+      return;
+    }
+
+    // Jeśli wszystko jest dostępne, otwórz confirmation dialog
     openCookDialog();
   }, [recipe]);
 
   /**
    * Potwierdza ugotowanie przepisu i wywołuje API
+   * @param manualConversions - Opcjonalne ręczne konwersje dla składników z różnymi jednostkami
    */
-  const confirmCook = useCallback(async () => {
+  const confirmCook = useCallback(async (manualConversions?: Record<number, number>) => {
     if (!recipe) return;
 
     // Prevent cooking AI or external recipes that haven't been saved yet
@@ -281,15 +309,18 @@ export function useRecipeDetails({
         description: 'Aby ugotować ten przepis, musisz najpierw go zapisać.',
       });
       closeCookDialog();
+      closeManualConversionModal();
       return;
     }
 
     setUiState((prev) => ({ ...prev, isCooking: true }));
     closeCookDialog();
+    closeManualConversionModal();
 
     try {
       const result: CreateCookingHistoryResponseDTO = await cookRecipe({
         recipe_id: recipe.id,
+        manual_conversions: manualConversions,
       });
 
       toast.success('Przepis ugotowany!', {
@@ -564,6 +595,26 @@ export function useRecipeDetails({
   }, []);
 
   // =============================================================================
+  // MANUAL CONVERSION MODAL
+  // =============================================================================
+
+  const openManualConversionModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showManualConversionModal: true }));
+  }, []);
+
+  const closeManualConversionModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showManualConversionModal: false }));
+  }, []);
+
+  /**
+   * Handler potwierdzenia ręcznej konwersji
+   * Wywołuje confirmCook z wartościami z modala
+   */
+  const handleManualConversionConfirm = useCallback((conversions: Record<number, number>) => {
+    confirmCook(conversions);
+  }, [confirmCook]);
+
+  // =============================================================================
   // EDIT RECIPE
   // =============================================================================
 
@@ -605,6 +656,10 @@ export function useRecipeDetails({
     confirmDelete,
     openShoppingListModal,
     closeShoppingListModal,
+    openManualConversionModal,
+    closeManualConversionModal,
+    handleManualConversionConfirm,
+    unknownIngredients,
   };
 }
 

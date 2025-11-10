@@ -17,8 +17,12 @@ import type {
 
 /**
  * Status dostępności składnika w lodówce
+ * - full: W pełni dostępny
+ * - partial: Częściowo dostępny
+ * - none: Niedostępny
+ * - unknown: Wymaga ręcznej konwersji przez użytkownika (różne jednostki)
  */
-export type AvailabilityStatus = 'full' | 'partial' | 'none';
+export type AvailabilityStatus = 'full' | 'partial' | 'none' | 'unknown';
 
 /**
  * Składnik z informacją o dostępności w lodówce
@@ -29,6 +33,9 @@ export interface IngredientWithAvailability extends RecipeIngredientDTO {
   requiredQuantity: number;
   // Ilość brakująca (0 dla full, >0 dla partial/none)
   missingQuantity: number;
+  // Dla składników z różnymi jednostkami - informacje o jednostkach
+  fridgeUnit?: string; // Jednostka w lodówce (jeśli różna od wymaganej)
+  requiresManualConversion?: boolean; // Czy wymaga ręcznej konwersji
 }
 
 /**
@@ -81,6 +88,7 @@ export interface RecipeDetailsUIState {
   showDeleteDialog: boolean;
   showCookDialog: boolean;
   showShoppingListModal: boolean;
+  showManualConversionModal: boolean;
   isDeleting: boolean;
   isCooking: boolean;
   isSaving: boolean;
