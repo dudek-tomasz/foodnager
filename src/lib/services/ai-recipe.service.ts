@@ -121,6 +121,16 @@ export class AIRecipeService {
     }
     
     message += ' Focus on clear instructions and accurate ingredient measurements.';
+    message += '\n\nInstructions format requirements:';
+    message += '\n- Write detailed, step-by-step instructions';
+    message += '\n- Each main step should have a clear heading (e.g., "Step 1: Prepare the ingredients")';
+    message += '\n- Include specific details like temperatures, times, and techniques';
+    message += '\n- Add helpful tips and advice after relevant steps (e.g., "Tip: You can substitute X with Y")';
+    message += '\n- Describe what the food should look like at each stage';
+    message += '\n- Include sensory details (texture, color, aroma) when relevant';
+    message += '\n- Explain WHY certain steps are important when it adds value';
+    message += '\n- End with serving suggestions and what pairs well with the dish';
+    message += '\n- Write in a friendly, encouraging tone as if teaching a friend';
     
     return message;
   }
