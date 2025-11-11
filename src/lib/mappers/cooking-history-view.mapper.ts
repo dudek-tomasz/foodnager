@@ -120,14 +120,16 @@ export function mapHistoryDTOToViewModel(
   dto: CookingHistoryDTO,
   isExpanded: boolean = false
 ): HistoryEntryViewModel {
+  const changedProductIds = calculateChangedProducts(
+    dto.fridge_state_before,
+    dto.fridge_state_after
+  );
+  
   return {
     ...dto,
     formattedDate: formatCookingDate(dto.cooked_at),
-    usedIngredientsCount: dto.fridge_state_before.items.length,
-    changedProductIds: calculateChangedProducts(
-      dto.fridge_state_before,
-      dto.fridge_state_after
-    ),
+    usedIngredientsCount: changedProductIds.length,
+    changedProductIds,
     isExpanded
   };
 }

@@ -45,6 +45,11 @@ export function HistoryCard({
     entry.fridge_state_after
   );
 
+  // Filtruj tylko faktycznie użyte składniki (te, które się zmieniły)
+  const usedIngredients = entry.fridge_state_before.items.filter(
+    item => changedProducts.includes(item.product_id)
+  );
+
   const handleRecipeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onRecipeClick(entry.recipe.id);
@@ -67,7 +72,7 @@ export function HistoryCard({
         </button>
 
         <UsedIngredientsPreview 
-          ingredients={entry.fridge_state_before.items} 
+          ingredients={usedIngredients} 
           maxDisplay={3}
         />
       </CardHeader>
