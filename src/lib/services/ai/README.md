@@ -102,7 +102,7 @@ Utwórz plik `.env` w głównym katalogu projektu:
 # OpenRouter API Configuration
 OPENROUTER_API_URL=https://openrouter.ai/api/v1/chat/completions
 OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
-OPENROUTER_MODEL=anthropic/claude-3-haiku
+OPENROUTER_MODEL=perplexity/sonar-pro
 
 # Model Parameters
 OPENROUTER_TEMPERATURE=0.7
@@ -111,8 +111,8 @@ OPENROUTER_TOP_P=1.0
 OPENROUTER_FREQUENCY_PENALTY=0
 OPENROUTER_PRESENCE_PENALTY=0
 
-# Timeout Configuration
-TIER3_TIMEOUT_MS=30000
+# Timeout Configuration (zwiększony dla Perplexity z web search)
+TIER3_TIMEOUT_MS=45000
 ```
 
 ### Parametry Modelu
@@ -129,11 +129,18 @@ TIER3_TIMEOUT_MS=30000
 
 Rekomendowane dla przepisów:
 
-- `anthropic/claude-3-haiku` ⭐ - Szybki, ekonomiczny (domyślny)
+**Z dostępem do internetu (web search):**
+- `perplexity/sonar-pro` ⭐ - **Domyślny** - Ma dostęp do internetu, prawdziwe linki do przepisów
+- `perplexity/sonar` - Podstawowa wersja z web search (tańsza)
+
+**Bez dostępu do internetu (standardowe):**
+- `anthropic/claude-3-haiku` - Szybki, ekonomiczny
 - `anthropic/claude-3-sonnet` - Zbalansowany
 - `anthropic/claude-3-opus` - Najbardziej zaawansowany
 - `openai/gpt-4-turbo` - Alternatywa OpenAI
 - `openai/gpt-3.5-turbo` - Ekonomiczna opcja OpenAI
+
+**⚠️ Uwaga:** Modele Perplexity z sufiksem `-online` mają dostęp do internetu i zwracają **prawdziwe** linki do przepisów z blogów kulinarnych. Standardowe modele mogą halucynować/wymyślać nieistniejące linki.
 
 Pełna lista: [OpenRouter Models](https://openrouter.ai/models)
 

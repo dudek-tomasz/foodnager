@@ -6,8 +6,16 @@ Foodnager is a mobile and web application that helps users search for, store, an
 ## Tech Stack
 - **Frontend:** Astro 5, React 19, Typescript 5, Tailwind 4, Shadcn/ui
 - **Backend & Database:** Supabase
-- **AI Communication:** Openrouter.ai
+- **AI Communication:** OpenRouter.ai with Perplexity Sonar (web search enabled)
 - **CI/CD & Hosting:** GitHub Actions, DigitalOcean
+
+### AI Model Configuration
+Foodnager uses **Perplexity Sonar Pro with online web search** (`perplexity/sonar-pro`) as the default AI model. This model has real-time internet access and provides:
+- ✅ Real, verified recipe sources from culinary websites
+- ✅ Links to original recipes from blogs like KwestiaSmaku, AniaGotuje, BBC Good Food
+- ✅ Authentic dishes based on actual online recipes (no hallucinated content)
+
+Alternative models (without web search) can be configured via `OPENROUTER_MODEL` environment variable.
 
 ## Getting Started Locally
 1. **Clone the repository:**
@@ -22,12 +30,35 @@ Foodnager is a mobile and web application that helps users search for, store, an
    ```bash
    npm install
    ```
-4. **Run the development server:**
+4. **Configure environment variables:**
+   
+   Create a `.env` file in the root directory:
+   
+   ```bash
+   # Supabase Configuration
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_KEY=your-supabase-anon-key
+   
+   # OpenRouter AI Configuration
+   OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
+   OPENROUTER_MODEL=perplexity/sonar-pro
+   
+   # Timeout (increased for web search)
+   TIER3_TIMEOUT_MS=45000
+   ```
+   
+   Get your credentials:
+   - `SUPABASE_URL` and `SUPABASE_KEY` - from your [Supabase project](https://supabase.com)
+   - `OPENROUTER_API_KEY` - from [OpenRouter Keys](https://openrouter.ai/keys)
+   
+   📖 See [SETUP.md](SETUP.md) for detailed configuration guide
+   
+5. **Run the development server:**
    ```bash
    npm run dev
    ```
-5. **Open your browser:**  
-   Visit `http://localhost:3000` (or the port specified) to view the application.
+6. **Open your browser:**  
+   Visit `http://localhost:4321` (or the port specified) to view the application.
 
 ## Available Scripts
 The following scripts are defined in the project's `package.json`:

@@ -53,7 +53,13 @@ WAŻNE: Zwróć TYLKO poprawny obiekt JSON o dokładnie tej strukturze (bez doda
           "unit": "sztuka"
         }
       ],
-      "tags": ["wegetariańskie", "szybkie danie"]
+      "tags": ["wegetariańskie", "szybkie danie"],
+      "sources": [
+        {
+          "name": "KwestiaSmaku",
+          "url": "https://www.kwestiasmaku.com/przepis/pomidorowa"
+        }
+      ]
     }
   ]
 }
@@ -70,6 +76,13 @@ Wymagania:
 - Tags powinny zawierać informacje dietetyczne (wegetariańskie, wegańskie, bezglutenowe, itp.) oraz typ posiłku
 - Instrukcje powinny być jasne, szczegółowe i numerowane
 - Zwróć TYLKO obiekt JSON z tablicą "recipes" zawierającą 5 przepisów
+
+⚠️ KRYTYCZNE - ŹRÓDŁA:
+- Pole "sources" jest OPCJONALNE - może być pusta tablica []
+- TYLKO jeśli masz dostęp do web search citations, dodaj prawdziwe linki
+- NIGDY nie wymyślaj/nie generuj fake URL-i - to gorsze niż brak źródeł!
+- Jeśli nie masz pewności co do URL-a - zostaw sources: []
+- Bazuj na sprawdzonych, tradycyjnych przepisach, które znasz z treningu
 
 KRYTYCZNE: Wszystkie przepisy (tytuły, opisy, instrukcje, nazwy składników, tagi) MUSZĄ BYĆ W JĘZYKU POLSKIM!`;
 

@@ -142,10 +142,12 @@ export class ExternalRecipeMapper {
     }
 
     // Step 2: Try to find existing unit by abbreviation (case-insensitive)
+    const abbreviation = this.generateUnitAbbreviation(unitName);
+    
     const { data: unitsByAbbr, error: abbrSearchError } = await this.supabase
       .from('units')
       .select('id, name, abbreviation')
-      .ilike('abbreviation', normalizedName)
+      .ilike('abbreviation', abbreviation)
       .limit(1);
 
     if (abbrSearchError) {
@@ -162,8 +164,6 @@ export class ExternalRecipeMapper {
     }
 
     // Step 3: Create new unit if not found by name or abbreviation
-    const abbreviation = this.generateUnitAbbreviation(unitName);
-
     const { data: newUnit, error: createError } = await this.supabase
       .from('units')
       .insert({
@@ -173,9 +173,38 @@ export class ExternalRecipeMapper {
       .select('id, name, abbreviation')
       .single();
 
-    if (createError || !newUnit) {
+    // Handle race condition: if unit was created by another concurrent request
+    if (createError) {
+      // Check if it's a duplicate key error (23505)
+      if ((createError as any).code === '23505') {
+        console.log(`⚠️ Unit with abbreviation "${abbreviation}" already exists (race condition), fetching...`);
+        
+        // Try to find it again (it was just created by another request)
+        const { data: existingUnit, error: refetchError } = await this.supabase
+          .from('units')
+          .select('id, name, abbreviation')
+          .or(`name.ilike.${normalizedName},abbreviation.ilike.${abbreviation}`)
+          .limit(1);
+
+        if (refetchError || !existingUnit || existingUnit.length === 0) {
+          console.error('Error refetching unit after race condition:', refetchError);
+          throw new Error('Failed to fetch unit after race condition');
+        }
+
+        return {
+          id: existingUnit[0].id,
+          name: existingUnit[0].name,
+          abbreviation: existingUnit[0].abbreviation,
+        };
+      }
+
+      // Other error - throw
       console.error('Error creating unit:', createError);
       throw new Error('Failed to create unit');
+    }
+
+    if (!newUnit) {
+      throw new Error('Failed to create unit: no data returned');
     }
 
     return {
@@ -219,9 +248,34 @@ export class ExternalRecipeMapper {
       .select('id, name, created_at')
       .single();
 
-    if (createError || !newTag) {
+    // Handle race condition: if tag was created by another concurrent request
+    if (createError) {
+      // Check if it's a duplicate key error (23505)
+      if ((createError as any).code === '23505') {
+        console.log(`⚠️ Tag "${normalizedName}" already exists (race condition), fetching...`);
+        
+        // Try to find it again (it was just created by another request)
+        const { data: refetchedTag, error: refetchError } = await this.supabase
+          .from('tags')
+          .select('id, name, created_at')
+          .ilike('name', normalizedName)
+          .limit(1);
+
+        if (refetchError || !refetchedTag || refetchedTag.length === 0) {
+          console.error('Error refetching tag after race condition:', refetchError);
+          throw new Error('Failed to fetch tag after race condition');
+        }
+
+        return refetchedTag[0];
+      }
+
+      // Other error - throw
       console.error('Error creating tag:', createError);
       throw new Error('Failed to create tag');
+    }
+
+    if (!newTag) {
+      throw new Error('Failed to create tag: no data returned');
     }
 
     return newTag;
@@ -257,6 +311,7 @@ export class ExternalRecipeMapper {
           external_id: externalRecipe.id,
           image_url: externalRecipe.image_url,
           source_url: externalRecipe.source_url,
+          sources: externalRecipe.sources || [],
         },
       })
       .select('*')

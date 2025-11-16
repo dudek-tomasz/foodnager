@@ -59,6 +59,13 @@ const externalRecipeSchema = z.object({
   external_id: z.string().optional(),
   image_url: z.string().url().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
+  // Optional sources array (for AI-generated recipes)
+  sources: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      url: z.string().url(),
+    })
+  ).optional(),
 });
 
 type ExternalRecipeSchema = z.infer<typeof externalRecipeSchema>;
@@ -119,6 +126,7 @@ export async function POST(context: APIContext): Promise<Response> {
       tags: externalRecipe.tags ?? [],
       image_url: externalRecipe.image_url ?? undefined,
       source_url: externalRecipe.source_url ?? undefined,
+      sources: externalRecipe.sources ?? undefined,
     };
 
     // Map and save (this will resolve names to IDs and create missing products/units)

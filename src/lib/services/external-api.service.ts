@@ -24,6 +24,7 @@ export interface ExternalRecipe {
   ingredients: ExternalIngredient[];
   tags?: string[];
   source_url?: string;
+  sources?: Array<{ name: string; url: string }>;
 }
 
 /**

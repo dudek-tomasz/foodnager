@@ -17,6 +17,14 @@ const AIIngredientSchema = z.object({
 });
 
 /**
+ * Schema for source reference (URL to culinary blog/site)
+ */
+const AISourceSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().url(),
+});
+
+/**
  * Schema for single AI-generated recipe
  */
 export const AIRecipeSchema = z.object({
@@ -27,6 +35,7 @@ export const AIRecipeSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   ingredients: z.array(AIIngredientSchema).min(1),
   tags: z.array(z.string()).optional().default([]),
+  sources: z.array(AISourceSchema).optional().default([]),
 });
 
 /**

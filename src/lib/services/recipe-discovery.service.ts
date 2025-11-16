@@ -343,7 +343,7 @@ export class RecipeDiscoveryService {
     const aiResponse = await this.openRouterClient.generateRecipe(userPrompt, {
       systemMessage,
       temperature: 0.8, // Zwiększona kreatywność dla discovery
-      maxTokens: 4000, // Zwiększone tokeny dla 5 przepisów
+      maxTokens: 40000, // Zwiększone tokeny dla 5 przepisów
     });
 
     // Validate response - expects array of recipes
@@ -401,14 +401,53 @@ export class RecipeDiscoveryService {
    * @returns System message for AI model
    */
   private buildSystemMessage(preferences?: SearchRecipesByFridgeDTO['preferences']): string {
-    let message = 'Jesteś profesjonalnym szefem kuchni z ekspertyzą w tworzeniu pysznych i praktycznych przepisów kulinarnych. Wszystkie przepisy generujesz WYŁĄCZNIE w języku polskim.';
+    let message = 'Jesteś profesjonalnym szefem kuchni z ekspertyzą w tworzeniu pysznych i praktycznych przepisów kulinarnych opartych na REALNYCH, zweryfikowanych, powszechnie uznanych tradycjach kulinarnych. Wszystkie przepisy generujesz WYŁĄCZNIE w języku polskim.';
+    
+    message += '\n\n⚠️ KRYTYCZNE ZASADY:';
+    message += '\n1. PRIORYTET: Twórz SENSOWNE, REALNE przepisy oparte WYŁĄCZNIE na prawdziwych przepisach znalezionych online.';
+    message += '\n2. Za każdym razem MUSISZ przeprowadzić WYSZUKIWANIE W INTERNECIE i bazować swoje danie TYLKO na przepisach z renomowanych serwisów kulinarnych (KwestiaSmaku, AniaGotuje, BBC Good Food, SeriousEats, TasteAtlas, AllRecipes).';
+    message += '\n3. NIE musisz używać WSZYSTKICH podanych składników – tylko tych, które występują w autentycznym przepisie znalezionym online.';
+    message += '\n4. ZAWSZE lepiej zrobić znane, sprawdzone danie używając 1-2 składników niż stworzyć dziwne lub wymyślone danie używając wszystkich składników.';
+    message += '\n5. NIGDY nie mieszaj niezgodnych kategorii składników, chyba że takie połączenie ISTNIEJE w realnych, udokumentowanych przepisach.';
+    message += '\n6. NIGDY nie twórz nietypowych, eksperymentalnych lub kreatywnych kombinacji – JEŚLI przepis nie może zostać potwierdzony online, NIE MOŻESZ go użyć.';
+    message += '\n7. Szanuj profile smakowe dokładnie tak, jak są pokazane w REALNYCH przepisach z wyników wyszukiwania.';
+    message += '\n8. Wytrawne z wytrawnym, słodkie ze słodkim – chyba że PRAWDZIWE danie z wyszukiwania stosuje inaczej.';
+    message += '\n9. Jeśli składniki nie tworzą spójnego dania z prawdziwego świata, wybierz POPULARNY przepis, który używa TYLKO sensownego podzbioru.';
+    message += '\n10. ZAWSZE myśl: "Jakie prawdziwe, znane danie istnieje online, które pasuje do tych składników?" Nigdy niczego nie wymyślaj.';
     
     if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
       const restrictions = preferences.dietary_restrictions.join(', ');
-      message += ` Wszystkie przepisy muszą być ${restrictions}.`;
+      message += `\n\n🥗 Wymagania dietetyczne: ${restrictions}`;
+      message += `\n- Wszystkie przepisy MUSZĄ być zgodne I nadal muszą być oparte na realnych, udokumentowanych przepisach z internetu.`;
     }
     
-    message += ' Skup się na jasnych instrukcjach i dokładnych proporcjach składników. Używaj polskich nazw produktów i jednostek miary (gram, sztuka, łyżka, itp.).';
+    message += '\n\n📝 Wymagania formatu instrukcji:';
+    message += '\n- Pisz szczegółowe instrukcje krok po kroku.';
+    message += '\n- Każdy główny krok powinien mieć nagłówek ("Krok 1: Przygotowanie składników").';
+    message += '\n- Zawieraj prawdziwe temperatury, czasy, techniki OPARTE NA wynikach wyszukiwania.';
+    message += '\n- Dodaj realistyczne wskazówki, które pojawiają się w tradycyjnych lub dobrze znanych przepisach.';
+    message += '\n- Opisuj teksturę, aromat i wizualne wskazówki dokładnie tak, jak robią to prawdziwe przepisy.';
+    message += '\n- Pisz w JĘZYKU POLSKIM.';
+    message += '\n- Ton: przyjazny, prowadzący, jak nauczanie przyjaciela.';
+    message += '\n- ABSOLUTNIE ŻADNYCH WYMYŚLONYCH DAŃ. Tylko PRAWDZIWE z wyszukiwania.';
+    
+    message += '\n\n🌍 Źródła referencyjne dla REALNYCH przepisów (OBOWIĄZKOWE):';
+    message += '\n- TasteAtlas (tradycyjne dania)';
+    message += '\n- AniaGotuje (zweryfikowane polskie przepisy)';
+    message += '\n- KwestiaSmaku (popularne, prawdziwe dania)';
+    message += '\n- BBC Good Food';
+    message += '\n- SeriousEats';
+    message += '\n- AllRecipes';
+    message += '\n- KAŻDY wynik z wyszukiwania internetowego, który jest prawdziwym przepisem';
+    
+    message += '\n\nWAŻNE: NIE MOŻESZ wygenerować ŻADNEGO przepisu, chyba że najpierw przeprowadzisz WYSZUKIWANIE W INTERNECIE i wybierzesz danie, które pojawia się w co najmniej JEDNYM zaufanym źródle z powyższej listy.';
+    
+    message += '\n\n📎 ŹRÓDŁA INSPIRACJI:';
+    message += '\n- Pole "sources" może pozostać puste [] - NIE generuj fake linków!';
+    message += '\n- Jeśli masz dostęp do citations z web search, użyj prawdziwych URL-i.';
+    message += '\n- Jeśli NIE masz pewności co do URL-a - zostaw sources jako pustą tablicę.';
+    message += '\n- LEPIEJ brak źródeł niż fake/wymyślone linki!';
+    message += '\n- Bazuj na sprawdzonych, tradycyjnych przepisach z pamięci treningowej.';
     
     return message;
   }
@@ -484,11 +523,20 @@ export class RecipeDiscoveryService {
     // Generate temporary ID for React keys (not saved to database)
     const temporaryId = this.generateTemporaryId();
 
+    // Build description with sources appended
+    let description = aiRecipe.description || '';
+    
+    if (aiRecipe.sources && aiRecipe.sources.length > 0) {
+      const sourcesSection = '\n\n## 📚 Źródła inspiracji\n' + 
+        aiRecipe.sources.map(s => `- [${s.name}](${s.url})`).join('\n');
+      description = description ? `${description}${sourcesSection}` : sourcesSection;
+    }
+
     // Return RecipeSummaryDTO without saving (temporary ID will be replaced on save)
     return {
       id: temporaryId, // Temporary ID in range 100000-1000000
       title: aiRecipe.title,
-      description: aiRecipe.description || null,
+      description: description || null,
       instructions: aiRecipe.instructions,
       cooking_time: aiRecipe.cooking_time || null,
       difficulty: aiRecipe.difficulty || null,

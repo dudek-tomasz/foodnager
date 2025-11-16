@@ -109,61 +109,63 @@ export class AIRecipeService {
    * Build system message based on preferences
    */
   private buildSystemMessage(preferences?: GenerateRecipeDTO['preferences']): string {
-    let message = 'You are a professional chef with expertise in creating delicious and practical recipes based on REAL, established culinary traditions.';
-    
-    // CRITICAL: Walidacja kulinarna
+    let message = 'You are a professional chef with expertise in creating delicious and practical recipes based on REAL, verified, widely recognized culinary traditions. You MUST rely on internet search results, not imagination.';
+
     message += '\n\n⚠️ CRITICAL RULES - YOU MUST FOLLOW THESE:';
-    message += '\n1. PRIORITY: Create a SENSIBLE, REAL recipe over forcing all ingredients together';
-    message += '\n2. Base your recipe on POPULAR, WELL-KNOWN dishes (like those from TasteAtlas, AllRecipes, traditional cookbooks)';
-    message += '\n3. You DO NOT need to use ALL provided ingredients - only use those that make sense for the dish';
-    message += '\n4. Better to make authentic "Spaghetti Carbonara" using 50% of ingredients than a nonsensical dish using 100%';
-    message += '\n5. NEVER mix incompatible ingredient categories (e.g., no sweet desserts with meat, no cheesecake with ground beef)';
-    message += '\n6. NEVER create absurd or nonsensical combinations - if ingredients don\'t traditionally go together, DON\'T force them';
-    message += '\n7. Respect flavor profiles: sweet ingredients (sugar, cream cheese, fruits) go with other sweet ingredients';
-    message += '\n8. Savory ingredients (meat, vegetables, herbs) go with other savory ingredients';
-    message += '\n9. If the provided ingredients don\'t make a coherent dish together, choose the most sensible subset and note this in the description';
-    message += '\n10. Think: "What popular dish could I make with SOME of these ingredients?" not "How can I force ALL ingredients together?"';
+    message += '\n1. PRIORITY: Create a SENSIBLE, REAL recipe based STRICTLY on real-world recipes found online.';
+    message += '\n2. Every time, you MUST perform an INTERNET SEARCH and base your dish ONLY on recipes that appear on reputable cooking sites (KwestiaSmaku, AniaGotuje, BBC Good Food, SeriousEats, TasteAtlas, AllRecipes).';
+    message += '\n3. You DO NOT need to use ALL provided ingredients – only those found in the authentic recipe you discover online.';
+    message += '\n4. It is ALWAYS better to make a known, established dish using 1–2 ingredients than to produce a weird or invented dish using all ingredients.';
+    message += '\n5. NEVER mix incompatible ingredient categories unless this combination EXISTS in real, documented recipes.';
+    message += '\n6. NEVER create unusual, experimental, or creative combinations – IF a recipe cannot be confirmed online, you MUST NOT use it.';
+    message += '\n7. Respect flavor profiles exactly as demonstrated in REAL recipes from the search results.';
+    message += '\n8. Savory with savory, sweet with sweet – unless a REAL dish from the search uses otherwise.';
+    message += '\n9. If ingredients do not form a coherent real-world dish, choose a POPULAR recipe that uses ONLY a sensible subset.';
+    message += '\n10. ALWAYS think: "Which real, famous dish exists online that fits these ingredients?" Never invent anything.';
     
     if (preferences?.cuisine) {
       message += `\n\n🍴 Cuisine specialization: ${preferences.cuisine}`;
-      message += `\n- Focus on authentic ${preferences.cuisine} recipes and techniques`;
-      message += `\n- Use traditional ${preferences.cuisine} flavor combinations`;
+      message += `\n- Focus ONLY on authentic, real ${preferences.cuisine} dishes found in online searches.`;
     }
     
     if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
       const restrictions = preferences.dietary_restrictions.join(', ');
       message += `\n\n🥗 Dietary requirements: ${restrictions}`;
-      message += `\n- All recipes MUST be compatible with these restrictions`;
+      message += `\n- All recipes MUST comply AND must still be based on real, documented recipes from the internet.`;
     }
     
     message += '\n\n📝 Instructions format requirements:';
-    message += '\n- Write detailed, step-by-step instructions';
-    message += '\n- Each main step should have a clear heading (e.g., "Krok 1: Przygotowanie składników")';
-    message += '\n- Include specific details like temperatures, times, and techniques';
-    message += '\n- Add helpful tips and advice after relevant steps';
-    message += '\n- Describe what the food should look like at each stage';
-    message += '\n- Include sensory details (texture, color, aroma) when relevant';
-    message += '\n- Explain WHY certain steps are important when it adds value';
-    message += '\n- End with serving suggestions and what pairs well with the dish';
-    message += '\n- Write instructions in POLISH language';
-    message += '\n- Write in a friendly, encouraging tone as if teaching a friend';
+    message += '\n- Write detailed, step-by-step instructions.';
+    message += '\n- Each main step should have a heading ("Krok 1: Przygotowanie składników").';
+    message += '\n- Include real temperatures, times, techniques BASED ON search results.';
+    message += '\n- Add realistic tips that appear in traditional or well-known recipes.';
+    message += '\n- Describe texture, aroma, and visual cues exactly as real recipes do.';
+    message += '\n- Write in POLISH language.';
+    message += '\n- Tone: friendly, guiding, like teaching a friend.';
+    message += '\n- ABSOLUTELY NO INVENTED DISHES. Only REAL ones from search.';
     
-    message += '\n\n🌍 Reference sources for REAL recipes:';
-    message += '\n- TasteAtlas (traditional dishes from around the world)';
-    message += '\n- Classic cookbooks (Julia Child, Gordon Ramsay, Jamie Oliver)';
-    message += '\n- National cuisines (Italian pasta, French sauces, Asian stir-fries, Polish pierogi)';
-    message += '\n- Restaurant menus and popular home cooking';
+    message += '\n\n🌍 Reference sources for REAL recipes (MANDATORY):';
+    message += '\n- TasteAtlas (traditional dishes)';
+    message += '\n- AniaGotuje (verified Polish recipes)';
+    message += '\n- KwestiaSmaku (popular, real dishes)';
+    message += '\n- BBC Good Food';
+    message += '\n- SeriousEats';
+    message += '\n- AllRecipes';
+    message += '\n- ANY result from the web search that is a real recipe';
+    
+    message += '\n\nIMPORTANT: You MUST NOT generate ANY recipe unless you first perform a WEB SEARCH and select a dish that appears in at least ONE trusted source from the list above.';
     
     message += '\n\n✅ Good examples (real dishes, selective ingredient use):';
-    message += '\n- Have: chicken, rice, random sweet items → Make: Chicken stir-fry with rice (ignore sweet items)';
-    message += '\n- Have: cream cheese, meat, sugar, eggs → Make: Cheesecake with cream cheese, sugar, eggs (ignore meat!)';
-    message += '\n- Have: tomatoes, pasta, beef, chocolate → Make: Bolognese with beef, tomatoes, pasta (ignore chocolate!)';
-    message += '\n- Have: potatoes, onions, cheese → Make: Classic potato gratin';
+    message += '\n- Have: chicken, rice, random sweet items → Make: Chicken stir-fry (ignore sweet items).';
+    message += '\n- Have: cream cheese, meat, sugar, eggs → Make: Classic cheesecake (ignore meat).';
+    message += '\n- Have: tomatoes, pasta, beef, chocolate → Make: Bolognese (ignore chocolate).';
+    message += '\n- Have: potatoes, onions, cheese → Make: Classic gratin.'
     
-    message += '\n\n❌ BAD examples (forced combinations - NEVER do this):';
-    message += '\n- Using ALL ingredients when they don\'t fit: "Cheesecake with ground beef layer"';
-    message += '\n- Creating non-existent dishes: "Chocolate chicken curry with ice cream"';
-    message += '\n- Mixing incompatible categories to "use everything": "Sweet and savory surprise casserole"';
+    message += '\n\n❌ BAD examples (NEVER DO THIS):';
+    message += '\n- Dishes that DO NOT appear online.';
+    message += '\n- Forcing all ingredients: "Cheesecake with ground beef layer".';
+    message += '\n- Inventing combinations no one makes: "Zupa z orzechów i czekolady".';
+    message += '\n- Random fusion: "Sweet and savory surprise casserole".';
     
     return message;
   }
@@ -197,32 +199,69 @@ ${productList}
 ${preferencesText}
 
 YOUR TASK:
-Think of a POPULAR, WELL-KNOWN dish (from TasteAtlas, cookbooks, restaurants, or traditional cuisines) that can be made using SOME or ALL of these ingredients.
+You MUST perform an INTERNET SEARCH before generating ANY recipe.
+Use the search results to identify ONE REAL, WELL-KNOWN dish from reputable sources (TasteAtlas, AniaGotuje, KwestiaSmaku, BBC Good Food, SeriousEats, AllRecipes, cookbooks).
 
-🎯 PRIORITY: Make a SENSIBLE, REAL recipe that exists in culinary practice
-⚠️ You DO NOT have to use all ingredients if they don't fit the dish!
+⚠️ ABSOLUTE RULES (DO NOT BREAK):
+- Only choose recipes that appear in REAL online sources.
+- NEVER invent dishes.
+- NEVER create unusual combinations that do not exist online.
+- NEVER force incompatible ingredients together.
+- If ingredients do not fit a real dish, use ONLY the subset that fits.
 
-DECISION PROCESS (follow in order):
-1. Identify ingredient categories (sweet/savory, meat/veg, etc.)
-2. Think: "What POPULAR dish matches the main ingredients?"
-   Examples: Carbonara, Pad Thai, Tacos, Cheesecake, Chicken Tikka, Pierogi, etc.
-3. Choose ONE well-known dish
-4. Use only ingredients from the list that fit this dish
-5. Ignore ingredients that don't belong in this dish
-6. Add basic pantry staples (salt, pepper, oil) if needed for authenticity
-7. Write the recipe as you would find it in a real cookbook
+Forbidden outputs include:
+❌ "zupa z orzechów i czekolady"
+❌ any experimental fusion
+❌ anything not appearing online.
 
-Example decisions:
-❌ BAD: "I'll force all ingredients together in one dish"
-✅ GOOD: "I have chicken, pasta, cream, and chocolate. I'll make Chicken Alfredo Pasta (ignore chocolate)"
+PROCESS (mandatory):
+1. Analyze provided ingredients.
+2. Determine the MAIN ingredients (meat/vegetables/sweets).
+3. **USE YOUR WEB SEARCH CAPABILITY** to find real dishes using those main ingredients.
+4. Select ONE famous, documented dish that appears in the search.
+5. Use only ingredients from the list that actually belong to this real dish.
+6. Ignore everything else.
+7. Include ONLY real steps, temperatures, times, and methods from real recipes.
 
-❌ BAD: "Cheesecake with meat surprise layer"
-✅ GOOD: "I have cream cheese, beef, and eggs. I'll make classic Cheesecake (ignore beef)"
+🌐 CRITICAL - SOURCES REQUIREMENT:
+You MUST return your response as a JSON object with the following exact structure:
 
-❌ BAD: "Creative fusion surprise using everything"
-✅ GOOD: "I'll make authentic Spaghetti Bolognese that actually exists"
+{
+  "title": "Nazwa przepisu",
+  "description": "Krótki opis dania",
+  "instructions": "Szczegółowe instrukcje krok po kroku...",
+  "cooking_time": 30,
+  "difficulty": "easy",
+  "ingredients": [
+    {
+      "product_name": "Pomidor",
+      "quantity": 4,
+      "unit": "sztuka"
+    }
+  ],
+  "tags": ["wegetariańskie", "szybkie"],
+  "sources": [
+    {
+      "name": "KwestiaSmaku",
+      "url": "https://www.kwestiasmaku.com/przepis/nazwa-przepisu"
+    },
+    {
+      "name": "AniaGotuje",
+      "url": "https://aniagotuje.pl/przepis/nazwa-przepisu"
+    }
+  ]
+}
 
-Now decide on ONE popular dish and create its recipe. In the description, briefly mention which ingredients you used and which you omitted (if any).`;
+⚠️ SOURCES FIELD IS **MANDATORY** AND **CANNOT BE EMPTY**:
+- You MUST include at least 1-3 real sources in the 'sources' array
+- Each source MUST have: "name" (site name) and "url" (full URL to the recipe page)
+- Sources must be REAL URLs from your web search - cite the actual pages you found
+- NEVER leave sources empty [] - this is unacceptable
+- If you cannot find sources, DO NOT generate a recipe at all
+
+Return ONLY the JSON object, no additional text, no markdown, no explanations.
+All text (title, description, instructions, ingredient names, tags) MUST be in POLISH.
+`;
   }
 
   /**
@@ -301,7 +340,7 @@ Now decide on ONE popular dish and create its recipe. In the description, briefl
         difficulty: aiRecipe.difficulty || null,
         source: 'ai',
         metadata: {
-          ai_model: import.meta.env.OPENROUTER_MODEL || 'anthropic/claude-3-haiku',
+          ai_model: import.meta.env.OPENROUTER_MODEL || 'perplexity/sonar-pro',
           generation_timestamp: new Date().toISOString(),
           input_products: originalProducts.map(p => p.id),
           preferences: generateDto.preferences ? {
@@ -310,6 +349,7 @@ Now decide on ONE popular dish and create its recipe. In the description, briefl
             difficulty: generateDto.preferences.difficulty,
             dietary_restrictions: generateDto.preferences.dietary_restrictions,
           } : {},
+          sources: aiRecipe.sources || [],
         } as any,
       })
       .select('*')
@@ -446,7 +486,7 @@ Now decide on ONE popular dish and create its recipe. In the description, briefl
       difficulty: aiRecipe.difficulty || null,
       source: 'ai',
       metadata: {
-        ai_model: import.meta.env.OPENROUTER_MODEL || 'anthropic/claude-3-haiku',
+        ai_model: import.meta.env.OPENROUTER_MODEL || 'perplexity/sonar-pro',
         generation_timestamp: new Date().toISOString(),
         input_products: originalProducts.map(p => p.id),
         preferences: generateDto.preferences ? {
@@ -455,6 +495,7 @@ Now decide on ONE popular dish and create its recipe. In the description, briefl
           difficulty: generateDto.preferences.difficulty,
           dietary_restrictions: generateDto.preferences.dietary_restrictions,
         } : {},
+        sources: aiRecipe.sources || [],
         saved: false,
       } as any,
       tags: (tags || []).map(t => ({

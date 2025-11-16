@@ -110,8 +110,8 @@ export class OpenRouterClient {
     this.config = {
       apiUrl: import.meta.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions',
       apiKey: import.meta.env.OPENROUTER_API_KEY || '',
-      model: import.meta.env.OPENROUTER_MODEL || 'anthropic/claude-3-haiku',
-      timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || '30000', 10),
+      model: import.meta.env.OPENROUTER_MODEL || 'perplexity/sonar-pro',
+      timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || '45000', 10),
       temperature: parseFloat(import.meta.env.OPENROUTER_TEMPERATURE || '0.7'),
       maxTokens: parseInt(import.meta.env.OPENROUTER_MAX_TOKENS || '2000', 10),
       topP: parseFloat(import.meta.env.OPENROUTER_TOP_P || '1.0'),
@@ -413,8 +413,27 @@ export class OpenRouterClient {
                     },
                     description: 'Tagi do kategoryzacji po polsku (np. wegetariańskie, szybkie danie)',
                   },
+                  sources: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: {
+                          type: 'string',
+                          description: 'Nazwa źródła (np. KwestiaSmaku, AniaGotuje, BBC Good Food)',
+                        },
+                        url: {
+                          type: 'string',
+                          description: 'Pełny URL do przepisu źródłowego',
+                        },
+                      },
+                      required: ['name', 'url'],
+                      additionalProperties: false,
+                    },
+                    description: 'Źródła inspiracji - linki do oryginalnych przepisów kulinarnych',
+                  },
                 },
-                required: ['title', 'description', 'instructions', 'cooking_time', 'difficulty', 'ingredients', 'tags'],
+                required: ['title', 'description', 'instructions', 'cooking_time', 'difficulty', 'ingredients', 'tags', 'sources'],
                 additionalProperties: false,
               },
             },
