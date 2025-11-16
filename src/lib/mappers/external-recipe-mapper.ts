@@ -19,6 +19,8 @@ import type {
 } from '../../types';
 import type { ExternalRecipe } from '../services/external-api.service';
 import { ProductMatcher } from '../utils/product-matcher';
+import { translateIngredientToPolish } from '../utils/ingredient-translator';
+import { translateUnit } from '../utils/unit-translator';
 
 /**
  * ExternalRecipeMapper class
@@ -39,6 +41,36 @@ export class ExternalRecipeMapper {
    */
   async mapAndSave(externalRecipe: ExternalRecipe, userId: string): Promise<RecipeDTO> {
     try {
+      // Step 0: Check if recipe already exists (by external_id)
+      console.log(`📦 [MAPPER] Checking if recipe already exists: ${externalRecipe.title} (external_id: ${externalRecipe.id})`);
+      
+      const existingRecipe = await this.findExistingRecipe(userId, externalRecipe.id);
+      
+      if (existingRecipe) {
+        console.log(`📦 [MAPPER] ⚠️ Recipe already exists (id: ${existingRecipe.id})`);
+        
+        // Check if existing recipe needs translation update (title or ingredients are in English)
+        const needsTranslationUpdate = this.isEnglishTitle(existingRecipe.title) || 
+                                       this.hasEnglishIngredients(existingRecipe.ingredients);
+        
+        if (needsTranslationUpdate && this.isPolishTitle(externalRecipe.title)) {
+          console.log(`📦 [MAPPER] 🔄 Recipe needs full translation update (title + ingredients + tags)`);
+          console.log(`📦 [MAPPER] 🗑️ Deleting old recipe and creating new one...`);
+          
+          // Delete old recipe (will cascade delete ingredients and tags)
+          await this.deleteRecipe(existingRecipe.id);
+          console.log(`📦 [MAPPER] ✅ Old recipe deleted`);
+          
+          // Continue to create new recipe with Polish translation below
+          console.log(`📦 [MAPPER] 📝 Creating new recipe with Polish translation...`);
+        } else {
+          console.log(`📦 [MAPPER] ✅ Returning existing recipe (already fully translated)`);
+          return existingRecipe;
+        }
+      } else {
+        console.log(`📦 [MAPPER] Recipe not found, creating new one...`);
+      }
+
       // Step 1: Map ingredients (find or create products and units)
       const mappedIngredients = await this.mapIngredients(
         externalRecipe.ingredients,
@@ -56,12 +88,186 @@ export class ExternalRecipeMapper {
         tagIds
       );
 
+      console.log(`📦 [MAPPER] ✅ Recipe saved successfully (id: ${recipe.id})`);
       return recipe;
       
     } catch (error) {
       console.error('Error mapping external recipe:', error);
       throw new Error('Failed to map external recipe');
     }
+  }
+
+  /**
+   * Find existing recipe by external_id
+   * 
+   * @param userId - User ID
+   * @param externalId - External recipe ID
+   * @returns Existing RecipeDTO or null
+   */
+  private async findExistingRecipe(userId: string, externalId: string): Promise<RecipeDTO | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('recipes')
+        .select(`
+          *,
+          recipe_ingredients (
+            quantity,
+            product_id,
+            products!inner(id, name),
+            unit_id,
+            units!inner(id, name, abbreviation)
+          ),
+          recipe_tags (
+            tags!inner(id, name, created_at)
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('source', 'api')
+        .filter('metadata->>external_id', 'eq', externalId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error finding existing recipe:', error);
+        return null;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return this.transformToRecipeDTO(data);
+      
+    } catch (error) {
+      console.error('Error in findExistingRecipe:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if title is in English (simple heuristic)
+   */
+  private isEnglishTitle(title: string): boolean {
+    // Common English recipe words
+    const englishWords = ['with', 'and', 'the', 'bake', 'burger', 'ball', 'pie', 'stuffed'];
+    const lowerTitle = title.toLowerCase();
+    return englishWords.some(word => lowerTitle.includes(word));
+  }
+
+  /**
+   * Check if title is in Polish (simple heuristic)
+   */
+  private isPolishTitle(title: string): boolean {
+    // Common Polish recipe words
+    const polishWords = ['z', 'i', 'na', 'pieczon', 'grillowany', 'nadziewan', 'zapiekanka', 'klopsik'];
+    const lowerTitle = title.toLowerCase();
+    return polishWords.some(word => lowerTitle.includes(word));
+  }
+
+  /**
+   * Check if recipe has English ingredient names
+   */
+  private hasEnglishIngredients(ingredients: any[]): boolean {
+    if (!ingredients || ingredients.length === 0) return false;
+    
+    // Check first few ingredients
+    const sampleSize = Math.min(3, ingredients.length);
+    for (let i = 0; i < sampleSize; i++) {
+      const productName = ingredients[i].product?.name?.toLowerCase() || '';
+      // Common English ingredient words
+      if (productName.includes('ground') || 
+          productName.includes('beef') ||
+          productName.includes('pepper') ||
+          productName === 'egg' ||
+          productName === 'onion' ||
+          productName === 'oil') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Delete recipe by ID (cascades to ingredients and tags)
+   */
+  private async deleteRecipe(recipeId: number): Promise<void> {
+    const { error } = await this.supabase
+      .from('recipes')
+      .delete()
+      .eq('id', recipeId);
+
+    if (error) {
+      console.error('Error deleting recipe:', error);
+      throw new Error('Failed to delete recipe');
+    }
+  }
+
+  /**
+   * Check if a word is likely English (simple heuristic)
+   */
+  private isEnglishWord(word: string): boolean {
+    // Skip if empty or very short
+    if (!word || word.length < 3) return false;
+    
+    // Skip if it's a number or contains mostly numbers
+    if (/^\d+$/.test(word)) return false;
+    
+    // Polish-specific characters - if present, it's likely Polish already
+    const polishChars = /[ąćęłńóśźż]/i;
+    if (polishChars.test(word)) return false;
+    
+    // If it contains common English patterns, it's likely English
+    return true;
+  }
+
+  /**
+   * Update existing recipe with Polish translation
+   * 
+   * @param recipeId - Recipe ID to update
+   * @param externalRecipe - New recipe data with Polish translation
+   * @returns Updated RecipeDTO
+   */
+  private async updateRecipeTranslation(recipeId: number, externalRecipe: ExternalRecipe): Promise<RecipeDTO> {
+    // Update recipe title, description, and instructions
+    const { error: updateError } = await this.supabase
+      .from('recipes')
+      .update({
+        title: externalRecipe.title,
+        description: externalRecipe.description || null,
+        instructions: externalRecipe.instructions,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', recipeId);
+
+    if (updateError) {
+      console.error('Error updating recipe translation:', updateError);
+      throw new Error('Failed to update recipe translation');
+    }
+
+    // Fetch updated recipe with all relations
+    const { data, error: fetchError } = await this.supabase
+      .from('recipes')
+      .select(`
+        *,
+        recipe_ingredients (
+          quantity,
+          product_id,
+          products!inner(id, name),
+          unit_id,
+          units!inner(id, name, abbreviation)
+        ),
+        recipe_tags (
+          tags!inner(id, name, created_at)
+        )
+      `)
+      .eq('id', recipeId)
+      .single();
+
+    if (fetchError || !data) {
+      console.error('Error fetching updated recipe:', fetchError);
+      throw new Error('Failed to fetch updated recipe');
+    }
+
+    return this.transformToRecipeDTO(data);
   }
 
   /**
@@ -77,12 +283,58 @@ export class ExternalRecipeMapper {
   ): Promise<CreateRecipeIngredientDTO[]> {
     const mapped: CreateRecipeIngredientDTO[] = [];
 
-    for (const ingredient of externalIngredients) {
-      // Find or create product
-      const product = await this.productMatcher.findOrCreate(ingredient.name, userId);
+    // First pass: translate using dictionary
+    const ingredientsToTranslate: Array<{ original: typeof externalIngredients[0]; index: number; needsLLM: boolean }> = [];
+    
+    for (let i = 0; i < externalIngredients.length; i++) {
+      const ingredient = externalIngredients[i];
+      const dictionaryTranslation = translateIngredientToPolish(ingredient.name);
+      const needsLLM = dictionaryTranslation === ingredient.name; // Still in English = not in dictionary
+      
+      ingredientsToTranslate.push({
+        original: ingredient,
+        index: i,
+        needsLLM: needsLLM && this.isEnglishWord(ingredient.name)
+      });
+    }
 
-      // Find or create unit
-      const unit = await this.findOrCreateUnit(ingredient.unit);
+    // Second pass: translate unknowns with LLM (batch)
+    const llmTranslations = new Map<number, string>();
+    const needsLLM = ingredientsToTranslate.filter(item => item.needsLLM);
+    
+    if (needsLLM.length > 0) {
+      console.log(`🤖 [MAPPER] ${needsLLM.length} ingredients need LLM translation`);
+      
+      // Use dynamic import to avoid circular dependency
+      const { translateIngredientWithLLM } = await import('../utils/ingredient-translator');
+      
+      for (const item of needsLLM) {
+        try {
+          const translated = await translateIngredientWithLLM(item.original.name);
+          llmTranslations.set(item.index, translated);
+        } catch (error) {
+          console.error(`❌ Failed to translate "${item.original.name}":`, error);
+        }
+      }
+    }
+
+    // Third pass: create mapped ingredients with final translations
+    for (let i = 0; i < externalIngredients.length; i++) {
+      const ingredient = externalIngredients[i];
+      
+      // Get final Polish name (LLM translation if available, otherwise dictionary)
+      let polishName = llmTranslations.get(i) || translateIngredientToPolish(ingredient.name);
+      
+      // Translate unit from English to Polish
+      const polishUnit = translateUnit(ingredient.unit);
+      
+      console.log(`📦 [MAPPER] Ingredient: "${ingredient.name}" (${ingredient.unit}) → "${polishName}" (${polishUnit})`);
+      
+      // Find or create product using Polish name
+      const product = await this.productMatcher.findOrCreate(polishName, userId);
+
+      // Find or create unit using Polish name
+      const unit = await this.findOrCreateUnit(polishUnit);
 
       mapped.push({
         product_id: product.id,
@@ -322,14 +574,37 @@ export class ExternalRecipeMapper {
       throw new Error('Failed to create recipe');
     }
 
-    // Insert ingredients
+    // Insert ingredients (deduplicate and sum quantities for same product_id)
     if (ingredients.length > 0) {
-      const ingredientRows = ingredients.map((ing) => ({
+      // Group by product_id and unit_id, sum quantities
+      const ingredientMap = new Map<string, { product_id: number; quantity: number; unit_id: number }>();
+      
+      for (const ing of ingredients) {
+        const key = `${ing.product_id}_${ing.unit_id}`;
+        const existing = ingredientMap.get(key);
+        
+        if (existing) {
+          // Sum quantities for duplicate ingredients
+          existing.quantity += ing.quantity;
+          console.log(`📦 [MAPPER] Duplicate ingredient detected, summing quantities: product_id=${ing.product_id}, new total=${existing.quantity}`);
+        } else {
+          ingredientMap.set(key, {
+            product_id: ing.product_id,
+            quantity: ing.quantity,
+            unit_id: ing.unit_id,
+          });
+        }
+      }
+      
+      // Convert map to rows
+      const ingredientRows = Array.from(ingredientMap.values()).map((ing) => ({
         recipe_id: recipe.id,
         product_id: ing.product_id,
         quantity: ing.quantity,
         unit_id: ing.unit_id,
       }));
+
+      console.log(`📦 [MAPPER] Inserting ${ingredientRows.length} unique ingredients (deduplicated from ${ingredients.length})`);
 
       const { error: ingredientsError } = await this.supabase
         .from('recipe_ingredients')

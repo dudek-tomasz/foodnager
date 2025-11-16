@@ -1,13 +1,16 @@
 /**
  * ExternalAPIService - Integration with external recipe APIs
  * 
- * Currently supports TheMealDB (free tier)
- * Can be extended to support Spoonacular or other APIs
+ * Currently supports Spoonacular API
  * 
  * This service is used in Tier 2 of recipe discovery
  */
 
 import type { SearchRecipePreferencesDTO } from '@/types';
+import { translateIngredients } from '../utils/ingredient-translator';
+import { htmlToText, extractSummary } from '../utils/html-to-text';
+import { translateRecipe } from '../utils/recipe-translator';
+import { translateTags } from '../utils/tag-translator';
 
 /**
  * External recipe response from API
@@ -46,15 +49,112 @@ interface ExternalAPIConfig {
 }
 
 /**
+ * Spoonacular API response types
+ */
+interface SpoonacularIngredientSearchResult {
+  id: number;
+  title: string;
+  image: string;
+  usedIngredientCount: number;
+  missedIngredientCount: number;
+  missedIngredients: SpoonacularIngredient[];
+  usedIngredients: SpoonacularIngredient[];
+  unusedIngredients: SpoonacularIngredient[];
+  likes: number;
+}
+
+interface SpoonacularIngredient {
+  id: number;
+  amount: number;
+  unit: string;
+  unitLong: string;
+  unitShort: string;
+  aisle: string;
+  name: string;
+  original: string;
+  originalName: string;
+  meta: string[];
+  image: string;
+}
+
+interface SpoonacularRecipeDetails {
+  id: number;
+  title: string;
+  image: string;
+  servings: number;
+  readyInMinutes: number;
+  cookingMinutes?: number;
+  preparationMinutes?: number;
+  sourceUrl: string;
+  spoonacularSourceUrl: string;
+  aggregateLikes: number;
+  healthScore: number;
+  spoonacularScore: number;
+  pricePerServing: number;
+  analyzedInstructions: SpoonacularInstruction[];
+  cheap: boolean;
+  creditsText: string;
+  cuisines: string[];
+  dairyFree: boolean;
+  diets: string[];
+  gaps: string;
+  glutenFree: boolean;
+  instructions: string;
+  ketogenic: boolean;
+  lowFodmap: boolean;
+  occasions: string[];
+  sustainable: boolean;
+  vegan: boolean;
+  vegetarian: boolean;
+  veryHealthy: boolean;
+  veryPopular: boolean;
+  whole30: boolean;
+  weightWatcherSmartPoints: number;
+  dishTypes: string[];
+  extendedIngredients: SpoonacularExtendedIngredient[];
+  summary: string;
+  winePairing?: any;
+}
+
+interface SpoonacularExtendedIngredient {
+  id: number;
+  aisle: string;
+  image: string;
+  consistency: string;
+  name: string;
+  nameClean: string;
+  original: string;
+  originalName: string;
+  amount: number;
+  unit: string;
+  meta: string[];
+  measures: {
+    us: { amount: number; unitShort: string; unitLong: string };
+    metric: { amount: number; unitShort: string; unitLong: string };
+  };
+}
+
+interface SpoonacularInstruction {
+  name: string;
+  steps: {
+    number: number;
+    step: string;
+    ingredients: { id: number; name: string; localizedName: string; image: string }[];
+    equipment: { id: number; name: string; localizedName: string; image: string }[];
+    length?: { number: number; unit: string };
+  }[];
+}
+
+/**
  * ExternalAPIService class
  */
 export class ExternalAPIService {
   private config: ExternalAPIConfig;
 
   constructor(config?: Partial<ExternalAPIConfig>) {
-    // Default configuration
+    // Default configuration for Spoonacular
     this.config = {
-      url: import.meta.env.EXTERNAL_RECIPE_API_URL || 'https://www.themealdb.com/api/json/v1/1',
+      url: import.meta.env.EXTERNAL_RECIPE_API_URL || 'https://api.spoonacular.com',
       apiKey: import.meta.env.EXTERNAL_RECIPE_API_KEY,
       timeout: parseInt(import.meta.env.TIER2_TIMEOUT_MS || '10000', 10),
       ...config,
@@ -72,135 +172,233 @@ export class ExternalAPIService {
     ingredients: string[],
     preferences?: SearchRecipePreferencesDTO
   ): Promise<ExternalRecipe[]> {
+    console.log(`🌐 [SPOONACULAR] Starting search with ingredients:`, ingredients);
+    
     try {
-      // For TheMealDB, we can search by main ingredient
-      // Note: TheMealDB has limited search capabilities, mainly searches by single ingredient
-      const mainIngredient = ingredients[0]; // Use first ingredient as primary search term
-      
-      if (!mainIngredient) {
+      if (!ingredients || ingredients.length === 0) {
+        console.log('🌐 [SPOONACULAR] ⚠️ No ingredients provided');
         return [];
       }
 
-      const recipes = await this.searchByIngredient(mainIngredient);
+      if (!this.config.apiKey) {
+        console.warn('🌐 [SPOONACULAR] ⚠️ API key not configured, skipping external API search');
+        return [];
+      }
+
+      // Translate Polish ingredient names to English
+      const translatedIngredients = translateIngredients(ingredients);
+      console.log(`🌐 [SPOONACULAR] ✅ API key configured, searching with translated ingredients...`);
+      
+      const recipes = await this.searchByIngredients(translatedIngredients, preferences);
+      console.log(`🌐 [SPOONACULAR] Found ${recipes.length} recipes before filtering`);
 
       // Apply preferences filtering
-      return this.filterByPreferences(recipes, preferences);
+      const filtered = this.filterByPreferences(recipes, preferences);
+      console.log(`🌐 [SPOONACULAR] Returning ${filtered.length} recipes after filtering`);
+      
+      return filtered;
       
     } catch (error) {
-      console.error('Error searching external recipes:', error);
+      console.error('🌐 [SPOONACULAR] ❌ Error searching external recipes:', error);
       throw new Error('External API search failed');
     }
   }
 
   /**
-   * Search recipes by single ingredient (TheMealDB specific)
+   * Search recipes by ingredients using Spoonacular API
    * 
-   * @param ingredient - Ingredient name
+   * @param ingredients - Array of ingredient names
+   * @param preferences - Search preferences (optional)
    * @returns Array of external recipes
    */
-  private async searchByIngredient(ingredient: string): Promise<ExternalRecipe[]> {
-    const url = `${this.config.url}/filter.php?i=${encodeURIComponent(ingredient)}`;
+  private async searchByIngredients(
+    ingredients: string[],
+    preferences?: SearchRecipePreferencesDTO
+  ): Promise<ExternalRecipe[]> {
+    // Spoonacular findByIngredients endpoint
+    const params = new URLSearchParams({
+      apiKey: this.config.apiKey || '',
+      ingredients: ingredients.join(','),
+      number: '5', // Limit to 5 results
+      ranking: '1', // Maximize used ingredients
+      ignorePantry: 'true',
+    });
+
+    const url = `${this.config.url}/recipes/findByIngredients?${params.toString()}`;
+    console.log(`🌐 [SPOONACULAR] Request URL: ${url.replace(this.config.apiKey || '', 'HIDDEN')}`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
+      console.log(`🌐 [SPOONACULAR] Making request to Spoonacular...`);
       const response = await fetch(url, {
         signal: controller.signal,
         headers: this.buildHeaders(),
       });
 
       clearTimeout(timeoutId);
+      console.log(`🌐 [SPOONACULAR] Response status: ${response.status}`);
 
       if (!response.ok) {
-        throw new Error(`External API returned ${response.status}`);
+        const errorText = await response.text();
+        console.error(`🌐 [SPOONACULAR] API Error: ${response.status} - ${errorText}`);
+        throw new Error(`External API returned ${response.status}: ${errorText}`);
       }
 
-      const data = await response.json();
+      const data: SpoonacularIngredientSearchResult[] = await response.json();
+      console.log(`🌐 [SPOONACULAR] Found ${data?.length || 0} recipe summaries`);
 
-      // TheMealDB returns { meals: [...] } or { meals: null }
-      if (!data.meals) {
+      if (!data || data.length === 0) {
+        console.log(`🌐 [SPOONACULAR] No recipes found for ingredients: ${ingredients.join(', ')}`);
         return [];
       }
 
-      // Get detailed information for each meal
+      // Get detailed information for each recipe
+      console.log(`🌐 [SPOONACULAR] Fetching details for ${data.length} recipes...`);
       const detailedRecipes = await Promise.all(
-        data.meals.slice(0, 5).map((meal: any) => this.getMealDetails(meal.idMeal))
+        data.map((recipe) => this.getRecipeDetails(recipe.id))
       );
 
-      return detailedRecipes.filter((r): r is ExternalRecipe => r !== null);
+      const validRecipes = detailedRecipes.filter((r): r is ExternalRecipe => r !== null);
+      console.log(`🌐 [SPOONACULAR] Successfully fetched ${validRecipes.length} detailed recipes`);
+
+      return validRecipes;
       
     } catch (error: any) {
       if (error.name === 'AbortError') {
+        console.error(`🌐 [SPOONACULAR] ❌ Request timed out after ${this.config.timeout}ms`);
         throw new Error('External API request timed out');
       }
+      console.error(`🌐 [SPOONACULAR] ❌ Request failed:`, error);
       throw error;
     }
   }
 
   /**
-   * Get detailed meal information by ID (TheMealDB specific)
+   * Get detailed recipe information by ID from Spoonacular
    * 
-   * @param mealId - Meal ID
+   * @param recipeId - Recipe ID
    * @returns External recipe or null
    */
-  private async getMealDetails(mealId: string): Promise<ExternalRecipe | null> {
-    const url = `${this.config.url}/lookup.php?i=${mealId}`;
+  private async getRecipeDetails(recipeId: number): Promise<ExternalRecipe | null> {
+    const params = new URLSearchParams({
+      apiKey: this.config.apiKey || '',
+    });
+
+    const url = `${this.config.url}/recipes/${recipeId}/information?${params.toString()}`;
 
     try {
+      console.log(`🌐 [SPOONACULAR] Fetching details for recipe ${recipeId}...`);
       const response = await fetch(url, {
         headers: this.buildHeaders(),
       });
 
       if (!response.ok) {
+        console.warn(`🌐 [SPOONACULAR] ⚠️ Failed to fetch recipe ${recipeId}: ${response.status}`);
         return null;
       }
 
-      const data = await response.json();
+      const recipe: SpoonacularRecipeDetails = await response.json();
+      console.log(`🌐 [SPOONACULAR] ✅ Fetched recipe: ${recipe.title}`);
+      console.log(`🌐 [SPOONACULAR] Recipe has ${recipe.extendedIngredients?.length || 0} ingredients`);
 
-      if (!data.meals || data.meals.length === 0) {
-        return null;
-      }
-
-      const meal = data.meals[0];
-
-      // Parse ingredients from TheMealDB format
-      // TheMealDB stores ingredients as strIngredient1, strIngredient2, etc.
+      // Parse ingredients from Spoonacular format
       const ingredients: ExternalIngredient[] = [];
-      for (let i = 1; i <= 20; i++) {
-        const ingredient = meal[`strIngredient${i}`];
-        const measure = meal[`strMeasure${i}`];
-
-        if (ingredient && ingredient.trim()) {
+      
+      if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
+        for (const ing of recipe.extendedIngredients) {
           ingredients.push({
-            name: ingredient.trim(),
-            quantity: this.parseQuantity(measure),
-            unit: this.parseUnit(measure),
+            name: ing.nameClean || ing.name || ing.originalName || 'unknown',
+            quantity: ing.amount && ing.amount > 0 ? ing.amount : 1,
+            unit: ing.measures?.metric?.unitShort || ing.unit || 'piece',
           });
         }
+        console.log(`🌐 [SPOONACULAR] Parsed ${ingredients.length} ingredients`);
+      } else {
+        console.warn(`🌐 [SPOONACULAR] ⚠️ No extendedIngredients found for recipe ${recipeId}`);
       }
 
-      // Parse tags
-      const tags = meal.strTags ? meal.strTags.split(',').map((t: string) => t.trim()) : [];
+      // Build instructions - prefer analyzedInstructions, fallback to plain instructions
+      let instructions = '';
+      
+      if (recipe.analyzedInstructions && recipe.analyzedInstructions.length > 0) {
+        console.log(`🌐 [SPOONACULAR] Using analyzedInstructions (${recipe.analyzedInstructions.length} sections)`);
+        instructions = recipe.analyzedInstructions
+          .map((instruction) =>
+            instruction.steps
+              .map((step) => `${step.number}. ${step.step}`)
+              .join('\n')
+          )
+          .join('\n\n');
+      } else if (recipe.instructions) {
+        console.log(`🌐 [SPOONACULAR] Using plain instructions field (HTML format)`);
+        instructions = htmlToText(recipe.instructions);
+      } else {
+        console.warn(`🌐 [SPOONACULAR] ⚠️ No instructions found for recipe ${recipeId}`);
+        instructions = 'Brak instrukcji przygotowania.';
+      }
 
-      return {
-        id: meal.idMeal,
-        title: meal.strMeal,
-        description: meal.strCategory,
-        instructions: meal.strInstructions,
-        cooking_time: undefined, // TheMealDB doesn't provide cooking time
-        difficulty: this.inferDifficulty(ingredients.length),
-        image_url: meal.strMealThumb,
+      // Extract clean description (summary) - remove HTML and limit length
+      const description = recipe.summary ? extractSummary(recipe.summary, 500) : undefined;
+
+      // Collect tags from diets, cuisines, and dish types
+      const englishTags: string[] = [
+        ...recipe.diets,
+        ...recipe.cuisines,
+        ...recipe.dishTypes,
+      ];
+
+      // Add dietary tags
+      if (recipe.vegetarian) englishTags.push('vegetarian');
+      if (recipe.vegan) englishTags.push('vegan');
+      if (recipe.glutenFree) englishTags.push('gluten-free');
+      if (recipe.dairyFree) englishTags.push('dairy-free');
+
+      // Translate tags to Polish
+      const tags = translateTags(englishTags);
+      console.log(`🌍 [TRANSLATOR] Translated ${englishTags.length} tags to Polish`);
+
+      // Create external recipe object (English)
+      const externalRecipe: ExternalRecipe = {
+        id: recipe.id.toString(),
+        title: recipe.title,
+        description,
+        instructions,
+        cooking_time: recipe.readyInMinutes,
+        difficulty: this.inferDifficulty(ingredients.length, recipe.readyInMinutes),
+        image_url: recipe.image,
         ingredients,
-        tags,
-        source_url: meal.strSource,
+        tags: [...new Set(tags)], // Remove duplicates
+        source_url: recipe.sourceUrl,
       };
+
+      // Translate recipe to Polish
+      console.log(`🌍 [TRANSLATOR] Translating recipe: "${externalRecipe.title}"`);
+      try {
+        const translated = await translateRecipe({
+          title: externalRecipe.title,
+          description: externalRecipe.description,
+          instructions: externalRecipe.instructions,
+        });
+
+        externalRecipe.title = translated.title;
+        externalRecipe.description = translated.description;
+        externalRecipe.instructions = translated.instructions;
+        
+        console.log(`🌍 [TRANSLATOR] ✅ Translated to: "${translated.title}"`);
+      } catch (error) {
+        console.warn(`🌍 [TRANSLATOR] ⚠️ Translation failed, using original English:`, error);
+      }
+
+      return externalRecipe;
       
     } catch (error) {
-      console.error(`Error fetching meal details for ${mealId}:`, error);
+      console.error(`Error fetching recipe details for ${recipeId}:`, error);
       return null;
     }
   }
+
 
   /**
    * Build HTTP headers for API request
@@ -210,41 +408,36 @@ export class ExternalAPIService {
       'Content-Type': 'application/json',
     };
 
-    if (this.config.apiKey) {
-      headers['Authorization'] = `Bearer ${this.config.apiKey}`;
-    }
-
+    // Spoonacular uses API key in query params, not headers
+    // But we include it here for consistency with other APIs
     return headers;
   }
 
   /**
-   * Parse quantity from measure string (e.g., "2 cups" -> 2)
+   * Infer difficulty based on number of ingredients and cooking time
+   * Heuristic: considers both ingredient count and time
    */
-  private parseQuantity(measure: string | null): number {
-    if (!measure) return 1;
+  private inferDifficulty(
+    ingredientCount: number,
+    cookingTime?: number
+  ): 'easy' | 'medium' | 'hard' {
+    // Base score on ingredients
+    let difficultyScore = 0;
 
-    const match = measure.match(/(\d+\.?\d*)/);
-    return match ? parseFloat(match[1]) : 1;
-  }
+    if (ingredientCount <= 5) difficultyScore += 1;
+    else if (ingredientCount <= 10) difficultyScore += 2;
+    else difficultyScore += 3;
 
-  /**
-   * Parse unit from measure string (e.g., "2 cups" -> "cups")
-   */
-  private parseUnit(measure: string | null): string {
-    if (!measure) return 'piece';
+    // Add score based on cooking time
+    if (cookingTime) {
+      if (cookingTime <= 30) difficultyScore += 1;
+      else if (cookingTime <= 60) difficultyScore += 2;
+      else difficultyScore += 3;
+    }
 
-    // Remove numbers and fractions, trim
-    const unit = measure.replace(/[\d\/\.\s]+/, '').trim();
-    return unit || 'piece';
-  }
-
-  /**
-   * Infer difficulty based on number of ingredients
-   * Simple heuristic: more ingredients = harder
-   */
-  private inferDifficulty(ingredientCount: number): 'easy' | 'medium' | 'hard' {
-    if (ingredientCount <= 5) return 'easy';
-    if (ingredientCount <= 10) return 'medium';
+    // Determine final difficulty
+    if (difficultyScore <= 3) return 'easy';
+    if (difficultyScore <= 5) return 'medium';
     return 'hard';
   }
 

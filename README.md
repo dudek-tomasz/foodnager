@@ -6,6 +6,7 @@ Foodnager is a mobile and web application that helps users search for, store, an
 ## Tech Stack
 - **Frontend:** Astro 5, React 19, Typescript 5, Tailwind 4, Shadcn/ui
 - **Backend & Database:** Supabase
+- **External Recipe API:** Spoonacular (optional, Tier 2)
 - **AI Communication:** OpenRouter.ai with Perplexity Sonar (web search enabled)
 - **CI/CD & Hosting:** GitHub Actions, DigitalOcean
 
@@ -35,20 +36,26 @@ Alternative models (without web search) can be configured via `OPENROUTER_MODEL`
    Create a `.env` file in the root directory:
    
    ```bash
-   # Supabase Configuration
+   # Supabase Configuration (Required)
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_KEY=your-supabase-anon-key
    
-   # OpenRouter AI Configuration
+   # External Recipe API - Spoonacular (Optional, Tier 2)
+   EXTERNAL_RECIPE_API_URL=https://api.spoonacular.com
+   EXTERNAL_RECIPE_API_KEY=your-spoonacular-api-key
+   
+   # OpenRouter AI Configuration (Required, Tier 3)
    OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
    OPENROUTER_MODEL=perplexity/sonar-pro
    
-   # Timeout (increased for web search)
+   # Timeouts
+   TIER2_TIMEOUT_MS=10000
    TIER3_TIMEOUT_MS=45000
    ```
    
    Get your credentials:
    - `SUPABASE_URL` and `SUPABASE_KEY` - from your [Supabase project](https://supabase.com)
+   - `EXTERNAL_RECIPE_API_KEY` - (optional) from [Spoonacular](https://spoonacular.com/food-api)
    - `OPENROUTER_API_KEY` - from [OpenRouter Keys](https://openrouter.ai/keys)
    
    📖 See [SETUP.md](SETUP.md) for detailed configuration guide
@@ -75,10 +82,10 @@ Foodnager focuses on solving the user problem of efficiently finding recipes tha
 - **User registration and login:** Secure account creation and authentication.
 - **Virtual Fridge Management:** Add, edit, view, and delete products from a virtual pantry.
 - **Recipe Management:** Create, view, and delete recipes with required (name, ingredients with quantities) and optional (cooking time, difficulty) fields.
-- **Hierarchical Recipe Search:** 
-  - First, search through user-created recipes.
-  - Then, retrieve recipes via an external API.
-  - Finally, use AI to generate a recipe if no suitable match is found.
+- **Hierarchical Recipe Search (3 Tiers):**
+  - **Tier 1:** Search through user-created recipes (always active)
+  - **Tier 2:** Retrieve recipes via Spoonacular API (optional, requires API key)
+  - **Tier 3:** Generate recipes with AI using OpenRouter (fallback)
 - **Shopping List Generation:** Compare available ingredients against a recipe’s requirements and generate a list of missing items for easy shopping.
 
 ## Project Status

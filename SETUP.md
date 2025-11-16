@@ -17,6 +17,12 @@ SUPABASE_KEY=your-supabase-anon-key
 # OpenRouter AI Configuration (Required)
 # ===================================
 OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
+
+# ===================================
+# External Recipe API - Spoonacular (Optional, Tier 2)
+# ===================================
+EXTERNAL_RECIPE_API_URL=https://api.spoonacular.com
+EXTERNAL_RECIPE_API_KEY=your-spoonacular-api-key
 ```
 
 ### Recommended AI Model Configuration
@@ -75,7 +81,7 @@ RECIPE_MATCH_THRESHOLD=0.7
 4. Copy your **Project URL** and **anon/public key**
 5. Set up your database using migrations in `supabase/migrations/`
 
-### 2. OpenRouter Setup
+### 2. OpenRouter Setup (Required - Tier 3 AI Generation)
 
 1. Go to [OpenRouter](https://openrouter.ai)
 2. Sign up or log in
@@ -88,6 +94,57 @@ RECIPE_MATCH_THRESHOLD=0.7
 - `perplexity/sonar`: ~$1 per 1M tokens (with web search, cheaper)
 - `anthropic/claude-3-haiku`: ~$0.25 per 1M tokens (no web search)
 
+### 3. Spoonacular Setup (Optional - Tier 2 External API)
+
+**Note:** Spoonacular is optional. If not configured, the app will skip Tier 2 and fall back directly from user recipes (Tier 1) to AI generation (Tier 3).
+
+1. Go to [Spoonacular Food API](https://spoonacular.com/food-api)
+2. Sign up and create an account
+3. Navigate to [Dashboard](https://spoonacular.com/food-api/console#Dashboard)
+4. Copy your API key
+5. Add to `.env` as `EXTERNAL_RECIPE_API_KEY`
+
+**Pricing:**
+- **Free Plan:** 150 requests/day (perfect for testing & MVP)
+- **Basic:** $19.99/month (500 requests/day)
+- **Mega:** $49.99/month (5000 requests/day)
+- **Ultra:** $149.99/month (50000 requests/day)
+
+**Why use Spoonacular?**
+- Rich recipe database with verified ingredients
+- Detailed nutritional information
+- Dietary and cuisine filtering
+- High-quality recipe instructions
+- Reduces AI generation costs (Tier 3 is more expensive)
+
+📖 For detailed Spoonacular configuration, see [Spoonacular API Configuration](.ai/spoonacular-api-configuration.md)
+
+## Recipe Discovery Hierarchy
+
+Foodnager uses a 3-tier hierarchical search system:
+
+### Tier 1: User Recipes (Always Active)
+- Searches your own saved recipes first
+- Fastest and free
+- Best match for your cooking style
+
+### Tier 2: External API - Spoonacular (Optional)
+- Searches Spoonacular recipe database
+- Activated when Tier 1 doesn't find good matches (score < 0.7)
+- Requires `EXTERNAL_RECIPE_API_KEY`
+- **If not configured:** System skips to Tier 3
+
+### Tier 3: AI Generation (Required)
+- Generates custom recipes using AI
+- Activated when Tier 2 fails or is not configured
+- Requires `OPENROUTER_API_KEY`
+- Most flexible but most expensive
+
+**Cost Optimization Strategy:**
+- Configure Spoonacular (Tier 2) to reduce AI costs
+- Most searches will end at Tier 1 or 2
+- AI (Tier 3) is fallback for unique ingredient combinations
+
 ## Verification
 
 After configuration, test your setup:
@@ -99,25 +156,50 @@ npm run dev
 Visit the app and try generating a recipe. Check the console for:
 - ✅ Successful API connections
 - ✅ Real recipe sources with valid URLs (if using Perplexity)
+- ✅ Spoonacular API responses (if configured)
 - ⚠️ Any configuration errors
 
 ## Troubleshooting
 
-### "OpenRouter API key not configured"
+### OpenRouter Issues
+
+**"OpenRouter API key not configured"**
 - Check that `OPENROUTER_API_KEY` is set in `.env`
 - Verify the key starts with `sk-or-v1-`
 
-### "Insufficient credits"
+**"Insufficient credits"**
 - Add credits at [OpenRouter Credits](https://openrouter.ai/credits)
 
-### "Timeout" errors
+**"Timeout" errors**
 - Increase `TIER3_TIMEOUT_MS` (try 60000 for 60 seconds)
 - Web search models take longer to respond
 
-### Fake/broken recipe links
+**Fake/broken recipe links**
 - Verify you're using a Perplexity model with `-online` suffix
 - Check `OPENROUTER_MODEL` in `.env`
 - Standard models (Claude, GPT) don't have web access
+
+### Spoonacular Issues
+
+**"Spoonacular API key not configured" (warning in console)**
+- This is normal if you haven't set up Spoonacular
+- System will skip Tier 2 and go directly to AI generation
+- To enable: Add `EXTERNAL_RECIPE_API_KEY` to `.env`
+
+**"External API returned 402" (payment required)**
+- You've exceeded your daily request limit
+- Check usage at [Spoonacular Dashboard](https://spoonacular.com/food-api/console#Dashboard)
+- Wait for daily reset or upgrade plan
+
+**"External API request timed out"**
+- Increase `TIER2_TIMEOUT_MS` in `.env`
+- Default is 10000ms (10 seconds)
+- Try 15000ms (15 seconds)
+
+**No recipes from Spoonacular**
+- Spoonacular may not have recipes for exotic ingredient combinations
+- System will automatically fall back to AI generation (Tier 3)
+- Check that ingredient names are in English
 
 ## Security Best Practices
 
@@ -133,4 +215,11 @@ For more information:
 - [OpenRouter Documentation](https://openrouter.ai/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Perplexity Models](https://openrouter.ai/perplexity)
+- [Spoonacular API Documentation](https://spoonacular.com/food-api/docs)
+- [Spoonacular API Console](https://spoonacular.com/food-api/console)
+
+## Additional Resources
+
+- [Spoonacular API Configuration Guide](.ai/spoonacular-api-configuration.md) - Detailed Spoonacular setup
+- [Recipe Discovery Implementation Plan](.ai/implementation-plans/04-recipe-discovery-endpoints-plan.md) - Technical architecture
 

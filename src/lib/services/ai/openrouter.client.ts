@@ -126,6 +126,65 @@ export class OpenRouterClient {
   }
 
   /**
+   * Generate text using AI (general purpose)
+   * 
+   * @param prompt - Text prompt
+   * @param options - Optional parameters
+   * @returns Generated text
+   * @throws Error if API call fails
+   */
+  async generateText(
+    prompt: string,
+    options?: { temperature?: number; max_tokens?: number; systemMessage?: string }
+  ): Promise<string> {
+    if (!this.config.apiKey) {
+      throw new Error('OpenRouter API key not configured');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+    try {
+      const requestBody = {
+        model: this.config.model,
+        messages: this.buildMessages(prompt, options?.systemMessage),
+        temperature: options?.temperature ?? this.config.temperature,
+        max_tokens: options?.max_tokens ?? this.config.maxTokens,
+      };
+
+      const response = await fetch(this.config.apiUrl, {
+        method: 'POST',
+        headers: this.buildHeaders(),
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenRouter API error (${response.status}): ${errorText}`);
+      }
+
+      const data: OpenRouterResponse = await response.json();
+
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('No response from OpenRouter API');
+      }
+
+      return data.choices[0].message.content;
+      
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw new Error(`OpenRouter API request timed out after ${this.config.timeout}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
    * Generate recipe using AI
    * 
    * @param prompt - Structured prompt for recipe generation
