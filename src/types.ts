@@ -348,6 +348,8 @@ export interface AvailableIngredientDTO {
   required_quantity: number;
   available_quantity: number;
   unit: string;
+  unit_mismatch?: boolean; // True if product exists but unit differs (e.g., fridge has L, recipe needs tbsp)
+  fridge_unit?: string; // Unit that is actually in fridge (when unit_mismatch is true)
 }
 
 /**

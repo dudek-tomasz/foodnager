@@ -80,22 +80,24 @@ export class RecipeDiscoveryService {
 
       const requestedSource = searchDto.source || 'all';
 
+      const maxResults = searchDto.max_results || 10;
+
       // If specific source requested, search only that tier
       if (requestedSource === 'user') {
         const tier1Results = await this.searchUserRecipes(userId, availableProducts, searchDto);
         const duration = Date.now() - startTime;
-        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration);
+        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
       }
 
       if (requestedSource === 'api') {
         try {
           const tier2Results = await this.searchExternalAPI(userId, availableProducts, searchDto);
           const duration = Date.now() - startTime;
-          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration);
+          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration, maxResults);
         } catch (error) {
           console.error('External API search failed:', error);
           const duration = Date.now() - startTime;
-          return this.buildResponse([], 'external_api', 0, duration);
+          return this.buildResponse([], 'external_api', 0, duration, maxResults);
         }
       }
 
@@ -108,7 +110,7 @@ export class RecipeDiscoveryService {
         try {
           const tier3Results = await this.generateWithAI(userId, availableProducts, searchDto);
           const duration = Date.now() - startTime;
-          return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration);
+          return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration, maxResults);
         } catch (error) {
           console.error('AI generation failed:', error);
           throw error;
@@ -116,69 +118,86 @@ export class RecipeDiscoveryService {
       }
 
       // Hierarchical search (source = 'all')
+      console.log('🔍 [SEARCH] Starting hierarchical search (source=all)');
+      
       // Step 2: Tier 1 - Search user recipes
+      console.log('🔍 [TIER 1] Searching user recipes...');
       const tier1Results = await this.searchUserRecipes(
         userId,
         availableProducts,
         searchDto
       );
+      console.log(`🔍 [TIER 1] Found ${tier1Results.length} user recipes`);
+      
+      if (tier1Results.length > 0) {
+        const topScore = Math.max(...tier1Results.map(r => r.match_score));
+        console.log(`🔍 [TIER 1] Best match score: ${topScore.toFixed(2)}`);
+      }
 
       // Check if we have good matches in Tier 1
-      if (this.hasGoodMatches(tier1Results)) {
+      const hasGood = this.hasGoodMatches(tier1Results);
+      console.log(`🔍 [TIER 1] Has good matches (>=0.7)? ${hasGood}`);
+      
+      if (hasGood) {
         const duration = Date.now() - startTime;
-        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration);
+        console.log(`🔍 [TIER 1] ✅ Returning ${tier1Results.length} user recipes (good matches found)`);
+        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
       }
 
       // Step 3: Tier 2 - External API search (if Tier 1 not sufficient)
+      console.log('🔍 [TIER 2] No good matches in Tier 1, trying external API...');
       try {
         const tier2Results = await this.searchExternalAPI(
           userId,
           availableProducts,
           searchDto
         );
+        console.log(`🔍 [TIER 2] Found ${tier2Results.length} API recipes`);
 
         if (tier2Results.length > 0) {
           const duration = Date.now() - startTime;
-          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration);
+          console.log(`🔍 [TIER 2] ✅ Returning ${tier2Results.length} API recipes`);
+          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration, maxResults);
         }
       } catch (error) {
-        console.error('Tier 2 (External API) failed, continuing...', error);
+        console.error('❌ [TIER 2] External API failed, continuing...', error);
         // Continue to next tier or return Tier 1 results
       }
 
       // Step 4: Tier 3 - AI generation (last resort)
+      console.log('🔍 [TIER 3] No API results, checking if AI is available...');
       const isConfigured = this.openRouterClient.isConfigured();
-      console.log('🤖 [DEBUG] OpenRouter isConfigured:', isConfigured);
-      console.log('🤖 [DEBUG] API Key exists:', !!import.meta.env.OPENROUTER_API_KEY);
-      console.log('🤖 [DEBUG] API Key value:', import.meta.env.OPENROUTER_API_KEY ? `${import.meta.env.OPENROUTER_API_KEY.substring(0, 10)}...` : 'undefined');
+      console.log(`🔍 [TIER 3] OpenRouter configured: ${isConfigured}`);
       
       if (isConfigured) {
-        console.log('🤖 [DEBUG] Attempting AI generation (Tier 3)...');
+        console.log('🔍 [TIER 3] Attempting AI generation...');
         try {
           const tier3Results = await this.generateWithAI(
             userId,
             availableProducts,
             searchDto
           );
+          console.log(`🔍 [TIER 3] Generated ${tier3Results.length} AI recipes`);
 
           if (tier3Results.length > 0) {
             const duration = Date.now() - startTime;
-            console.log('🤖 [DEBUG] AI generation SUCCESS! Recipe generated.');
-            return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration);
+            console.log(`🔍 [TIER 3] ✅ Returning ${tier3Results.length} AI recipes`);
+            return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration, maxResults);
           } else {
-            console.log('🤖 [DEBUG] AI generation returned empty results');
+            console.log('⚠️ [TIER 3] AI generation returned empty results');
           }
         } catch (error) {
-          console.error('❌ [DEBUG] Tier 3 (AI Generation) failed:', error);
+          console.error('❌ [TIER 3] AI Generation failed:', error);
           // Continue to fallback
         }
       } else {
-        console.log('⚠️ [DEBUG] OpenRouter NOT configured - skipping AI generation');
+        console.log('⚠️ [TIER 3] OpenRouter NOT configured - skipping AI generation');
       }
 
       // Fallback: Return Tier 1 results even if not "good" matches
+      console.log(`🔍 [FALLBACK] Returning Tier 1 results (${tier1Results.length} recipes) as fallback`);
       const duration = Date.now() - startTime;
-      return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration);
+      return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
 
     } catch (error) {
       console.error('Error in searchByFridge:', error);
@@ -825,14 +844,57 @@ export class RecipeDiscoveryService {
   }
 
   /**
+   * Filter and limit results based on match score
+   * 
+   * Rules:
+   * - If results > 10: filter only recipes with match_score > 0.5, sort by score desc, take top 10
+   * - If results <= 10: return all results sorted by score desc
+   * 
+   * @param results - Array of recipe search results
+   * @param maxResults - Maximum number of results to return
+   * @returns Filtered and limited results
+   */
+  private filterAndLimitResults(
+    results: RecipeSearchResultDTO[],
+    maxResults: number = 10
+  ): RecipeSearchResultDTO[] {
+    if (results.length === 0) {
+      return results;
+    }
+
+    // Sort by match score descending (best first)
+    const sorted = [...results].sort((a, b) => b.match_score - a.match_score);
+
+    // If more than maxResults, filter by match score > 0.5 (50%)
+    if (sorted.length > maxResults) {
+      console.log(`🔍 [FILTER] Found ${sorted.length} results, filtering by match_score > 0.5`);
+      const filtered = sorted.filter((r) => r.match_score > 0.5);
+      console.log(`🔍 [FILTER] After filtering: ${filtered.length} results`);
+      
+      // Take top maxResults
+      const limited = filtered.slice(0, maxResults);
+      console.log(`🔍 [FILTER] Returning top ${limited.length} results`);
+      return limited;
+    }
+
+    // Otherwise, just limit to maxResults
+    return sorted.slice(0, maxResults);
+  }
+
+  /**
    * Build final response with metadata
+   * Automatically filters and limits results based on match score
    */
   private buildResponse(
     results: RecipeSearchResultDTO[],
     source: 'user_recipes' | 'external_api' | 'ai_generated',
     totalResults: number,
-    durationMs: number
+    durationMs: number,
+    maxResults: number = 10
   ): SearchRecipesResponseDTO {
+    // Filter and limit results
+    const filteredResults = this.filterAndLimitResults(results, maxResults);
+    
     const metadata: SearchMetadataDTO = {
       source,
       total_results: totalResults,
@@ -840,7 +902,7 @@ export class RecipeDiscoveryService {
     };
 
     return {
-      results,
+      results: filteredResults,
       search_metadata: metadata,
     };
   }

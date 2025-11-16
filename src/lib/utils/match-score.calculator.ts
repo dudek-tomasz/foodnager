@@ -86,14 +86,18 @@ export class MatchScoreCalculator {
             partiallyAvailableCount++;
           }
         } else {
-          // Units don't match - treat as missing
-          missing.push({
+          // Units don't match BUT product exists - treat as available (for matchScore)
+          // This handles cases like: fridge has "olej 1L", recipe needs "olej 2 łyżki"
+          available.push({
             product_id: ingredient.product.id,
             product_name: ingredient.product.name,
             required_quantity: requiredQuantity,
-            available_quantity: 0,
-            unit: ingredient.unit.abbreviation
+            available_quantity: availableQuantity,
+            unit: ingredient.unit.abbreviation,
+            unit_mismatch: true, // Mark for frontend to display differently (yellow)
+            fridge_unit: fridgeItem.unit.abbreviation // Show what unit is actually in fridge
           });
+          fullyAvailableCount++; // Count as matched for matchScore calculation
         }
       } else {
         // Product not in fridge at all
