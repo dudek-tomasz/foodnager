@@ -8,6 +8,7 @@ Foodnager is a mobile and web application that helps users search for, store, an
 - **Backend & Database:** Supabase
 - **External Recipe API:** Spoonacular (optional, Tier 2)
 - **AI Communication:** OpenRouter.ai with Perplexity Sonar (web search enabled)
+- **Testing:** Vitest, React Testing Library, Playwright, MSW
 - **CI/CD & Hosting:** GitHub Actions, DigitalOcean
 
 ### AI Model Configuration
@@ -76,6 +77,9 @@ The following scripts are defined in the project's `package.json`:
 - **`npm run lint`**: Runs ESLint to analyze the code for potential quality issues.
 - **`npm run lint:fix`**: Runs ESLint and automatically fixes problems where possible.
 - **`npm run format`**: Formats the codebase using Prettier.
+- **`npm run test`**: Runs unit and integration tests with Vitest.
+- **`npm run test:ui`**: Runs tests with Vitest UI interface.
+- **`npm run test:e2e`**: Runs end-to-end tests with Playwright.
 
 ## Project Scope
 Foodnager focuses on solving the user problem of efficiently finding recipes that match available ingredients. Key functionalities include:
