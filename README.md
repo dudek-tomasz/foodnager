@@ -11,6 +11,46 @@ Foodnager is a mobile and web application that helps users search for, store, an
 - **Testing:** Vitest, React Testing Library, Playwright, MSW
 - **CI/CD & Hosting:** GitHub Actions, DigitalOcean
 
+### Testing Strategy
+Foodnager implements comprehensive testing across multiple layers:
+
+#### Unit Tests (Vitest)
+- **Framework:** Vitest - fast, Vite-native testing framework
+- **Coverage:** Utilities, validation schemas, mappers, and custom error classes
+- **Target Coverage:** Minimum 80% for utils, mappers, and validators
+- **Scope:** Business logic functions, data transformations, and error handling
+
+#### Integration Tests (Vitest + MSW)
+- **Framework:** Vitest with MSW (Mock Service Worker) for HTTP mocking
+- **Coverage:** API endpoints, services layer, and external API integrations
+- **Target Coverage:** Minimum 70% for services and API endpoints
+- **Scope:** Authentication flows, database operations, hierarchical recipe search, and atomic transactions
+
+#### Component Tests (Vitest + React Testing Library)
+- **Framework:** Vitest with React Testing Library for component testing
+- **Coverage:** React components with focus on user interactions and accessibility
+- **Target Coverage:** Minimum 60% for React components
+- **Scope:** Form validation, state management, conditional rendering, and accessibility compliance
+
+#### E2E Tests (Playwright)
+- **Framework:** Playwright for cross-browser end-to-end testing
+- **Coverage:** Complete user journeys across Chrome, Firefox, and Safari
+- **Scope:** User registration, fridge management, hierarchical recipe search, cooking workflows, and shopping list generation
+- **Mobile Testing:** Responsive design validation across different viewports
+
+#### Additional Testing Tools
+- **Mocking:** MSW for API mocking, custom Supabase client mocks
+- **Performance:** Lighthouse CI for automated performance audits
+- **Load Testing:** k6 for concurrent user simulation
+- **Security:** OWASP ZAP for automated security scanning
+- **Accessibility:** axe-core integration for WCAG 2.1 Level AA compliance
+
+#### Test Execution
+- **CI/CD Integration:** Automated test execution on every push and PR via GitHub Actions
+- **Test Environments:** Local development, CI staging, and production staging
+- **Quality Gates:** Tests must pass before merge to main branch
+- **Coverage Reporting:** Codecov integration for coverage tracking
+
 ### AI Model Configuration
 Foodnager uses **Perplexity Sonar Pro with online web search** (`perplexity/sonar-pro`) as the default AI model. This model has real-time internet access and provides:
 - ✅ Real, verified recipe sources from culinary websites
@@ -70,16 +110,32 @@ Alternative models (without web search) can be configured via `OPENROUTER_MODEL`
 
 ## Available Scripts
 The following scripts are defined in the project's `package.json`:
+
+### Development
 - **`npm run dev`**: Starts the Astro development server.
 - **`npm run build`**: Builds the project for production.
 - **`npm run preview`**: Previews the production build.
 - **`npm run astro`**: Runs Astro CLI commands.
+
+### Code Quality
 - **`npm run lint`**: Runs ESLint to analyze the code for potential quality issues.
 - **`npm run lint:fix`**: Runs ESLint and automatically fixes problems where possible.
 - **`npm run format`**: Formats the codebase using Prettier.
-- **`npm run test`**: Runs unit and integration tests with Vitest.
-- **`npm run test:ui`**: Runs tests with Vitest UI interface.
+
+### Testing
+#### Vitest (Unit & Component Tests)
+- **`npm run test`**: Runs unit and integration tests with Vitest in watch mode.
+- **`npm run test:ui`**: Runs tests with Vitest UI interface for interactive testing.
+- **`npm run test:run`**: Runs all tests once (CI mode) without watch.
+- **`npm run test:coverage`**: Runs tests with code coverage report.
+- **`npm run test:watch`**: Runs tests in watch mode with file watching.
+
+#### Playwright (E2E Tests)
 - **`npm run test:e2e`**: Runs end-to-end tests with Playwright.
+- **`npm run test:e2e:ui`**: Runs E2E tests with Playwright UI mode.
+- **`npm run test:e2e:debug`**: Runs E2E tests in debug mode for step-by-step execution.
+- **`npm run test:e2e:report`**: Shows Playwright test report from previous runs.
+- **`npm run test:e2e:codegen`**: Interactive test code generation tool.
 
 ## Project Scope
 Foodnager focuses on solving the user problem of efficiently finding recipes that match available ingredients. Key functionalities include:

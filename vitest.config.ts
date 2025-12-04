@@ -5,8 +5,8 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
-    // Use happy-dom as the test environment for better performance
-    environment: 'happy-dom',
+    // Use jsdom for DOM testing as per guidelines
+    environment: 'jsdom',
     
     // Global test setup
     globals: true,

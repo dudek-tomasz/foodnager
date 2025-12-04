@@ -14,7 +14,7 @@ export function isExpired(expiryDate: string | null): boolean {
 
   const expiry = new Date(expiryDate);
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to start of day
+  today.setUTCHours(0, 0, 0, 0); // Reset time to start of day in UTC
 
   return expiry < today;
 }
@@ -32,10 +32,10 @@ export function isExpiringSoon(expiryDate: string | null, days: number): boolean
 
   const expiry = new Date(expiryDate);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
 
   const threshold = new Date(today);
-  threshold.setDate(threshold.getDate() + days);
+  threshold.setUTCDate(threshold.getUTCDate() + days);
 
   return expiry >= today && expiry <= threshold;
 }
@@ -61,7 +61,14 @@ export function isValidISODate(dateString: string): boolean {
   }
 
   const date = new Date(dateString);
-  return !isNaN(date.getTime());
+  if (isNaN(date.getTime())) {
+    return false;
+  }
+
+  // Verify that the parsed date matches the input string
+  // This catches invalid dates like 2023-02-29 (non-leap year) or 2024-04-31 (April has 30 days)
+  const formattedDate = formatDate(date);
+  return formattedDate === dateString;
 }
 
 /**

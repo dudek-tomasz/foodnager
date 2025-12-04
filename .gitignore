@@ -1,5 +1,7 @@
 # build output
 dist/
+.output/
+.astro/
 
 # generated types
 .astro/
@@ -16,9 +18,28 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
+.env.*.local
 
 # macOS-specific files
 .DS_Store
 
-# jetbrains setting folder
+# IDE
+.vscode/
 .idea/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/screenshots/
+
+# Vitest
+.vitest/
+
+# MSW
+public/mockServiceWorker.js

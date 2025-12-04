@@ -19,6 +19,15 @@ export default defineConfig({
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
     },
+    server: {
+      hmr: {
+        timeout: 120000, // zwiększ timeout HMR do 2 minut
+      },
+    },
+    optimizeDeps: {
+      include: ["react", "react-dom"],
+      exclude: ["tw-animate-css"],
+    },
   },
   adapter: node({
     mode: "standalone",
