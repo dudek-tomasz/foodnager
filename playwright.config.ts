@@ -1,4 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env.test file
+config({ path: resolve(__dirname, '.env.test') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -42,9 +52,20 @@ export default defineConfig({
 
   // Configure projects for major browsers (only Chromium as per requirements)
   projects: [
+    // Setup project - runs first to authenticate
+    { 
+      name: 'setup', 
+      testMatch: /.*\.setup\.ts/ 
+    },
+
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Use prepared auth state
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 

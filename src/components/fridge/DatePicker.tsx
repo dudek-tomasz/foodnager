@@ -15,6 +15,7 @@ interface DatePickerProps {
   disabled?: boolean;
   minDate?: string;
   showClearButton?: boolean;
+  testId?: string;
 }
 
 export default function DatePicker({
@@ -24,6 +25,7 @@ export default function DatePicker({
   disabled = false,
   minDate,
   showClearButton = true,
+  testId = 'date-picker',
 }: DatePickerProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -48,6 +50,7 @@ export default function DatePicker({
           min={minDate}
           className={`flex-1 ${error ? 'border-red-500' : ''}`}
           aria-label="Wybierz datę ważności"
+          data-testid={`${testId}-input`}
         />
         
         {showClearButton && value && !disabled && (
@@ -58,6 +61,7 @@ export default function DatePicker({
             onClick={handleClear}
             className="flex-shrink-0"
             title="Usuń datę"
+            data-testid={`${testId}-clear-button`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

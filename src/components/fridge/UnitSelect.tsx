@@ -24,6 +24,7 @@ interface UnitSelectProps {
   onChange: (unitId: number) => void;
   error?: string;
   disabled?: boolean;
+  testId?: string;
 }
 
 export default function UnitSelect({
@@ -31,6 +32,7 @@ export default function UnitSelect({
   onChange,
   error,
   disabled = false,
+  testId = 'unit-select',
 }: UnitSelectProps) {
   const { units, isLoading, error: fetchError } = useUnits();
 
@@ -84,6 +86,7 @@ export default function UnitSelect({
         <SelectTrigger 
           className={`w-full ${error ? 'border-red-500' : ''}`}
           aria-label="Wybierz jednostkę"
+          data-testid={`${testId}-trigger`}
         >
           <SelectValue placeholder="Wybierz jednostkę...">
             {value && units.find((u) => u.id === value) ? (
@@ -96,9 +99,9 @@ export default function UnitSelect({
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent data-testid={`${testId}-content`}>
           {units.map((unit: UnitDTO) => (
-            <SelectItem key={unit.id} value={unit.id.toString()}>
+            <SelectItem key={unit.id} value={unit.id.toString()} data-testid={`${testId}-option-${unit.id}`}>
               <div className="flex items-center justify-between w-full gap-2">
                 <span>{unit.name}</span>
                 <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">

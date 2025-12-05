@@ -188,7 +188,7 @@ export default function AddProductModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" data-testid="add-product-modal">
         <DialogHeader>
           <DialogTitle>Dodaj produkt do lodówki</DialogTitle>
           <DialogDescription>
@@ -196,7 +196,7 @@ export default function AddProductModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} data-testid="add-product-form">
           <div className="space-y-4 py-4">
             {/* Product Selection */}
             <div className="space-y-2">
@@ -209,6 +209,7 @@ export default function AddProductModal({
                   setFormState((prev) => ({ ...prev, product }))
                 }
                 error={errors.product}
+                testId="product-autocomplete"
               />
             </div>
 
@@ -230,6 +231,7 @@ export default function AddProductModal({
                   placeholder="0"
                   className={errors.quantity ? 'border-red-500' : ''}
                   disabled={isSubmitting}
+                  data-testid="quantity-input"
                 />
                 {errors.quantity && (
                   <p className="text-xs text-red-600">{errors.quantity}</p>
@@ -247,6 +249,7 @@ export default function AddProductModal({
                   }
                   error={errors.unit}
                   disabled={isSubmitting}
+                  testId="unit-select"
                 />
               </div>
             </div>
@@ -262,6 +265,7 @@ export default function AddProductModal({
                 error={errors.expiryDate}
                 disabled={isSubmitting}
                 showClearButton
+                testId="expiry-date-picker"
               />
               {dateWarning && (
                 <p className="text-xs text-orange-600 flex items-center gap-1">
@@ -293,6 +297,7 @@ export default function AddProductModal({
                   setFormState((prev) => ({ ...prev, addAnother: !!checked }))
                 }
                 disabled={isSubmitting}
+                data-testid="add-another-checkbox"
               />
               <Label
                 htmlFor="addAnother"
@@ -318,10 +323,11 @@ export default function AddProductModal({
               variant="outline"
               onClick={handleCancel}
               disabled={isSubmitting}
+              data-testid="cancel-button"
             >
               Anuluj
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} data-testid="submit-button">
               {isSubmitting ? 'Dodawanie...' : 'Dodaj produkt'}
             </Button>
           </DialogFooter>

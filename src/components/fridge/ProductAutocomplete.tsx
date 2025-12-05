@@ -32,12 +32,14 @@ interface ProductAutocompleteProps {
   value: ProductDTO | null;
   onChange: (product: ProductDTO | null) => void;
   error?: string;
+  testId?: string;
 }
 
 export default function ProductAutocomplete({
   value,
   onChange,
   error,
+  testId = 'product-autocomplete',
 }: ProductAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -118,6 +120,7 @@ export default function ProductAutocomplete({
             aria-expanded={open}
             aria-label="Wybierz produkt"
             className={`w-full justify-between ${error ? 'border-red-500' : ''}`}
+            data-testid={`${testId}-trigger`}
           >
             {value ? (
               <span className="truncate">
@@ -151,6 +154,7 @@ export default function ProductAutocomplete({
               placeholder="Szukaj produktu..."
               value={query}
               onValueChange={setQuery}
+              data-testid={`${testId}-search-input`}
             />
             <CommandList>
               {isLoading && (
@@ -168,6 +172,7 @@ export default function ProductAutocomplete({
                       size="sm"
                       onClick={handleOpenCreateForm}
                       className="w-full"
+                      data-testid={`${testId}-create-new-button`}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -197,6 +202,7 @@ export default function ProductAutocomplete({
                       value={`${product.id}`}
                       onSelect={() => handleSelect(product)}
                       className="cursor-pointer"
+                      data-testid={`${testId}-option-${product.id}`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <span>{product.name}</span>
@@ -248,6 +254,7 @@ export default function ProductAutocomplete({
                         placeholder="Nazwa produktu"
                         className={createError ? 'border-red-500' : ''}
                         disabled={isCreating}
+                        data-testid={`${testId}-new-product-name-input`}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -265,6 +272,7 @@ export default function ProductAutocomplete({
                         disabled={isCreating || !newProductName.trim()}
                         size="sm"
                         className="flex-1"
+                        data-testid={`${testId}-create-submit-button`}
                       >
                         {isCreating ? 'Tworzenie...' : 'Utwórz'}
                       </Button>
@@ -273,6 +281,7 @@ export default function ProductAutocomplete({
                         disabled={isCreating}
                         variant="outline"
                         size="sm"
+                        data-testid={`${testId}-create-cancel-button`}
                       >
                         Anuluj
                       </Button>

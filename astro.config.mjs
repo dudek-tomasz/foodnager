@@ -26,7 +26,7 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ["react", "react-dom"],
-      exclude: ["tw-animate-css"],
+      exclude: ["tw-animate-css", "msw", "@mswjs/interceptors"],
     },
   },
   adapter: node({

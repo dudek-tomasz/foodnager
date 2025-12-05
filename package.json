@@ -19,7 +19,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:e2e:codegen": "playwright codegen http://localhost:4321"
+    "test:e2e:codegen": "playwright codegen http://localhost:4321",
+    "dev:e2e": "astro dev --mode test"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
@@ -61,6 +62,7 @@
     "@typescript-eslint/parser": "8.28.0",
     "@vitest/coverage-v8": "^4.0.15",
     "@vitest/ui": "^4.0.10",
+    "dotenv": "^17.2.3",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-import-resolver-typescript": "4.2.5",

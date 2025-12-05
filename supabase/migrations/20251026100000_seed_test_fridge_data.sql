@@ -4,6 +4,12 @@
 -- notes: temporary test data for development purposes
 
 -- ============================================================================
+-- enable pgcrypto extension for password hashing
+-- ============================================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ============================================================================
 -- create test user in auth.users
 -- ============================================================================
 
@@ -24,7 +30,7 @@ insert into auth.users (
   '0bdb5b8e-a145-4d13-9f5c-921c5b8d0db9',
   '00000000-0000-0000-0000-000000000000',
   'test@foodnager.local',
-  crypt('testpassword123', gen_salt('bf')),
+  extensions.crypt('testpassword123', extensions.gen_salt('bf')),
   now(),
   '{"provider":"email","providers":["email"]}',
   '{}',

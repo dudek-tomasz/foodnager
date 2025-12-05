@@ -1,8 +1,12 @@
 import { test as base } from '@playwright/test';
+import { login, loginViaAPI, getTestUserCredentials } from '../helpers/test-helpers';
 
 /**
- * Example fixture for authenticated user tests
- * Extend this to add custom fixtures for your tests
+ * Auth fixtures for authenticated user tests
+ * 
+ * Usage:
+ * 1. Import: import { test, expect } from './fixtures/auth.fixture';
+ * 2. Use: test('my test', async ({ authenticatedPage }) => { ... });
  */
 type AuthFixtures = {
   authenticatedPage: any;
@@ -10,18 +14,29 @@ type AuthFixtures = {
 
 export const test = base.extend<AuthFixtures>({
   authenticatedPage: async ({ page }, use) => {
-    // Setup: Perform authentication
-    // This is a placeholder - adjust based on your auth flow
-    await page.goto('/login');
-    // await page.fill('[name="email"]', 'test@example.com');
-    // await page.fill('[name="password"]', 'password');
-    // await page.click('button[type="submit"]');
-    // await page.waitForURL('/dashboard');
+    // Setup: Perform authentication using test user credentials
+    const { email, password } = getTestUserCredentials();
+    
+    // Use UI login to properly set cookies in browser context
+    // API login doesn't share cookies between page.request and page context
+    await login(page, email, password);
+    
+    // Verify we're logged in by checking we're not on login page
+    const currentURL = page.url();
+    if (currentURL.includes('/login')) {
+      throw new Error(`Authentication failed - still on login page. Credentials: ${email}`);
+    }
+    
+    // Verify we actually landed on an authenticated page
+    if (!currentURL.match(/\/(fridge|recipes|history|profile)/)) {
+      throw new Error(`Authentication succeeded but unexpected redirect to: ${currentURL}`);
+    }
     
     // Use the authenticated page
     await use(page);
     
-    // Teardown: Clean up if needed
+    // Teardown: No cleanup needed (session expires after test)
+    // If you want to explicitly logout: await logout(page);
   },
 });
 

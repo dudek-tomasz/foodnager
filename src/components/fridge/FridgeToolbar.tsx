@@ -47,31 +47,9 @@ export default function FridgeToolbar({
           />
         </div>
 
-        {/* Add Product Button - Desktop */}
-        <div className="hidden sm:block flex-shrink-0">
-          <Button onClick={onAddProduct} className="w-full sm:w-auto">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Dodaj produkt
-          </Button>
-        </div>
-      </div>
-
-      {/* Add Product Button - Mobile (Full width) */}
-      <div className="sm:hidden mt-4">
-        <Button onClick={onAddProduct} className="w-full">
+      {/* Add Product Button - Desktop */}
+      <div className="hidden sm:block flex-shrink-0">
+        <Button onClick={onAddProduct} className="w-full sm:w-auto" data-testid="fridge-add-product-button">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-2"
@@ -89,6 +67,28 @@ export default function FridgeToolbar({
           Dodaj produkt
         </Button>
       </div>
+    </div>
+
+    {/* Add Product Button - Mobile (Full width) */}
+    <div className="sm:hidden mt-4">
+      <Button onClick={onAddProduct} className="w-full" data-testid="fridge-add-product-button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 mr-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        Dodaj produkt
+      </Button>
+    </div>
     </div>
   );
 }
