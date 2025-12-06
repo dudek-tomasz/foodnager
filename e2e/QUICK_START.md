@@ -40,10 +40,13 @@ npm run test:e2e
 1. ⚡ Uruchomi się **setup project** (`auth.setup.ts`)
 2. 🔐 Zaloguje użytkownika i zapisze sesję do `playwright/.auth/user.json`
 3. ✅ Wszystkie testy będą używać tej sesji (szybko!)
+4. 🧹 Po wszystkich testach uruchomi się **teardown** (`global.teardown.ts`)
+5. 🗑️ Usunie wszystkie dane testowe z bazy danych
 
 **Kolejne uruchomienia:**
 - Setup uruchomi się tylko jeśli plik sesji nie istnieje
 - Testy startują od razu z zapisaną sesją (mega szybko! ⚡)
+- Teardown zawsze czyści bazę po zakończeniu testów
 
 W Playwright UI:
 1. Znajdź test "should add a new product with all required fields"
@@ -74,9 +77,40 @@ W Playwright UI:
 **WAŻNE:** Musisz mieć plik `.env.test` w katalogu głównym projektu:
 
 ```env
+# Test User Credentials
 E2E_USERNAME=test@foodnager.pl
 E2E_PASSWORD=TestPassword123!
+
+# Supabase Configuration (required for database cleanup)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
+
+# Service Role Key (required for teardown)
+# Get from: Supabase Dashboard -> Settings -> API -> service_role key
+# WARNING: Use only with test/dev database! Never production!
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# Test User UUID (required for cleanup)
+# Get from: Supabase Dashboard -> Authentication -> Users
+E2E_TEST_USER_ID=your-test-user-uuid-here
 ```
+
+### Jak znaleźć potrzebne wartości:
+
+1. **SUPABASE_URL i SUPABASE_KEY**:
+   - Supabase Dashboard → Settings → API
+   - URL: "Project URL"
+   - KEY: "anon public"
+
+2. **SUPABASE_SERVICE_ROLE_KEY**:
+   - Supabase Dashboard → Settings → API
+   - Znajdź "service_role" (secret!)
+   - ⚠️ NIGDY nie commituj tego klucza!
+
+3. **E2E_TEST_USER_ID**:
+   - Supabase Dashboard → Authentication → Users
+   - Znajdź użytkownika testowego (test@foodnager.pl)
+   - Skopiuj UUID (np. `a1b2c3d4-e5f6-...`)
 
 Jeśli chcesz użyć innych danych:
 
@@ -88,9 +122,41 @@ Jeśli chcesz użyć innych danych:
 
 2. Zarejestruj użytkownika z tymi danymi
 
-3. Uruchom testy ponownie
+3. Zaktualizuj E2E_TEST_USER_ID w `.env.test`
+
+4. Uruchom testy ponownie
+
+## 🧹 Database Cleanup (Teardown)
+
+Po zakończeniu wszystkich testów automatycznie uruchamia się cleanup bazy danych:
+
+**Co jest czyszczone:**
+- ✅ Produkty utworzone przez użytkownika testowego
+- ✅ Produkty w lodówce (`user_products`)
+- ✅ Przepisy i ich składniki
+- ✅ Historia gotowania
+- ✅ Powiązania przepis-tag
+
+**Dlaczego to ważne:**
+- 🔄 Każde uruchomienie testów zaczyna od czystego stanu
+- 🚀 Nie ma konfliktów między kolejnymi uruchomieniami
+- 📊 Baza testowa pozostaje czysta
+
+**Ręczne czyszczenie (opcjonalne):**
+
+Jeśli potrzebujesz wyczyścić bazę w trakcie developmentu:
+
+```typescript
+import { cleanupUserData } from './helpers/db-cleanup';
+
+// W teście lub standalone skrypcie
+await cleanupUserData(process.env.E2E_TEST_USER_ID!);
+```
 
 ## ✅ Gotowe!
 
-Jeśli wszystko działa, powinieneś zobaczyć zielone ✅ przy testach!
+Jeśli wszystko działa, powinieneś zobaczyć:
+- 🔐 Sukces logowania w setup
+- ✅ Zielone checkmarki przy testach
+- 🧹 Cleanup bazy po zakończeniu testów
 

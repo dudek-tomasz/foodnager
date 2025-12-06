@@ -1,0 +1,12 @@
+# Playwright artifacts
+test-results/
+playwright-report/
+playwright/.auth/
+
+# Screenshots
+screenshots/
+
+# Traces
+traces/
+*.zip
+

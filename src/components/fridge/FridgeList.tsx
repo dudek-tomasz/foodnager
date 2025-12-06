@@ -80,7 +80,10 @@ export default function FridgeList({
   return (
     <div>
       {/* List */}
-      <ul className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <ul 
+        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+        data-testid="fridge-items-list"
+      >
         {items.map((item) => (
           <FridgeItem
             key={item.id}

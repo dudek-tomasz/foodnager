@@ -24,8 +24,22 @@ Before running E2E tests, you need to create a test user in your database:
 Create a `.env.test` file in the root directory with your test user credentials:
 
 ```env
+# Test User Credentials
 E2E_USERNAME=test@foodnager.pl
 E2E_PASSWORD=TestPassword123!
+
+# Supabase Configuration (required for teardown)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
+
+# Service Role Key for database cleanup after tests
+# Get from: Supabase Dashboard -> Settings -> API -> service_role key
+# WARNING: Never commit this key! Use test/dev database only!
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# Test User UUID (for cleanup)
+# Get from: Supabase Dashboard -> Authentication -> Users
+E2E_TEST_USER_ID=your-test-user-uuid-here
 ```
 
 Optional variables:
@@ -86,7 +100,8 @@ e2e/
 ├── fixtures/
 │   └── auth.fixture.ts          # Authentication fixture for logged-in tests
 ├── helpers/
-│   └── test-helpers.ts          # Reusable helper functions
+│   ├── test-helpers.ts          # Reusable helper functions
+│   └── db-cleanup.ts            # Database cleanup utilities
 ├── pages/
 │   ├── components/              # Reusable component POM classes
 │   │   ├── ProductAutocompleteComponent.ts
@@ -97,19 +112,26 @@ e2e/
 │   ├── index.ts                 # Exports
 │   ├── README.md                # POM documentation
 │   └── ARCHITECTURE.md          # Architecture diagrams
+├── auth.setup.ts                # Authentication setup (runs first)
+├── global.teardown.ts           # Database cleanup (runs last)
 ├── example.spec.ts              # Example test
 └── fridge-add-product.spec.ts   # Fridge tests
 ```
 
-## 🔐 Authentication
+## 🔐 Authentication & Cleanup
 
-Tests use **setup project** pattern recommended by Playwright:
+Tests use **setup/teardown project** pattern recommended by Playwright:
 
 1. `e2e/auth.setup.ts` runs **once before all tests**
-2. Logs in and saves session to `playwright/.auth/user.json`
-3. All tests reuse this saved session automatically
+   - Logs in and saves session to `playwright/.auth/user.json`
+   - All tests reuse this saved session automatically
 
-This approach is **fast** and **reliable** - login happens only once!
+2. `e2e/global.teardown.ts` runs **once after all tests**
+   - Cleans up test data from database
+   - Removes products, recipes, fridge items, and history
+   - Uses service role key to bypass RLS policies
+
+This approach is **fast** and **reliable** - login happens once, cleanup happens once!
 
 ### How it works
 
@@ -138,6 +160,41 @@ test('my test', async ({ page }) => {
 ```
 
 Configuration automatically loads the saved session for all tests.
+
+### Database Cleanup
+
+**Global teardown** runs after all tests complete:
+
+```typescript
+// e2e/global.teardown.ts
+teardown('cleanup database', async () => {
+  // Cleans up all test data from Supabase
+  // - Products (private)
+  // - User products (fridge)
+  // - Recipes & ingredients
+  // - Cooking history
+});
+```
+
+**Per-test cleanup** (optional):
+
+```typescript
+import { cleanupFridge, cleanupRecipes } from './helpers/db-cleanup';
+
+test('my test', async ({ page }) => {
+  // Test code...
+  
+  // Clean up after test
+  await cleanupFridge(process.env.E2E_TEST_USER_ID!);
+});
+```
+
+Available cleanup helpers:
+- `cleanupUserData(userId)` - Clean all user data
+- `cleanupUserProducts(userId)` - Clean only products
+- `cleanupFridge(userId)` - Clean only fridge items
+- `cleanupRecipes(userId)` - Clean only recipes
+- `cleanupCookingHistory(userId)` - Clean only cooking history
 
 ## 📝 Writing Tests
 

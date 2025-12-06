@@ -67,11 +67,20 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
+
+    // Teardown project - runs last to clean up database
+    {
+      name: 'teardown',
+      testMatch: /.*\.teardown\.ts/,
+    },
   ],
+
+  // Global teardown runs after all projects complete
+  globalTeardown: './e2e/global.teardown.ts',
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev:e2e',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

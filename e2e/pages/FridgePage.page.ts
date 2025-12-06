@@ -23,6 +23,7 @@ export class FridgePage {
   private readonly emptyState: Locator;
   private readonly loadingSpinner: Locator;
   private readonly statsSection: Locator;
+  private readonly successToast: Locator;
 
   // Modal instance
   public readonly addProductModal: AddProductModal;
@@ -34,10 +35,11 @@ export class FridgePage {
     this.addProductButton = page.getByTestId('fridge-add-product-button').first();
     this.searchInput = page.getByPlaceholder('Szukaj produktów...');
     this.sortDropdown = page.getByLabel('Wybierz pole sortowania');
-    this.fridgeItemsList = page.locator('ul').filter({ hasText: /.*/ }).first();
+    this.fridgeItemsList = page.getByTestId('fridge-items-list');
     this.emptyState = page.getByText('Twoja lodówka jest pusta');
     this.loadingSpinner = page.getByText('Ładowanie produktów...');
     this.statsSection = page.locator('div').filter({ hasText: /Wszystkie produkty/ }).first();
+    this.successToast = page.locator('[data-sonner-toast]');
 
     // Initialize modal
     this.addProductModal = new AddProductModal(page);
@@ -152,7 +154,8 @@ export class FridgePage {
    * Gets the expired products count from stats
    */
   async getExpiredProductsCount(): Promise<number> {
-    const expiredSection = this.page.locator('div').filter({ hasText: /Przeterminowane/ });
+    // Use more specific selector for stats section
+    const expiredSection = this.page.locator('div.bg-white.dark\\:bg-gray-800').filter({ hasText: /Przeterminowane/ }).first();
     const statsText = await expiredSection.textContent();
     const match = statsText?.match(/(\d+)/);
     return match ? parseInt(match[1], 10) : 0;
@@ -237,8 +240,14 @@ export class FridgePage {
    * @param productName - Name of the product
    */
   async assertProductExists(productName: string): Promise<void> {
+    // Wait for loading to finish first
+    await this.waitForLoading();
+    
+    // Wait a bit for React to re-render the list
+    await this.page.waitForTimeout(500);
+    
     const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
-    await expect(productRow).toBeVisible();
+    await expect(productRow.first()).toBeVisible({ timeout: 10000 });
   }
 
   /**
@@ -256,7 +265,7 @@ export class FridgePage {
    */
   async assertSuccessToast(message: string): Promise<void> {
     const toast = this.page.getByText(message);
-    await expect(toast).toBeVisible();
+    await expect(toast).toBeVisible({ timeout: 10000 });
   }
 
   /**

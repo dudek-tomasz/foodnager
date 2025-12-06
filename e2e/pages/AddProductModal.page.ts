@@ -195,7 +195,8 @@ export class AddProductModal {
    * @param errorText - Expected error message text
    */
   async assertValidationError(errorText: string): Promise<void> {
-    const errorMessage = this.modal.getByText(errorText);
+    // Look specifically for error messages (small red text)
+    const errorMessage = this.modal.locator('p.text-xs.text-red-600', { hasText: errorText });
     await expect(errorMessage).toBeVisible();
   }
 

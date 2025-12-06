@@ -10,8 +10,12 @@ import { FridgePage } from './pages';
  * - Submitting and validating the result
  * 
  * Note: Uses storageState from auth.setup.ts (authenticated automatically)
+ * Note: Tests run in serial mode to avoid state conflicts with React hydration
  */
 test.describe('Fridge - Add Product', () => {
+  // Configure tests to run serially to avoid React hydration conflicts
+  test.describe.configure({ mode: 'serial' });
+  
   let fridgePage: FridgePage;
 
   test.beforeEach(async ({ page }) => {
@@ -140,17 +144,17 @@ test.describe('Fridge - Add Product', () => {
     // Arrange
     await fridgePage.openAddProductModal();
 
-    // Act
-    await fridgePage.addProductModal.productAutocomplete.searchAndSelect('Jogurt');
+    // Act - Use existing product "Cukier" from test database
+    await fridgePage.addProductModal.productAutocomplete.searchAndSelect('Cukier');
     await fridgePage.addProductModal.fillQuantity(2);
-    await fridgePage.addProductModal.unitSelect.selectUnitByText('szt');
+    await fridgePage.addProductModal.unitSelect.selectUnitByText('kg');
     await fridgePage.addProductModal.expiryDatePicker.setTomorrow();
     await fridgePage.addProductModal.submit();
 
     // Assert
     await fridgePage.addProductModal.waitForModalClose();
     await fridgePage.assertSuccessToast('Produkt dodany pomyślnie');
-    await fridgePage.assertProductExists('Jogurt');
+    await fridgePage.assertProductExists('Cukier');
   });
 
   test('should add a product and clear expiry date', async () => {
@@ -214,6 +218,9 @@ test.describe('Fridge - Add Product', () => {
  * Tests additional fridge functionality like search, filter, edit, delete
  */
 test.describe('Fridge - Product Management', () => {
+  // Configure tests to run serially to avoid React hydration conflicts
+  test.describe.configure({ mode: 'serial' });
+  
   let fridgePage: FridgePage;
 
   test.beforeEach(async ({ page }) => {
@@ -222,16 +229,16 @@ test.describe('Fridge - Product Management', () => {
   });
 
   test('should search for products in fridge', async () => {
-    // Arrange - First add a product
+    // Arrange - First add a product using existing product from database
     await fridgePage.openAddProductModal();
-    await fridgePage.addProductModal.quickAdd('Marchew', 5, 'kg');
+    await fridgePage.addProductModal.quickAdd('Pieprz', 5, 'g');
     await fridgePage.addProductModal.waitForModalClose();
 
     // Act
-    await fridgePage.search('Marchew');
+    await fridgePage.search('Pieprz');
 
     // Assert
-    await fridgePage.assertProductExists('Marchew');
+    await fridgePage.assertProductExists('Pieprz');
   });
 
   test('should clear search results', async () => {
