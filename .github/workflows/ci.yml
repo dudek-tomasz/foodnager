@@ -1,0 +1,132 @@
+name: CI - Tests & Build
+
+on:
+  # Trigger manualny z opcją wyłączenia E2E
+  workflow_dispatch:
+    inputs:
+      skip_e2e:
+        description: 'Pomiń testy E2E'
+        required: false
+        type: boolean
+        default: false
+  
+  # Automatyczne uruchomienie po pushu do master
+  push:
+    branches:
+      - master
+
+# Zmienne środowiskowe globalne
+env:
+  NODE_VERSION_FILE: '.nvmrc'
+
+jobs:
+  ci:
+    name: Lint, Build & Tests
+    runs-on: ubuntu-latest
+    
+    # Zmienne środowiskowe dla tego joba
+    env:
+      # Zmienne z .env potrzebne do buildu
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      
+      # Zmienne z .env.test potrzebne do testów E2E
+      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_TEST_USER_ID: ${{ secrets.E2E_USERNAME_ID }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
+      
+      # Flaga CI dla Playwright
+      CI: true
+
+    steps:
+      # 1. Checkout kodu
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js z wersji z .nvmrc
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: 'npm'
+
+      # 3. Instalacja zależności
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # 4. LINT - ESLint
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      # 5. LINT - Prettier check
+      - name: ✨ Check code formatting
+        run: npx prettier --check .
+
+      # 6. BUILD - Budowanie wersji produkcyjnej
+      - name: 🏗️ Build production
+        run: npm run build
+
+      # 7. UNIT TESTS - Testy jednostkowe i komponentów
+      - name: 🧪 Run unit tests
+        run: npm run test:run
+
+      # 8. Generowanie raportu pokrycia kodu
+      - name: 📊 Generate coverage report
+        run: npm run test:coverage
+        continue-on-error: true
+
+      # 9. Upload raportu pokrycia (opcjonalnie)
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+      # 10. Instalacja przeglądarek Playwright
+      - name: 🎭 Install Playwright browsers
+        if: ${{ !inputs.skip_e2e }}
+        run: npx playwright install chromium --with-deps
+
+      # 11. E2E TESTS - Testy end-to-end
+      - name: 🎬 Run E2E tests
+        if: ${{ !inputs.skip_e2e }}
+        run: npm run test:e2e
+
+      # 12. Upload Playwright raportu (tylko przy błędach)
+      - name: 📤 Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: ${{ !inputs.skip_e2e && failure() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      # 13. Upload Playwright videos (tylko przy błędach)
+      - name: 📹 Upload test videos
+        uses: actions/upload-artifact@v4
+        if: ${{ !inputs.skip_e2e && failure() }}
+        with:
+          name: test-videos
+          path: test-results/
+          retention-days: 7
+
+      # 14. Podsumowanie
+      - name: ✅ CI Summary
+        if: success()
+        run: |
+          echo "✅ Wszystkie kroki CI przeszły pomyślnie!"
+          echo ""
+          echo "📋 Wykonane kroki:"
+          echo "  ✓ Lint (ESLint + Prettier)"
+          echo "  ✓ Build produkcyjny"
+          echo "  ✓ Testy jednostkowe"
+          if [ "${{ inputs.skip_e2e }}" != "true" ]; then
+            echo "  ✓ Testy E2E"
+          else
+            echo "  ⊘ Testy E2E (pominięte)"
+          fi
+
