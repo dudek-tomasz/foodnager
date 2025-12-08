@@ -56,7 +56,7 @@ test.describe("Fridge - Add Product", () => {
     await fridgePage.addProductModal.fillAndSubmit({
       productName: "Mleko",
       quantity: 1.5,
-      unitText: "litr"
+      unitText: "litr",
     });
 
     // Assert - Wait for modal to close
