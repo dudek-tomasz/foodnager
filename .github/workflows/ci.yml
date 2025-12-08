@@ -91,19 +91,29 @@ jobs:
         if: ${{ !inputs.skip_e2e }}
         run: npx playwright install chromium --with-deps
 
-      # 11. Tworzenie pliku .env.test dla E2E
-      - name: 📝 Create .env.test file
+      # 11. Tworzenie plików .env dla E2E
+      - name: 📝 Create .env files
         if: ${{ !inputs.skip_e2e }}
         run: |
-          cat > .env.test << EOF
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          E2E_USERNAME=${{ secrets.E2E_USERNAME }}
-          E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}
-          E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}
-          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
-          EOF
+          # Tworzenie .env (bazowy plik)
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
+          
+          # Tworzenie .env.test (dla trybu test)
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env.test
+          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
+          echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
+          echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
+          echo "E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
+          echo "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000" >> .env.test
+          
+          echo "✅ .env files created"
+          ls -la .env .env.test
+          
+          echo "📋 Checking if secrets are set:"
+          [ -n "${{ secrets.SUPABASE_URL }}" ] && echo "✓ SUPABASE_URL" || echo "✗ SUPABASE_URL MISSING!"
+          [ -n "${{ secrets.SUPABASE_KEY }}" ] && echo "✓ SUPABASE_KEY" || echo "✗ SUPABASE_KEY MISSING!"
 
       # 12. E2E TESTS - Testy end-to-end
       - name: 🎬 Run E2E tests
