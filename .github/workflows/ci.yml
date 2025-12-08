@@ -98,7 +98,7 @@ jobs:
           # Tworzenie .env (bazowy plik)
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env
-          
+
           # Tworzenie .env.test (dla trybu test)
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env.test
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
@@ -107,10 +107,10 @@ jobs:
           echo "E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
           echo "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000" >> .env.test
-          
+
           echo "✅ .env files created"
           ls -la .env .env.test
-          
+
           echo "📋 Checking if secrets are set:"
           [ -n "${{ secrets.SUPABASE_URL }}" ] && echo "✓ SUPABASE_URL" || echo "✗ SUPABASE_URL MISSING!"
           [ -n "${{ secrets.SUPABASE_KEY }}" ] && echo "✓ SUPABASE_KEY" || echo "✗ SUPABASE_KEY MISSING!"
