@@ -1,18 +1,11 @@
 /**
  * View Models and types for Recipe List View
- * 
+ *
  * These types are specific to the frontend recipes view and extend/transform
  * the base DTOs from src/types.ts for UI-specific needs.
  */
 
-import type { 
-  SourceEnum, 
-  DifficultyEnum, 
-  RecipeSummaryDTO,
-  RecipesListResponseDTO,
-  TagDTO,
-  UnitDTO 
-} from '@/types';
+import type { SourceEnum, DifficultyEnum, RecipesListResponseDTO, TagDTO, UnitDTO } from "@/types";
 
 // =============================================================================
 // RECIPE STATISTICS
@@ -36,8 +29,8 @@ export interface RecipeStats {
  * Opcje sortowania dla widoku przepisów
  */
 export interface SortOption {
-  field: 'title' | 'cooking_time' | 'difficulty' | 'created_at';
-  order: 'asc' | 'desc';
+  field: "title" | "cooking_time" | "difficulty" | "created_at";
+  order: "asc" | "desc";
 }
 
 /**
@@ -97,13 +90,14 @@ export interface RecipeFormErrors {
   description?: string;
   instructions?: string;
   cookingTime?: string;
-  ingredients?: {
-    [index: number]: {
+  ingredients?: Record<
+    number,
+    {
       productId?: string;
       quantity?: string;
       unitId?: string;
-    };
-  };
+    }
+  >;
 }
 
 // =============================================================================
@@ -118,4 +112,3 @@ export interface RecipesPageProps {
   initialTags?: TagDTO[];
   initialUnits?: UnitDTO[];
 }
-

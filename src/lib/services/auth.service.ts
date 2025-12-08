@@ -1,19 +1,19 @@
 /**
  * Authentication Service
- * 
+ *
  * Centralized authentication logic using Supabase Auth.
  * Following auth-spec.md and MVP simplifications:
  * - Email verification optional (user can login without clicking verification link)
  * - No "remember me" functionality (sessions persist by default)
  * - Uses @supabase/ssr for proper SSR support
- * 
+ *
  * IMPORTANT: This service should be used server-side only (API routes, Astro pages)
  */
 
-import type { User, Session } from '@supabase/supabase-js';
-import type { AstroCookies } from 'astro';
-import { createSupabaseServerInstance } from '@/db/supabase.client';
-import { AuthErrors, mapSupabaseAuthError, type AuthError } from '@/lib/errors/auth.error';
+import type { User, Session } from "@supabase/supabase-js";
+import type { AstroCookies } from "astro";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
+import { AuthErrors, mapSupabaseAuthError } from "@/lib/errors/auth.error";
 
 // ============================================================================
 // Types
@@ -38,11 +38,7 @@ export class AuthService {
    * Login user with email and password
    * MVP: Email verification is optional - user can login without clicking verification link
    */
-  async login(
-    email: string,
-    password: string,
-    context: AuthServiceContext
-  ): Promise<AuthResponse> {
+  async login(email: string, password: string, context: AuthServiceContext): Promise<AuthResponse> {
     const supabase = createSupabaseServerInstance(context);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -75,11 +71,7 @@ export class AuthService {
    * Supabase will send verification email automatically
    * MVP: User can login without clicking verification link
    */
-  async register(
-    email: string,
-    password: string,
-    context: AuthServiceContext
-  ): Promise<AuthResponse> {
+  async register(email: string, password: string, context: AuthServiceContext): Promise<AuthResponse> {
     const supabase = createSupabaseServerInstance(context);
 
     const { data, error } = await supabase.auth.signUp({
@@ -92,14 +84,14 @@ export class AuthService {
 
     if (error) {
       // Check for duplicate email
-      if (error.message.toLowerCase().includes('already registered')) {
+      if (error.message.toLowerCase().includes("already registered")) {
         throw AuthErrors.emailAlreadyExists();
       }
       throw mapSupabaseAuthError(error);
     }
 
     if (!data.user || !data.session) {
-      throw AuthErrors.registrationFailed('Nie udało się utworzyć konta');
+      throw AuthErrors.registrationFailed("Nie udało się utworzyć konta");
     }
 
     return {
@@ -134,7 +126,7 @@ export class AuthService {
     });
 
     // Don't throw error if email not found (security best practice)
-    if (error && !error.message.toLowerCase().includes('not found')) {
+    if (error && !error.message.toLowerCase().includes("not found")) {
       throw AuthErrors.forgotPasswordFailed(error.message);
     }
   }
@@ -142,21 +134,17 @@ export class AuthService {
   /**
    * Reset password using token from email
    */
-  async resetPassword(
-    token: string,
-    newPassword: string,
-    context: AuthServiceContext
-  ): Promise<void> {
+  async resetPassword(token: string, newPassword: string, context: AuthServiceContext): Promise<void> {
     const supabase = createSupabaseServerInstance(context);
 
     // First verify the token
     const { error: verifyError } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type: 'recovery',
+      type: "recovery",
     });
 
     if (verifyError) {
-      throw AuthErrors.invalidToken('Token jest nieprawidłowy lub wygasł');
+      throw AuthErrors.invalidToken("Token jest nieprawidłowy lub wygasł");
     }
 
     // Then update the password
@@ -217,15 +205,14 @@ export class AuthService {
 
     const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type: 'email',
+      type: "email",
     });
 
     if (error) {
-      throw AuthErrors.invalidToken('Link weryfikacyjny jest nieprawidłowy lub wygasł');
+      throw AuthErrors.invalidToken("Link weryfikacyjny jest nieprawidłowy lub wygasł");
     }
   }
 }
 
 // Export singleton instance
 export const authService = new AuthService();
-

@@ -1,6 +1,6 @@
 /**
  * useRecipeList Hook
- * 
+ *
  * Custom hook for managing recipe list state, including:
  * - Fetching recipes from API
  * - Search, filter, and sort functionality
@@ -8,18 +8,10 @@
  * - CRUD operations (delete, refresh)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import type {
-  RecipeSummaryDTO,
-  RecipesListResponseDTO,
-  PaginationMetaDTO,
-  ListRecipesQueryDTO,
-} from '@/types';
-import type {
-  SortOption,
-  RecipeFilters,
-} from '@/components/recipes/types';
-import { apiClient } from '@/lib/api-client';
+import { useState, useEffect, useCallback } from "react";
+import type { RecipeSummaryDTO, RecipesListResponseDTO, PaginationMetaDTO, ListRecipesQueryDTO } from "@/types";
+import type { SortOption, RecipeFilters } from "@/components/recipes/types";
+import { apiClient } from "@/lib/api-client";
 
 interface UseRecipeListOptions {
   initialData?: RecipesListResponseDTO;
@@ -34,7 +26,7 @@ interface UseRecipeListReturn {
   search: string;
   sort: SortOption;
   filters: RecipeFilters;
-  
+
   // Actions
   fetchRecipes: () => Promise<void>;
   setSearch: (value: string) => void;
@@ -45,19 +37,15 @@ interface UseRecipeListReturn {
   refreshList: () => Promise<void>;
 }
 
-export function useRecipeList(
-  options: UseRecipeListOptions = {}
-): UseRecipeListReturn {
+export function useRecipeList(options: UseRecipeListOptions = {}): UseRecipeListReturn {
   // Data state
-  const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(
-    options.initialData?.data || []
-  );
+  const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(options.initialData?.data || []);
   const [pagination, setPagination] = useState<PaginationMetaDTO>(
-    options.initialData?.pagination || { 
-      page: 1, 
-      limit: 20, 
-      total: 0, 
-      total_pages: 0 
+    options.initialData?.pagination || {
+      page: 1,
+      limit: 20,
+      total: 0,
+      total_pages: 0,
     }
   );
 
@@ -66,15 +54,15 @@ export function useRecipeList(
   const [error, setError] = useState<string | null>(null);
 
   // Filter/search/sort state
-  const [search, setSearchState] = useState('');
-  const [sort, setSortState] = useState<SortOption>({ 
-    field: 'created_at', 
-    order: 'desc' 
+  const [search, setSearchState] = useState("");
+  const [sort, setSortState] = useState<SortOption>({
+    field: "created_at",
+    order: "desc",
   });
   const [filters, setFiltersState] = useState<RecipeFilters>({});
 
   // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Debounce search with 300ms delay
   useEffect(() => {
@@ -91,7 +79,7 @@ export function useRecipeList(
   const fetchRecipes = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Build query parameters
       const params: ListRecipesQueryDTO = {
@@ -106,19 +94,17 @@ export function useRecipeList(
         max_cooking_time: filters.maxCookingTime,
       };
 
-      const response = await apiClient.get<RecipesListResponseDTO>(
-        '/api/recipes',
-        params
-      );
+      const response = await apiClient.get<RecipesListResponseDTO>("/api/recipes", params);
 
       setRecipes(response.data);
       setPagination(response.pagination);
     } catch (err) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Nie udało się pobrać przepisów. Spróbuj ponownie.';
+      const errorMessage = err instanceof Error ? err.message : "Nie udało się pobrać przepisów. Spróbuj ponownie.";
       setError(errorMessage);
-      console.error('Fetch recipes error:', err);
+      // Error fetching recipes - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        console.error("Fetch recipes error:", err);
+      }
     } finally {
       setLoading(false);
     }
@@ -137,7 +123,7 @@ export function useRecipeList(
   const setSearch = useCallback((value: string) => {
     setSearchState(value);
     // Reset to first page when searching
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
   /**
@@ -146,7 +132,7 @@ export function useRecipeList(
   const setSort = useCallback((option: SortOption) => {
     setSortState(option);
     // Reset to first page when sorting changes
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
   /**
@@ -155,38 +141,39 @@ export function useRecipeList(
   const setFilters = useCallback((newFilters: RecipeFilters) => {
     setFiltersState(newFilters);
     // Reset to first page when filters change
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
   /**
    * Sets current page
    */
   const setPage = useCallback((page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   }, []);
 
   /**
    * Deletes a recipe by ID
    */
-  const deleteRecipe = useCallback(async (id: number) => {
-    try {
-      await apiClient.delete(`/api/recipes/${id}`);
-      
-      // If we deleted the last item on the page (and not on first page),
-      // go to previous page
-      if (recipes.length === 1 && pagination.page > 1) {
-        setPagination(prev => ({ ...prev, page: prev.page - 1 }));
-      } else {
-        // Otherwise just refresh the current page
-        await fetchRecipes();
+  const deleteRecipe = useCallback(
+    async (id: number) => {
+      try {
+        await apiClient.delete(`/api/recipes/${id}`);
+
+        // If we deleted the last item on the page (and not on first page),
+        // go to previous page
+        if (recipes.length === 1 && pagination.page > 1) {
+          setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+        } else {
+          // Otherwise just refresh the current page
+          await fetchRecipes();
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Nie udało się usunąć przepisu";
+        throw new Error(errorMessage);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Nie udało się usunąć przepisu';
-      throw new Error(errorMessage);
-    }
-  }, [recipes.length, pagination.page, fetchRecipes]);
+    },
+    [recipes.length, pagination.page, fetchRecipes]
+  );
 
   /**
    * Refreshes the recipe list
@@ -212,4 +199,3 @@ export function useRecipeList(
     refreshList,
   };
 }
-

@@ -2,7 +2,7 @@
  * CookConfirmationDialog - Confirmation dialog before cooking a recipe
  */
 
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,10 +10,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import IngredientsDeductionPreview from '../IngredientsDeductionPreview';
-import type { IngredientWithAvailability } from '../../../lib/types/recipe-view-models';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import IngredientsDeductionPreview from "../IngredientsDeductionPreview";
+import type { IngredientWithAvailability } from "../../../lib/types/recipe-view-models";
 
 interface CookConfirmationDialogProps {
   isOpen: boolean;
@@ -37,9 +37,7 @@ export default function CookConfirmationDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Potwierdź ugotowanie</DialogTitle>
-          <DialogDescription>
-            Czy na pewno chcesz ugotować przepis "{recipeTitle}"?
-          </DialogDescription>
+          <DialogDescription>Czy na pewno chcesz ugotować przepis &quot;{recipeTitle}&quot;?</DialogDescription>
         </DialogHeader>
 
         {/* Ingredients deduction preview */}
@@ -48,22 +46,14 @@ export default function CookConfirmationDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Anuluj
           </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Gotowanie...' : 'Potwierdź'}
+          <Button onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? "Gotowanie..." : "Potwierdź"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

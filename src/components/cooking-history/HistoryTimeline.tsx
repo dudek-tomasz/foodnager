@@ -1,7 +1,7 @@
-import { HistoryCard } from './HistoryCard';
-import { EmptyState } from './EmptyState';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { CookingHistoryDTO } from '../../types';
+import { HistoryCard } from "./HistoryCard";
+import { EmptyState } from "./EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { CookingHistoryDTO } from "../../types";
 
 interface HistoryTimelineProps {
   historyEntries: CookingHistoryDTO[];
@@ -16,14 +16,14 @@ interface HistoryTimelineProps {
 /**
  * Lista chronologiczna wyświetlająca karty wydarzeń gotowania
  */
-export function HistoryTimeline({ 
-  historyEntries, 
-  loading, 
-  onRecipeClick, 
+export function HistoryTimeline({
+  historyEntries,
+  loading,
+  onRecipeClick,
   onCookAgain,
   expandedCards = new Set(),
   onToggleCardExpansion,
-  showEmptyState = true
+  showEmptyState = true,
 }: HistoryTimelineProps) {
   // Loading state - skeleton cards
   if (loading) {
@@ -39,10 +39,10 @@ export function HistoryTimeline({
   // Empty state
   if (historyEntries.length === 0 && showEmptyState) {
     return (
-      <EmptyState 
+      <EmptyState
         onFindRecipe={() => {
-          window.location.href = '/recipes/search';
-        }} 
+          window.location.href = "/recipes/search";
+        }}
       />
     );
   }
@@ -79,4 +79,3 @@ function SkeletonCard() {
     </div>
   );
 }
-

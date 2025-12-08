@@ -10,20 +10,20 @@ export class ApiError extends Error {
     public code?: string
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
 class ApiClient {
   private baseURL: string;
 
-  constructor(baseURL: string = '') {
+  constructor(baseURL = "") {
     this.baseURL = baseURL;
   }
 
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
     const url = new URL(endpoint, window.location.origin);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -33,31 +33,31 @@ class ApiClient {
     }
 
     const response = await fetch(url.toString(), {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
 
     return this.handleResponse<T>(response);
   }
 
-  async post<T>(endpoint: string, body?: Record<string, any>): Promise<T> {
+  async post<T>(endpoint: string, body?: Record<string, unknown>): Promise<T> {
     const url = new URL(endpoint, window.location.origin);
 
     const response = await fetch(url.toString(), {
-      method: 'POST',
+      method: "POST",
       headers: this.getHeaders(),
-      body: body ? JSON.stringify(body) : undefined
+      body: body ? JSON.stringify(body) : undefined,
     });
 
     return this.handleResponse<T>(response);
   }
 
-  async patch<T>(endpoint: string, body?: Record<string, any>): Promise<T> {
+  async patch<T>(endpoint: string, body?: Record<string, unknown>): Promise<T> {
     const url = new URL(endpoint, window.location.origin);
 
     const response = await fetch(url.toString(), {
-      method: 'PATCH',
+      method: "PATCH",
       headers: this.getHeaders(),
-      body: body ? JSON.stringify(body) : undefined
+      body: body ? JSON.stringify(body) : undefined,
     });
 
     return this.handleResponse<T>(response);
@@ -67,8 +67,8 @@ class ApiClient {
     const url = new URL(endpoint, window.location.origin);
 
     const response = await fetch(url.toString(), {
-      method: 'DELETE',
-      headers: this.getHeaders()
+      method: "DELETE",
+      headers: this.getHeaders(),
     });
 
     return this.handleResponse<T>(response);
@@ -76,7 +76,7 @@ class ApiClient {
 
   private getHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       // 'Authorization': `Bearer ${getToken()}` // TODO: implement auth
     };
   }
@@ -96,19 +96,11 @@ class ApiClient {
   private async parseError(response: Response): Promise<ApiError> {
     try {
       const errorData = await response.json();
-      return new ApiError(
-        response.status,
-        errorData.error?.message || 'Wystąpił błąd',
-        errorData.error?.code
-      );
+      return new ApiError(response.status, errorData.error?.message || "Wystąpił błąd", errorData.error?.code);
     } catch {
-      return new ApiError(
-        response.status,
-        'Wystąpił nieoczekiwany błąd'
-      );
+      return new ApiError(response.status, "Wystąpił nieoczekiwany błąd");
     }
   }
 }
 
 export const apiClient = new ApiClient();
-

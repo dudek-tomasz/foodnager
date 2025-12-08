@@ -1,13 +1,13 @@
 /**
  * SourceCard - Interactive card for selecting recipe source
- * 
+ *
  * Displays a source option with icon, title, description, and optional badge
  */
 
-import React from 'react';
-import { BookOpen, Globe, Sparkles, Search } from 'lucide-react';
-import type { RecipeSource } from '@/types/recipe-search.types';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { BookOpen, Globe, Sparkles, Search } from "lucide-react";
+import type { RecipeSource } from "@/types/recipe-search.types";
+import { Badge } from "@/components/ui/badge";
 
 interface SourceCardProps {
   source: RecipeSource;
@@ -26,14 +26,7 @@ const iconMap = {
   Search,
 };
 
-export default function SourceCard({
-  source,
-  title,
-  description,
-  icon,
-  badge,
-  onClick,
-}: SourceCardProps) {
+export default function SourceCard({ source, title, description, icon, badge, onClick }: SourceCardProps) {
   const IconComponent = iconMap[icon as keyof typeof iconMap] || Search;
 
   return (
@@ -47,32 +40,24 @@ export default function SourceCard({
     >
       {/* Badge (only for user recipes) */}
       {badge !== undefined && (
-        <Badge 
-          variant="secondary" 
-          className="absolute top-4 right-4 bg-blue-100 text-blue-700 hover:bg-blue-100"
-        >
+        <Badge variant="secondary" className="absolute top-4 right-4 bg-blue-100 text-blue-700 hover:bg-blue-100">
           {badge}
         </Badge>
       )}
 
       {/* Icon */}
       <div className="mb-4">
-        <IconComponent 
-          className="h-16 w-16 text-blue-600 group-hover:text-blue-700 transition-colors" 
+        <IconComponent
+          className="h-16 w-16 text-blue-600 group-hover:text-blue-700 transition-colors"
           strokeWidth={1.5}
         />
       </div>
 
       {/* Title */}
-      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
-        {title}
-      </h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">{title}</h3>
 
       {/* Description */}
-      <p className="text-sm text-gray-600 line-clamp-2">
-        {description}
-      </p>
+      <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
     </button>
   );
 }
-

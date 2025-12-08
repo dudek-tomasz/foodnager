@@ -1,8 +1,8 @@
 /**
  * API Endpoint: /api/recipes/generate
- * 
+ *
  * POST - Generate recipe directly with AI based on selected products
- * 
+ *
  * Differs from search-by-fridge:
  * - Goes directly to AI (no hierarchical search)
  * - User selects specific products (not limited to fridge)
@@ -10,12 +10,12 @@
  * - Optional saving to database
  */
 
-import type { APIContext } from 'astro';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { AIRecipeService } from '../../../lib/services/ai-recipe.service';
-import { GenerateRecipeSchema } from '../../../lib/validations/recipe-discovery.validation';
-import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { AIRecipeService } from "../../../lib/services/ai-recipe.service";
+import { GenerateRecipeSchema } from "../../../lib/validations/recipe-discovery.validation";
+import { successResponse, errorResponse } from "../../../lib/utils/api-response";
+import { NotFoundError, UnauthorizedError } from "../../../lib/errors";
 
 export const prerender = false;
 
@@ -26,16 +26,16 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
 
 /**
  * POST /api/recipes/generate
- * 
+ *
  * Generate recipe with AI based on selected products
- * 
+ *
  * Request body:
  * {
  *   "product_ids": [1, 5, 10], // required, 1-20 products
@@ -47,12 +47,12 @@ function getAuthenticatedUser(context: APIContext): string {
  *   },
  *   "save_to_recipes": false // optional, default false (user must explicitly save)
  * }
- * 
+ *
  * Response: 201 Created
  * {
  *   "recipe": RecipeDTO
  * }
- * 
+ *
  * Errors:
  * - 401 UNAUTHORIZED - Missing or invalid authentication
  * - 400 VALIDATION_ERROR - Invalid request body
@@ -76,15 +76,15 @@ export async function POST(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      return errorResponse('VALIDATION_ERROR', 'Invalid JSON body', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid JSON body", undefined, 400);
     }
 
     const validationResult = GenerateRecipeSchema.safeParse(body);
 
     if (!validationResult.success) {
       return errorResponse(
-        'VALIDATION_ERROR',
-        'Invalid request body',
+        "VALIDATION_ERROR",
+        "Invalid request body",
         validationResult.error.flatten().fieldErrors,
         400
       );
@@ -94,51 +94,39 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Create service and generate recipe
     const aiRecipeService = new AIRecipeService(supabase);
-    
+
     try {
       const result = await aiRecipeService.generateRecipe(userId, generateDto);
-      
+
       // Return 201 Created
       return successResponse(result, 201);
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle specific AI service errors
-      if (error.message?.includes('not configured')) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("not configured")) {
         return errorResponse(
-          'SERVICE_UNAVAILABLE',
-          'AI service is not configured. Please contact support.',
+          "SERVICE_UNAVAILABLE",
+          "AI service is not configured. Please contact support.",
           undefined,
           503
         );
       }
 
-      if (error.message?.includes('timed out')) {
-        return errorResponse(
-          'TIMEOUT',
-          'AI service request timed out. Please try again.',
-          undefined,
-          504
-        );
+      if (message.includes("timed out")) {
+        return errorResponse("TIMEOUT", "AI service request timed out. Please try again.", undefined, 504);
       }
 
       throw error; // Re-throw to be caught by outer catch
     }
-    
   } catch (error) {
-    console.error('Error in POST /api/recipes/generate:', error);
+    console.error("Error in POST /api/recipes/generate:", error);
 
     // Handle specific error types
     if (error instanceof NotFoundError) {
-      return errorResponse('NOT_FOUND', error.message, undefined, 404);
+      return errorResponse("NOT_FOUND", error.message, undefined, 404);
     }
 
     // Generic server error
-    return errorResponse(
-      'INTERNAL_ERROR',
-      'Failed to generate recipe',
-      undefined,
-      500
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to generate recipe", undefined, 500);
   }
 }
-

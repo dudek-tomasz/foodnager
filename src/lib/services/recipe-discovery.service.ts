@@ -1,15 +1,18 @@
 /**
  * RecipeDiscoveryService - Business logic for Recipe Discovery & Search
- * 
+ *
  * Implements hierarchical recipe search (Tier 1: User Recipes)
  * - Tier 1: Search user's own recipes
  * - Tier 2: Search external API (to be implemented)
  * - Tier 3: AI generation (to be implemented)
- * 
+ *
  * This service orchestrates the search across all tiers with fallback logic.
  */
 
-import type { SupabaseClient } from '../../db/supabase.client';
+/* eslint-disable no-console */
+// Console logs are intentional for debugging recipe discovery logic
+
+import type { SupabaseClient } from "../../db/supabase.client";
 import type {
   SearchRecipesByFridgeDTO,
   SearchRecipesResponseDTO,
@@ -20,16 +23,16 @@ import type {
   FridgeItemDTO,
   SearchMetadataDTO,
   ProductReferenceDTO,
-} from '../../types';
-import { NotFoundError, ValidationError } from '../errors';
-import { MatchScoreCalculator } from '../utils/match-score.calculator';
-import { filterByPreferences } from '../utils/preferences-filter';
-import { ExternalAPIService } from './external-api.service';
-import { ExternalRecipeMapper } from '../mappers/external-recipe-mapper';
-import { OpenRouterClient } from './ai/openrouter.client';
-import { RecipePromptBuilder } from './ai/prompt-builder';
-import { AIResponseValidator } from './ai/response-validator';
-import type { AIRecipe } from './ai/response-validator';
+} from "../../types";
+import { NotFoundError, ValidationError } from "../errors";
+import { MatchScoreCalculator } from "../utils/match-score.calculator";
+import { filterByPreferences } from "../utils/preferences-filter";
+import { ExternalAPIService } from "./external-api.service";
+import { ExternalRecipeMapper } from "../mappers/external-recipe-mapper";
+import { OpenRouterClient } from "./ai/openrouter.client";
+import { RecipePromptBuilder } from "./ai/prompt-builder";
+import { AIResponseValidator } from "./ai/response-validator";
+import type { AIRecipe } from "./ai/response-validator";
 
 /**
  * Default match score threshold for considering a recipe as "good match"
@@ -59,15 +62,12 @@ export class RecipeDiscoveryService {
 
   /**
    * Main search method - orchestrates hierarchical search across all tiers
-   * 
+   *
    * @param userId - Current authenticated user ID
    * @param searchDto - Search parameters
    * @returns Search results with metadata
    */
-  async searchByFridge(
-    userId: string,
-    searchDto: SearchRecipesByFridgeDTO
-  ): Promise<SearchRecipesResponseDTO> {
+  async searchByFridge(userId: string, searchDto: SearchRecipesByFridgeDTO): Promise<SearchRecipesResponseDTO> {
     const startTime = Date.now();
 
     try {
@@ -75,139 +75,126 @@ export class RecipeDiscoveryService {
       const availableProducts = await this.getAvailableProducts(userId, searchDto);
 
       if (availableProducts.length === 0) {
-        throw new ValidationError('No products available in fridge');
+        throw new ValidationError("No products available in fridge");
       }
 
-      const requestedSource = searchDto.source || 'all';
+      const requestedSource = searchDto.source || "all";
 
       const maxResults = searchDto.max_results || 10;
 
       // If specific source requested, search only that tier
-      if (requestedSource === 'user') {
+      if (requestedSource === "user") {
         const tier1Results = await this.searchUserRecipes(userId, availableProducts, searchDto);
         const duration = Date.now() - startTime;
-        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
+        return this.buildResponse(tier1Results, "user_recipes", tier1Results.length, duration, maxResults);
       }
 
-      if (requestedSource === 'api') {
+      if (requestedSource === "api") {
         try {
           const tier2Results = await this.searchExternalAPI(userId, availableProducts, searchDto);
           const duration = Date.now() - startTime;
-          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration, maxResults);
+          return this.buildResponse(tier2Results, "external_api", tier2Results.length, duration, maxResults);
         } catch (error) {
-          console.error('External API search failed:', error);
+          console.error("External API search failed:", error);
           const duration = Date.now() - startTime;
-          return this.buildResponse([], 'external_api', 0, duration, maxResults);
+          return this.buildResponse([], "external_api", 0, duration, maxResults);
         }
       }
 
-      if (requestedSource === 'ai') {
+      if (requestedSource === "ai") {
         const isConfigured = this.openRouterClient.isConfigured();
         if (!isConfigured) {
-          throw new ValidationError('AI service is not configured. Please set OPENROUTER_API_KEY.');
+          throw new ValidationError("AI service is not configured. Please set OPENROUTER_API_KEY.");
         }
 
         try {
           const tier3Results = await this.generateWithAI(userId, availableProducts, searchDto);
           const duration = Date.now() - startTime;
-          return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration, maxResults);
+          return this.buildResponse(tier3Results, "ai_generated", tier3Results.length, duration, maxResults);
         } catch (error) {
-          console.error('AI generation failed:', error);
+          console.error("AI generation failed:", error);
           throw error;
         }
       }
 
       // Hierarchical search (source = 'all')
-      console.log('🔍 [SEARCH] Starting hierarchical search (source=all)');
-      
+      console.log("🔍 [SEARCH] Starting hierarchical search (source=all)");
+
       // Step 2: Tier 1 - Search user recipes
-      console.log('🔍 [TIER 1] Searching user recipes...');
-      const tier1Results = await this.searchUserRecipes(
-        userId,
-        availableProducts,
-        searchDto
-      );
+      console.log("🔍 [TIER 1] Searching user recipes...");
+      const tier1Results = await this.searchUserRecipes(userId, availableProducts, searchDto);
       console.log(`🔍 [TIER 1] Found ${tier1Results.length} user recipes`);
-      
+
       if (tier1Results.length > 0) {
-        const topScore = Math.max(...tier1Results.map(r => r.match_score));
+        const topScore = Math.max(...tier1Results.map((r) => r.match_score));
         console.log(`🔍 [TIER 1] Best match score: ${topScore.toFixed(2)}`);
       }
 
       // Check if we have good matches in Tier 1
       const hasGood = this.hasGoodMatches(tier1Results);
       console.log(`🔍 [TIER 1] Has good matches (>=0.7)? ${hasGood}`);
-      
+
       if (hasGood) {
         const duration = Date.now() - startTime;
         console.log(`🔍 [TIER 1] ✅ Returning ${tier1Results.length} user recipes (good matches found)`);
-        return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
+        return this.buildResponse(tier1Results, "user_recipes", tier1Results.length, duration, maxResults);
       }
 
       // Step 3: Tier 2 - External API search (if Tier 1 not sufficient)
-      console.log('🔍 [TIER 2] No good matches in Tier 1, trying external API...');
+      console.log("🔍 [TIER 2] No good matches in Tier 1, trying external API...");
       try {
-        const tier2Results = await this.searchExternalAPI(
-          userId,
-          availableProducts,
-          searchDto
-        );
+        const tier2Results = await this.searchExternalAPI(userId, availableProducts, searchDto);
         console.log(`🔍 [TIER 2] Found ${tier2Results.length} API recipes`);
 
         if (tier2Results.length > 0) {
           const duration = Date.now() - startTime;
           console.log(`🔍 [TIER 2] ✅ Returning ${tier2Results.length} API recipes`);
-          return this.buildResponse(tier2Results, 'external_api', tier2Results.length, duration, maxResults);
+          return this.buildResponse(tier2Results, "external_api", tier2Results.length, duration, maxResults);
         }
       } catch (error) {
-        console.error('❌ [TIER 2] External API failed, continuing...', error);
+        console.error("❌ [TIER 2] External API failed, continuing...", error);
         // Continue to next tier or return Tier 1 results
       }
 
       // Step 4: Tier 3 - AI generation (last resort)
-      console.log('🔍 [TIER 3] No API results, checking if AI is available...');
+      console.log("🔍 [TIER 3] No API results, checking if AI is available...");
       const isConfigured = this.openRouterClient.isConfigured();
       console.log(`🔍 [TIER 3] OpenRouter configured: ${isConfigured}`);
-      
+
       if (isConfigured) {
-        console.log('🔍 [TIER 3] Attempting AI generation...');
+        console.log("🔍 [TIER 3] Attempting AI generation...");
         try {
-          const tier3Results = await this.generateWithAI(
-            userId,
-            availableProducts,
-            searchDto
-          );
+          const tier3Results = await this.generateWithAI(userId, availableProducts, searchDto);
           console.log(`🔍 [TIER 3] Generated ${tier3Results.length} AI recipes`);
 
           if (tier3Results.length > 0) {
             const duration = Date.now() - startTime;
             console.log(`🔍 [TIER 3] ✅ Returning ${tier3Results.length} AI recipes`);
-            return this.buildResponse(tier3Results, 'ai_generated', tier3Results.length, duration, maxResults);
+            return this.buildResponse(tier3Results, "ai_generated", tier3Results.length, duration, maxResults);
           } else {
-            console.log('⚠️ [TIER 3] AI generation returned empty results');
+            console.log("⚠️ [TIER 3] AI generation returned empty results");
           }
         } catch (error) {
-          console.error('❌ [TIER 3] AI Generation failed:', error);
+          console.error("❌ [TIER 3] AI Generation failed:", error);
           // Continue to fallback
         }
       } else {
-        console.log('⚠️ [TIER 3] OpenRouter NOT configured - skipping AI generation');
+        console.log("⚠️ [TIER 3] OpenRouter NOT configured - skipping AI generation");
       }
 
       // Fallback: Return Tier 1 results even if not "good" matches
       console.log(`🔍 [FALLBACK] Returning Tier 1 results (${tier1Results.length} recipes) as fallback`);
       const duration = Date.now() - startTime;
-      return this.buildResponse(tier1Results, 'user_recipes', tier1Results.length, duration, maxResults);
-
+      return this.buildResponse(tier1Results, "user_recipes", tier1Results.length, duration, maxResults);
     } catch (error) {
-      console.error('Error in searchByFridge:', error);
+      console.error("Error in searchByFridge:", error);
       throw error;
     }
   }
 
   /**
    * Tier 1: Search in user's own recipes
-   * 
+   *
    * @param userId - User ID
    * @param availableProducts - Products available in fridge
    * @param searchDto - Search parameters
@@ -227,10 +214,7 @@ export class RecipeDiscoveryService {
 
     // Calculate match scores for each recipe
     const results: RecipeSearchResultDTO[] = recipes.map((recipe) => {
-      const matchResult = this.matchScoreCalculator.calculate(
-        recipe.ingredients,
-        availableProducts
-      );
+      const matchResult = this.matchScoreCalculator.calculate(recipe.ingredients, availableProducts);
 
       return {
         recipe,
@@ -241,8 +225,8 @@ export class RecipeDiscoveryService {
     });
 
     // Filter by preferences (cooking time, difficulty, dietary restrictions)
-    const filteredResults = results.filter((result) =>
-      filterByPreferences([result.recipe], searchDto.preferences).length > 0
+    const filteredResults = results.filter(
+      (result) => filterByPreferences([result.recipe], searchDto.preferences).length > 0
     );
 
     // Sort by match score (descending - best matches first)
@@ -255,7 +239,7 @@ export class RecipeDiscoveryService {
 
   /**
    * Tier 2: Search external recipe API
-   * 
+   *
    * @param userId - User ID
    * @param availableProducts - Products available in fridge
    * @param searchDto - Search parameters
@@ -274,10 +258,7 @@ export class RecipeDiscoveryService {
     }
 
     // Call external API
-    const externalRecipes = await this.externalAPIService.searchRecipes(
-      productNames,
-      searchDto.preferences
-    );
+    const externalRecipes = await this.externalAPIService.searchRecipes(productNames, searchDto.preferences);
 
     if (externalRecipes.length === 0) {
       return [];
@@ -290,12 +271,13 @@ export class RecipeDiscoveryService {
     for (const externalRecipe of recipesToSave) {
       try {
         const saved = await this.externalRecipeMapper.mapAndSave(externalRecipe, userId);
-        
+
         // Convert RecipeDTO to RecipeSummaryDTO (remove metadata)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { metadata, ...summary } = saved;
         savedRecipes.push(summary);
       } catch (error) {
-        console.error('Error saving external recipe:', error);
+        console.error("Error saving external recipe:", error);
         // Continue with other recipes
       }
     }
@@ -306,10 +288,7 @@ export class RecipeDiscoveryService {
 
     // Calculate match scores for saved recipes
     const results: RecipeSearchResultDTO[] = savedRecipes.map((recipe) => {
-      const matchResult = this.matchScoreCalculator.calculate(
-        recipe.ingredients,
-        availableProducts
-      );
+      const matchResult = this.matchScoreCalculator.calculate(recipe.ingredients, availableProducts);
 
       return {
         recipe,
@@ -329,7 +308,7 @@ export class RecipeDiscoveryService {
 
   /**
    * Tier 3: Generate multiple recipes with AI
-   * 
+   *
    * @param userId - User ID
    * @param availableProducts - Products available in fridge
    * @param searchDto - Search parameters
@@ -341,7 +320,7 @@ export class RecipeDiscoveryService {
     searchDto: SearchRecipesByFridgeDTO
   ): Promise<RecipeSearchResultDTO[]> {
     // Extract product references for AI
-    const products: ProductReferenceDTO[] = availableProducts.map(item => ({
+    const products: ProductReferenceDTO[] = availableProducts.map((item) => ({
       id: item.product.id,
       name: item.product.name,
     }));
@@ -356,7 +335,7 @@ export class RecipeDiscoveryService {
     // Build system message based on preferences
     const systemMessage = this.buildSystemMessage(searchDto.preferences);
 
-    console.log('🤖 [AI] Requesting 5 recipes from OpenRouter...');
+    console.log("🤖 [AI] Requesting 5 recipes from OpenRouter...");
 
     // Call AI API with enhanced options (increased max_tokens for 5 recipes)
     const aiResponse = await this.openRouterClient.generateRecipe(userPrompt, {
@@ -375,21 +354,15 @@ export class RecipeDiscoveryService {
 
     for (const [index, validatedRecipe] of validatedRecipes.entries()) {
       try {
-        console.log(`🔨 [AI] Building temporary recipe ${index + 1}/${validatedRecipes.length}: "${validatedRecipe.title}"`);
-        
-        // Build temporary AI recipe (NOT saved to database)
-        const temporaryRecipe = await this.buildTemporaryAIRecipe(
-          userId,
-          validatedRecipe,
-          products,
-          searchDto
+        console.log(
+          `🔨 [AI] Building temporary recipe ${index + 1}/${validatedRecipes.length}: "${validatedRecipe.title}"`
         );
 
+        // Build temporary AI recipe (NOT saved to database)
+        const temporaryRecipe = await this.buildTemporaryAIRecipe(userId, validatedRecipe);
+
         // Calculate match score
-        const matchResult = this.matchScoreCalculator.calculate(
-          temporaryRecipe.ingredients,
-          availableProducts
-        );
+        const matchResult = this.matchScoreCalculator.calculate(temporaryRecipe.ingredients, availableProducts);
 
         results.push({
           recipe: temporaryRecipe,
@@ -398,7 +371,9 @@ export class RecipeDiscoveryService {
           missing_ingredients: matchResult.missing_ingredients,
         });
 
-        console.log(`✅ [AI] Recipe "${validatedRecipe.title}" built with match score: ${matchResult.score.toFixed(2)}`);
+        console.log(
+          `✅ [AI] Recipe "${validatedRecipe.title}" built with match score: ${matchResult.score.toFixed(2)}`
+        );
       } catch (error) {
         console.error(`❌ [AI] Failed to build recipe "${validatedRecipe.title}":`, error);
         // Continue with other recipes
@@ -415,66 +390,78 @@ export class RecipeDiscoveryService {
 
   /**
    * Build system message based on search preferences
-   * 
+   *
    * @param preferences - Search preferences
    * @returns System message for AI model
    */
-  private buildSystemMessage(preferences?: SearchRecipesByFridgeDTO['preferences']): string {
-    let message = 'Jesteś profesjonalnym szefem kuchni z ekspertyzą w tworzeniu pysznych i praktycznych przepisów kulinarnych opartych na REALNYCH, zweryfikowanych, powszechnie uznanych tradycjach kulinarnych. Wszystkie przepisy generujesz WYŁĄCZNIE w języku polskim.';
-    
-    message += '\n\n⚠️ KRYTYCZNE ZASADY:';
-    message += '\n1. PRIORYTET: Twórz SENSOWNE, REALNE przepisy oparte WYŁĄCZNIE na prawdziwych przepisach znalezionych online.';
-    message += '\n2. Za każdym razem MUSISZ przeprowadzić WYSZUKIWANIE W INTERNECIE i bazować swoje danie TYLKO na przepisach z renomowanych serwisów kulinarnych (KwestiaSmaku, AniaGotuje, BBC Good Food, SeriousEats, TasteAtlas, AllRecipes).';
-    message += '\n3. NIE musisz używać WSZYSTKICH podanych składników – tylko tych, które występują w autentycznym przepisie znalezionym online.';
-    message += '\n4. ZAWSZE lepiej zrobić znane, sprawdzone danie używając 1-2 składników niż stworzyć dziwne lub wymyślone danie używając wszystkich składników.';
-    message += '\n5. NIGDY nie mieszaj niezgodnych kategorii składników, chyba że takie połączenie ISTNIEJE w realnych, udokumentowanych przepisach.';
-    message += '\n6. NIGDY nie twórz nietypowych, eksperymentalnych lub kreatywnych kombinacji – JEŚLI przepis nie może zostać potwierdzony online, NIE MOŻESZ go użyć.';
-    message += '\n7. Szanuj profile smakowe dokładnie tak, jak są pokazane w REALNYCH przepisach z wyników wyszukiwania.';
-    message += '\n8. Wytrawne z wytrawnym, słodkie ze słodkim – chyba że PRAWDZIWE danie z wyszukiwania stosuje inaczej.';
-    message += '\n9. Jeśli składniki nie tworzą spójnego dania z prawdziwego świata, wybierz POPULARNY przepis, który używa TYLKO sensownego podzbioru.';
-    message += '\n10. ZAWSZE myśl: "Jakie prawdziwe, znane danie istnieje online, które pasuje do tych składników?" Nigdy niczego nie wymyślaj.';
-    
+  private buildSystemMessage(preferences?: SearchRecipesByFridgeDTO["preferences"]): string {
+    let message =
+      "Jesteś profesjonalnym szefem kuchni z ekspertyzą w tworzeniu pysznych i praktycznych przepisów kulinarnych opartych na REALNYCH, zweryfikowanych, powszechnie uznanych tradycjach kulinarnych. Wszystkie przepisy generujesz WYŁĄCZNIE w języku polskim.";
+
+    message += "\n\n⚠️ KRYTYCZNE ZASADY:";
+    message +=
+      "\n1. PRIORYTET: Twórz SENSOWNE, REALNE przepisy oparte WYŁĄCZNIE na prawdziwych przepisach znalezionych online.";
+    message +=
+      "\n2. Za każdym razem MUSISZ przeprowadzić WYSZUKIWANIE W INTERNECIE i bazować swoje danie TYLKO na przepisach z renomowanych serwisów kulinarnych (KwestiaSmaku, AniaGotuje, BBC Good Food, SeriousEats, TasteAtlas, AllRecipes).";
+    message +=
+      "\n3. NIE musisz używać WSZYSTKICH podanych składników – tylko tych, które występują w autentycznym przepisie znalezionym online.";
+    message +=
+      "\n4. ZAWSZE lepiej zrobić znane, sprawdzone danie używając 1-2 składników niż stworzyć dziwne lub wymyślone danie używając wszystkich składników.";
+    message +=
+      "\n5. NIGDY nie mieszaj niezgodnych kategorii składników, chyba że takie połączenie ISTNIEJE w realnych, udokumentowanych przepisach.";
+    message +=
+      "\n6. NIGDY nie twórz nietypowych, eksperymentalnych lub kreatywnych kombinacji – JEŚLI przepis nie może zostać potwierdzony online, NIE MOŻESZ go użyć.";
+    message +=
+      "\n7. Szanuj profile smakowe dokładnie tak, jak są pokazane w REALNYCH przepisach z wyników wyszukiwania.";
+    message +=
+      "\n8. Wytrawne z wytrawnym, słodkie ze słodkim – chyba że PRAWDZIWE danie z wyszukiwania stosuje inaczej.";
+    message +=
+      "\n9. Jeśli składniki nie tworzą spójnego dania z prawdziwego świata, wybierz POPULARNY przepis, który używa TYLKO sensownego podzbioru.";
+    message +=
+      '\n10. ZAWSZE myśl: "Jakie prawdziwe, znane danie istnieje online, które pasuje do tych składników?" Nigdy niczego nie wymyślaj.';
+
     if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
-      const restrictions = preferences.dietary_restrictions.join(', ');
+      const restrictions = preferences.dietary_restrictions.join(", ");
       message += `\n\n🥗 Wymagania dietetyczne: ${restrictions}`;
       message += `\n- Wszystkie przepisy MUSZĄ być zgodne I nadal muszą być oparte na realnych, udokumentowanych przepisach z internetu.`;
     }
-    
-    message += '\n\n📝 Wymagania formatu instrukcji:';
-    message += '\n- Pisz szczegółowe instrukcje krok po kroku.';
+
+    message += "\n\n📝 Wymagania formatu instrukcji:";
+    message += "\n- Pisz szczegółowe instrukcje krok po kroku.";
     message += '\n- Każdy główny krok powinien mieć nagłówek ("Krok 1: Przygotowanie składników").';
-    message += '\n- Zawieraj prawdziwe temperatury, czasy, techniki OPARTE NA wynikach wyszukiwania.';
-    message += '\n- Dodaj realistyczne wskazówki, które pojawiają się w tradycyjnych lub dobrze znanych przepisach.';
-    message += '\n- Opisuj teksturę, aromat i wizualne wskazówki dokładnie tak, jak robią to prawdziwe przepisy.';
-    message += '\n- Pisz w JĘZYKU POLSKIM.';
-    message += '\n- Ton: przyjazny, prowadzący, jak nauczanie przyjaciela.';
-    message += '\n- ABSOLUTNIE ŻADNYCH WYMYŚLONYCH DAŃ. Tylko PRAWDZIWE z wyszukiwania.';
-    
-    message += '\n\n🌍 Źródła referencyjne dla REALNYCH przepisów (OBOWIĄZKOWE):';
-    message += '\n- TasteAtlas (tradycyjne dania)';
-    message += '\n- AniaGotuje (zweryfikowane polskie przepisy)';
-    message += '\n- KwestiaSmaku (popularne, prawdziwe dania)';
-    message += '\n- BBC Good Food';
-    message += '\n- SeriousEats';
-    message += '\n- AllRecipes';
-    message += '\n- KAŻDY wynik z wyszukiwania internetowego, który jest prawdziwym przepisem';
-    
-    message += '\n\nWAŻNE: NIE MOŻESZ wygenerować ŻADNEGO przepisu, chyba że najpierw przeprowadzisz WYSZUKIWANIE W INTERNECIE i wybierzesz danie, które pojawia się w co najmniej JEDNYM zaufanym źródle z powyższej listy.';
-    
-    message += '\n\n📎 ŹRÓDŁA INSPIRACJI:';
+    message += "\n- Zawieraj prawdziwe temperatury, czasy, techniki OPARTE NA wynikach wyszukiwania.";
+    message += "\n- Dodaj realistyczne wskazówki, które pojawiają się w tradycyjnych lub dobrze znanych przepisach.";
+    message += "\n- Opisuj teksturę, aromat i wizualne wskazówki dokładnie tak, jak robią to prawdziwe przepisy.";
+    message += "\n- Pisz w JĘZYKU POLSKIM.";
+    message += "\n- Ton: przyjazny, prowadzący, jak nauczanie przyjaciela.";
+    message += "\n- ABSOLUTNIE ŻADNYCH WYMYŚLONYCH DAŃ. Tylko PRAWDZIWE z wyszukiwania.";
+
+    message += "\n\n🌍 Źródła referencyjne dla REALNYCH przepisów (OBOWIĄZKOWE):";
+    message += "\n- TasteAtlas (tradycyjne dania)";
+    message += "\n- AniaGotuje (zweryfikowane polskie przepisy)";
+    message += "\n- KwestiaSmaku (popularne, prawdziwe dania)";
+    message += "\n- BBC Good Food";
+    message += "\n- SeriousEats";
+    message += "\n- AllRecipes";
+    message += "\n- KAŻDY wynik z wyszukiwania internetowego, który jest prawdziwym przepisem";
+
+    message +=
+      "\n\nWAŻNE: NIE MOŻESZ wygenerować ŻADNEGO przepisu, chyba że najpierw przeprowadzisz WYSZUKIWANIE W INTERNECIE i wybierzesz danie, które pojawia się w co najmniej JEDNYM zaufanym źródle z powyższej listy.";
+
+    message += "\n\n📎 ŹRÓDŁA INSPIRACJI:";
     message += '\n- Pole "sources" może pozostać puste [] - NIE generuj fake linków!';
-    message += '\n- Jeśli masz dostęp do citations z web search, użyj prawdziwych URL-i.';
-    message += '\n- Jeśli NIE masz pewności co do URL-a - zostaw sources jako pustą tablicę.';
-    message += '\n- LEPIEJ brak źródeł niż fake/wymyślone linki!';
-    message += '\n- Bazuj na sprawdzonych, tradycyjnych przepisach z pamięci treningowej.';
-    
+    message += "\n- Jeśli masz dostęp do citations z web search, użyj prawdziwych URL-i.";
+    message += "\n- Jeśli NIE masz pewności co do URL-a - zostaw sources jako pustą tablicę.";
+    message += "\n- LEPIEJ brak źródeł niż fake/wymyślone linki!";
+    message += "\n- Bazuj na sprawdzonych, tradycyjnych przepisach z pamięci treningowej.";
+
     return message;
   }
 
   /**
    * Generate temporary ID for AI-generated recipe (not saved to database yet)
    * Range: 100000-1000000 to avoid conflicts with real database IDs
-   * 
+   *
    * @returns Temporary ID for unsaved AI recipe
    */
   private generateTemporaryId(): number {
@@ -484,22 +471,17 @@ export class RecipeDiscoveryService {
   /**
    * Build temporary AI-generated recipe WITHOUT saving to database
    * User can save it later by clicking "Add to My Recipes" button
-   * 
+   *
    * @param userId - User ID
    * @param aiRecipe - Validated AI recipe
-   * @param originalProducts - Original products used for generation
-   * @param searchDto - Original search DTO
+   * @param _originalProducts - Original products used for generation - NOT YET USED
+   * @param _searchDto - Original search DTO - NOT YET USED
    * @returns Temporary recipe as RecipeSummaryDTO (with temporary ID for React keys)
    */
-  private async buildTemporaryAIRecipe(
-    userId: string,
-    aiRecipe: AIRecipe,
-    originalProducts: ProductReferenceDTO[],
-    searchDto: SearchRecipesByFridgeDTO
-  ): Promise<RecipeSummaryDTO> {
+  private async buildTemporaryAIRecipe(userId: string, aiRecipe: AIRecipe): Promise<RecipeSummaryDTO> {
     // Map AI ingredients using ProductMatcher (from ExternalRecipeMapper)
-    const mappedIngredients = await this.externalRecipeMapper['mapIngredients'](
-      aiRecipe.ingredients.map(ing => ({
+    const mappedIngredients = await this.externalRecipeMapper["mapIngredients"](
+      aiRecipe.ingredients.map((ing) => ({
         name: ing.product_name,
         quantity: ing.quantity,
         unit: ing.unit,
@@ -508,33 +490,34 @@ export class RecipeDiscoveryService {
     );
 
     // Map tags
-    const tagIds = await this.externalRecipeMapper['mapTags'](aiRecipe.tags || []);
+    const tagIds = await this.externalRecipeMapper["mapTags"](aiRecipe.tags || []);
 
     // Fetch tag details
-    const { data: tags } = await this.supabase
-      .from('tags')
-      .select('id, name, created_at')
-      .in('id', tagIds);
+    const { data: tags } = await this.supabase.from("tags").select("id, name, created_at").in("id", tagIds);
 
     // Fetch product and unit details for ingredients
     const ingredientDTOs = await Promise.all(
       mappedIngredients.map(async (ing) => {
         const { data: product } = await this.supabase
-          .from('products')
-          .select('id, name')
-          .eq('id', ing.product_id)
+          .from("products")
+          .select("id, name")
+          .eq("id", ing.product_id)
           .single();
 
         const { data: unit } = await this.supabase
-          .from('units')
-          .select('id, name, abbreviation')
-          .eq('id', ing.unit_id)
+          .from("units")
+          .select("id, name, abbreviation")
+          .eq("id", ing.unit_id)
           .single();
 
+        if (!product || !unit) {
+          throw new Error(`Product or unit not found for ingredient`);
+        }
+
         return {
-          product: { id: product!.id, name: product!.name },
+          product: { id: product.id, name: product.name },
           quantity: ing.quantity,
-          unit: { id: unit!.id, name: unit!.name, abbreviation: unit!.abbreviation },
+          unit: { id: unit.id, name: unit.name, abbreviation: unit.abbreviation },
         };
       })
     );
@@ -543,11 +526,11 @@ export class RecipeDiscoveryService {
     const temporaryId = this.generateTemporaryId();
 
     // Build description with sources appended
-    let description = aiRecipe.description || '';
-    
+    let description = aiRecipe.description || "";
+
     if (aiRecipe.sources && aiRecipe.sources.length > 0) {
-      const sourcesSection = '\n\n## 📚 Źródła inspiracji\n' + 
-        aiRecipe.sources.map(s => `- [${s.name}](${s.url})`).join('\n');
+      const sourcesSection =
+        "\n\n## 📚 Źródła inspiracji\n" + aiRecipe.sources.map((s) => `- [${s.name}](${s.url})`).join("\n");
       description = description ? `${description}${sourcesSection}` : sourcesSection;
     }
 
@@ -559,8 +542,8 @@ export class RecipeDiscoveryService {
       instructions: aiRecipe.instructions,
       cooking_time: aiRecipe.cooking_time || null,
       difficulty: aiRecipe.difficulty || null,
-      source: 'ai',
-      tags: (tags || []).map(t => ({
+      source: "ai",
+      tags: (tags || []).map((t) => ({
         id: t.id,
         name: t.name,
         created_at: t.created_at,
@@ -573,32 +556,29 @@ export class RecipeDiscoveryService {
 
   /**
    * Extract product names from fridge items
-   * 
+   *
    * @param fridgeItems - Array of fridge items
    * @returns Array of product names
    */
   private extractProductNames(fridgeItems: FridgeItemDTO[]): string[] {
-    return fridgeItems.map(item => item.product.name);
+    return fridgeItems.map((item) => item.product.name);
   }
 
   /**
    * Get available products from user's fridge
-   * 
+   *
    * @param userId - User ID
    * @param searchDto - Search parameters
    * @returns Array of fridge items
    */
-  private async getAvailableProducts(
-    userId: string,
-    searchDto: SearchRecipesByFridgeDTO
-  ): Promise<FridgeItemDTO[]> {
+  private async getAvailableProducts(userId: string, searchDto: SearchRecipesByFridgeDTO): Promise<FridgeItemDTO[]> {
     if (searchDto.use_all_fridge_items) {
       // Fetch all products from user's fridge
       return await this.fetchAllFridgeItems(userId);
     } else {
       // Fetch only specified products
       if (!searchDto.custom_product_ids || searchDto.custom_product_ids.length === 0) {
-        throw new ValidationError('custom_product_ids required when use_all_fridge_items is false');
+        throw new ValidationError("custom_product_ids required when use_all_fridge_items is false");
       }
       return await this.fetchSpecificFridgeItems(userId, searchDto.custom_product_ids);
     }
@@ -606,14 +586,15 @@ export class RecipeDiscoveryService {
 
   /**
    * Fetch all items from user's fridge
-   * 
+   *
    * @param userId - User ID
    * @returns Array of fridge items
    */
   private async fetchAllFridgeItems(userId: string): Promise<FridgeItemDTO[]> {
     const { data, error } = await this.supabase
-      .from('user_products')
-      .select(`
+      .from("user_products")
+      .select(
+        `
         id,
         product_id,
         quantity,
@@ -622,31 +603,30 @@ export class RecipeDiscoveryService {
         created_at,
         products!inner(id, name),
         units!inner(id, name, abbreviation)
-      `)
-      .eq('user_id', userId);
+      `
+      )
+      .eq("user_id", userId);
 
     if (error) {
-      console.error('Error fetching fridge items:', error);
-      throw new Error('Failed to fetch fridge items');
+      console.error("Error fetching fridge items:", error);
+      throw new Error("Failed to fetch fridge items");
     }
 
-    return (data || []).map((row: any) => this.transformFridgeItem(row));
+    return (data || []).map((row) => this.transformFridgeItem(row));
   }
 
   /**
    * Fetch specific items from user's fridge by product IDs
-   * 
+   *
    * @param userId - User ID
    * @param productIds - Array of product IDs
    * @returns Array of fridge items
    */
-  private async fetchSpecificFridgeItems(
-    userId: string,
-    productIds: number[]
-  ): Promise<FridgeItemDTO[]> {
+  private async fetchSpecificFridgeItems(userId: string, productIds: number[]): Promise<FridgeItemDTO[]> {
     const { data, error } = await this.supabase
-      .from('user_products')
-      .select(`
+      .from("user_products")
+      .select(
+        `
         id,
         product_id,
         quantity,
@@ -655,34 +635,45 @@ export class RecipeDiscoveryService {
         created_at,
         products!inner(id, name),
         units!inner(id, name, abbreviation)
-      `)
-      .eq('user_id', userId)
-      .in('product_id', productIds);
+      `
+      )
+      .eq("user_id", userId)
+      .in("product_id", productIds);
 
     if (error) {
-      console.error('Error fetching specific fridge items:', error);
-      throw new Error('Failed to fetch fridge items');
+      console.error("Error fetching specific fridge items:", error);
+      throw new Error("Failed to fetch fridge items");
     }
 
     if (!data || data.length === 0) {
-      throw new NotFoundError('No fridge items found for specified product IDs');
+      throw new NotFoundError("No fridge items found for specified product IDs");
     }
 
     // Verify all requested products were found
-    const foundProductIds = data.map((row: any) => row.product_id);
-    const missingIds = productIds.filter(id => !foundProductIds.includes(id));
-    
+    const foundProductIds = data.map((row) => row.product_id);
+    const missingIds = productIds.filter((id) => !foundProductIds.includes(id));
+
     if (missingIds.length > 0) {
-      throw new NotFoundError(`Products not found in fridge: ${missingIds.join(', ')}`);
+      throw new NotFoundError(`Products not found in fridge: ${missingIds.join(", ")}`);
     }
 
-    return (data || []).map((row: any) => this.transformFridgeItem(row));
+    return (data || []).map((row) => this.transformFridgeItem(row));
   }
 
   /**
    * Transform raw database row to FridgeItemDTO
    */
-  private transformFridgeItem(row: any): FridgeItemDTO {
+  private transformFridgeItem(row: {
+    id: number;
+    product_id: number;
+    products: { id: number; name: string };
+    quantity: number;
+    unit_id: number;
+    units: { id: number; name: string; abbreviation: string };
+    expiry_date: string | null;
+    created_at: string;
+    updated_at: string;
+  }): FridgeItemDTO {
     return {
       id: row.id,
       product: {
@@ -702,28 +693,28 @@ export class RecipeDiscoveryService {
 
   /**
    * Fetch all user recipes with ingredients and tags
-   * 
+   *
    * @param userId - User ID
    * @returns Array of recipe summaries
    */
   private async fetchUserRecipesWithDetails(userId: string): Promise<RecipeSummaryDTO[]> {
     // Fetch base recipe data
     const { data: recipes, error } = await this.supabase
-      .from('recipes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .from("recipes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching recipes:', error);
-      throw new Error('Failed to fetch recipes');
+      console.error("Error fetching recipes:", error);
+      throw new Error("Failed to fetch recipes");
     }
 
     if (!recipes || recipes.length === 0) {
       return [];
     }
 
-    const recipeIds = recipes.map((r: any) => r.id);
+    const recipeIds = recipes.map((r) => r.id);
 
     // Batch load ingredients and tags
     const [ingredientsMap, tagsMap] = await Promise.all([
@@ -732,7 +723,7 @@ export class RecipeDiscoveryService {
     ]);
 
     // Transform to RecipeSummaryDTO
-    return recipes.map((recipe: any) => ({
+    return recipes.map((recipe) => ({
       id: recipe.id,
       title: recipe.title,
       description: recipe.description,
@@ -749,32 +740,32 @@ export class RecipeDiscoveryService {
 
   /**
    * Batch load ingredients for multiple recipes
-   * 
+   *
    * @param recipeIds - Array of recipe IDs
    * @returns Map of recipe_id to ingredients array
    */
-  private async batchLoadIngredients(
-    recipeIds: number[]
-  ): Promise<Map<number, RecipeIngredientDTO[]>> {
+  private async batchLoadIngredients(recipeIds: number[]): Promise<Map<number, RecipeIngredientDTO[]>> {
     const { data, error } = await this.supabase
-      .from('recipe_ingredients')
-      .select(`
+      .from("recipe_ingredients")
+      .select(
+        `
         recipe_id,
         quantity,
         product_id,
         products!inner(id, name),
         unit_id,
         units!inner(id, name, abbreviation)
-      `)
-      .in('recipe_id', recipeIds);
+      `
+      )
+      .in("recipe_id", recipeIds);
 
     if (error) {
-      console.error('Error batch loading ingredients:', error);
-      throw new Error('Failed to load ingredients');
+      console.error("Error batch loading ingredients:", error);
+      throw new Error("Failed to load ingredients");
     }
 
     const ingredientsMap = new Map<number, RecipeIngredientDTO[]>();
-    (data || []).forEach((row: any) => {
+    (data || []).forEach((row) => {
       const ingredient: RecipeIngredientDTO = {
         product: {
           id: row.products.id,
@@ -798,26 +789,28 @@ export class RecipeDiscoveryService {
 
   /**
    * Batch load tags for multiple recipes
-   * 
+   *
    * @param recipeIds - Array of recipe IDs
    * @returns Map of recipe_id to tags array
    */
   private async batchLoadTags(recipeIds: number[]): Promise<Map<number, TagDTO[]>> {
     const { data, error } = await this.supabase
-      .from('recipe_tags')
-      .select(`
+      .from("recipe_tags")
+      .select(
+        `
         recipe_id,
         tags!inner(id, name, created_at)
-      `)
-      .in('recipe_id', recipeIds);
+      `
+      )
+      .in("recipe_id", recipeIds);
 
     if (error) {
-      console.error('Error batch loading tags:', error);
-      throw new Error('Failed to load tags');
+      console.error("Error batch loading tags:", error);
+      throw new Error("Failed to load tags");
     }
 
     const tagsMap = new Map<number, TagDTO[]>();
-    (data || []).forEach((row: any) => {
+    (data || []).forEach((row) => {
       const tag: TagDTO = {
         id: row.tags.id,
         name: row.tags.name,
@@ -836,28 +829,22 @@ export class RecipeDiscoveryService {
    * Check if results contain at least one "good match"
    * Good match = score >= threshold
    */
-  private hasGoodMatches(
-    results: RecipeSearchResultDTO[],
-    threshold: number = DEFAULT_MATCH_THRESHOLD
-  ): boolean {
+  private hasGoodMatches(results: RecipeSearchResultDTO[], threshold: number = DEFAULT_MATCH_THRESHOLD): boolean {
     return results.some((result) => result.match_score >= threshold);
   }
 
   /**
    * Filter and limit results based on match score
-   * 
+   *
    * Rules:
    * - If results > 10: filter only recipes with match_score > 0.5, sort by score desc, take top 10
    * - If results <= 10: return all results sorted by score desc
-   * 
+   *
    * @param results - Array of recipe search results
    * @param maxResults - Maximum number of results to return
    * @returns Filtered and limited results
    */
-  private filterAndLimitResults(
-    results: RecipeSearchResultDTO[],
-    maxResults: number = 10
-  ): RecipeSearchResultDTO[] {
+  private filterAndLimitResults(results: RecipeSearchResultDTO[], maxResults = 10): RecipeSearchResultDTO[] {
     if (results.length === 0) {
       return results;
     }
@@ -870,7 +857,7 @@ export class RecipeDiscoveryService {
       console.log(`🔍 [FILTER] Found ${sorted.length} results, filtering by match_score > 0.5`);
       const filtered = sorted.filter((r) => r.match_score > 0.5);
       console.log(`🔍 [FILTER] After filtering: ${filtered.length} results`);
-      
+
       // Take top maxResults
       const limited = filtered.slice(0, maxResults);
       console.log(`🔍 [FILTER] Returning top ${limited.length} results`);
@@ -887,14 +874,14 @@ export class RecipeDiscoveryService {
    */
   private buildResponse(
     results: RecipeSearchResultDTO[],
-    source: 'user_recipes' | 'external_api' | 'ai_generated',
+    source: "user_recipes" | "external_api" | "ai_generated",
     totalResults: number,
     durationMs: number,
-    maxResults: number = 10
+    maxResults = 10
   ): SearchRecipesResponseDTO {
     // Filter and limit results
     const filteredResults = this.filterAndLimitResults(results, maxResults);
-    
+
     const metadata: SearchMetadataDTO = {
       source,
       total_results: totalResults,
@@ -907,4 +894,3 @@ export class RecipeDiscoveryService {
     };
   }
 }
-

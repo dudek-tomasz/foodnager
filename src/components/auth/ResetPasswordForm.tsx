@@ -1,6 +1,6 @@
 /**
  * ResetPasswordForm - Password reset form with token verification
- * 
+ *
  * Features:
  * - Password and password confirmation fields
  * - Client-side validation using Zod
@@ -8,30 +8,30 @@
  * - Loading state during submission
  * - Success state with auto-redirect to login
  * - Error handling for expired/invalid tokens
- * 
+ *
  * Following auth-spec.md US-001.7
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { resetPasswordSchema } from '@/lib/validations/auth.validation';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { resetPasswordSchema } from "@/lib/validations/auth.validation";
 
 interface ResetPasswordFormProps {
   token: string;
 }
 
-type FormData = {
+interface FormData {
   password: string;
   passwordConfirm: string;
-};
+}
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [formData, setFormData] = useState<FormData>({
-    password: '',
-    passwordConfirm: '',
+    password: "",
+    passwordConfirm: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -39,10 +39,10 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [success, setSuccess] = useState(false);
 
   const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     // Clear field error on change
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
     // Clear general error on change
     if (generalError) {
@@ -66,7 +66,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       const fieldErrors: Partial<Record<keyof FormData, string>> = {};
       result.error.errors.forEach((error) => {
         const field = error.path[0];
-        if (field && field !== 'token') {
+        if (field && field !== "token") {
           fieldErrors[field as keyof FormData] = error.message;
         }
       });
@@ -78,10 +78,10 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
     try {
       // Call reset password API endpoint
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           token,
@@ -94,7 +94,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       if (!response.ok || !data.success) {
         // Handle API errors
-        const errorMessage = data.error?.message || 'Wystąpił błąd podczas resetowania hasła';
+        const errorMessage = data.error?.message || "Wystąpił błąd podczas resetowania hasła";
         setGeneralError(errorMessage);
         setIsLoading(false);
         return;
@@ -102,14 +102,14 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       // Success! Show success message
       setSuccess(true);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        window.location.href = '/login?reset=success';
+        window.location.href = "/login?reset=success";
       }, 3000);
     } catch (error) {
-      console.error('Reset password error:', error);
-      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
+      console.error("Reset password error:", error);
+      setGeneralError("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
       setIsLoading(false);
     }
   };
@@ -132,12 +132,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
@@ -152,10 +147,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={() => window.location.href = '/login?reset=success'}
-            className="w-full"
-          >
+          <Button onClick={() => (window.location.href = "/login?reset=success")} className="w-full">
             Przejdź do logowania
           </Button>
         </CardFooter>
@@ -168,9 +160,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Nowe hasło</CardTitle>
-        <CardDescription className="text-center">
-          Wprowadź nowe, bezpieczne hasło
-        </CardDescription>
+        <CardDescription className="text-center">Wprowadź nowe, bezpieczne hasło</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
@@ -190,12 +180,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               type="password"
               placeholder="••••••••"
               value={formData.password}
-              onChange={handleChange('password')}
+              onChange={handleChange("password")}
               disabled={isLoading}
-              className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'password-error password-requirements' : 'password-requirements'}
-              autoFocus
+              aria-describedby={errors.password ? "password-error password-requirements" : "password-requirements"}
             />
             {errors.password && (
               <p id="password-error" className="text-sm text-red-600 dark:text-red-400">
@@ -215,11 +204,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               type="password"
               placeholder="••••••••"
               value={formData.passwordConfirm}
-              onChange={handleChange('passwordConfirm')}
+              onChange={handleChange("passwordConfirm")}
               disabled={isLoading}
-              className={errors.passwordConfirm ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.passwordConfirm ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.passwordConfirm}
-              aria-describedby={errors.passwordConfirm ? 'passwordConfirm-error' : undefined}
+              aria-describedby={errors.passwordConfirm ? "passwordConfirm-error" : undefined}
             />
             {errors.passwordConfirm && (
               <p id="passwordConfirm-error" className="text-sm text-red-600 dark:text-red-400">
@@ -231,18 +220,14 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
         <CardFooter className="flex flex-col space-y-4 pt-6">
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Zmienianie hasła...
               </>
             ) : (
-              'Zmień hasło'
+              "Zmień hasło"
             )}
           </Button>
 

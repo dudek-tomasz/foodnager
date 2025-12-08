@@ -2,9 +2,9 @@
  * SearchBar - Search input with debouncing for filtering products
  */
 
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface SearchBarProps {
   value: string;
@@ -12,11 +12,7 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export default function SearchBar({ 
-  value, 
-  onChange, 
-  placeholder = 'Szukaj produktów...' 
-}: SearchBarProps) {
+export default function SearchBar({ value, onChange, placeholder = "Szukaj produktów..." }: SearchBarProps) {
   const [localValue, setLocalValue] = useState(value);
 
   // Sync with parent value
@@ -33,8 +29,8 @@ export default function SearchBar({
 
   // Handle clear
   const handleClear = () => {
-    setLocalValue('');
-    onChange('');
+    setLocalValue("");
+    onChange("");
   };
 
   return (
@@ -50,11 +46,7 @@ export default function SearchBar({
           strokeWidth={2}
           aria-hidden="true"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
 
@@ -86,15 +78,10 @@ export default function SearchBar({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
       )}
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 /**
  * LoginForm - Authentication form for user login
- * 
+ *
  * Features:
  * - Email and password fields
  * - Client-side validation using Zod
@@ -8,37 +8,37 @@
  * - Error handling
  * - Links to register and forgot password
  * - Responsive design with Shadcn/ui components
- * 
+ *
  * MVP Simplifications:
  * - No "Remember Me" checkbox
  * - Email verification optional (user can login without verification)
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { loginSchema, type LoginInput } from '@/lib/validations/auth.validation';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { loginSchema, type LoginInput } from "@/lib/validations/auth.validation";
 
 interface LoginFormProps {
   redirectTo?: string;
 }
 
-export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
+export default function LoginForm({ redirectTo = "/fridge" }: LoginFormProps) {
   const [formData, setFormData] = useState<LoginInput>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginInput, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const handleChange = (field: keyof LoginInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     // Clear field error on change
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
     // Clear general error on change
     if (generalError) {
@@ -68,10 +68,10 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
 
     try {
       // Call login API endpoint
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -80,7 +80,7 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
 
       if (!response.ok || !data.success) {
         // Handle API errors
-        const errorMessage = data.error?.message || 'Wystąpił błąd podczas logowania';
+        const errorMessage = data.error?.message || "Wystąpił błąd podczas logowania";
         setGeneralError(errorMessage);
         return;
       }
@@ -88,8 +88,8 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
       // Success! Redirect to intended page
       window.location.href = redirectTo;
     } catch (error) {
-      console.error('Login error:', error);
-      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
+      console.error("Login error:", error);
+      setGeneralError("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +99,7 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Logowanie</CardTitle>
-        <CardDescription className="text-center">
-          Zaloguj się do swojego konta Foodnager
-        </CardDescription>
+        <CardDescription className="text-center">Zaloguj się do swojego konta Foodnager</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
@@ -121,11 +119,11 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
               type="email"
               placeholder="twoj@email.pl"
               value={formData.email}
-              onChange={handleChange('email')}
+              onChange={handleChange("email")}
               disabled={isLoading}
-              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
               <p id="email-error" className="text-sm text-red-600 dark:text-red-400">
@@ -138,11 +136,7 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Hasło</Label>
-              <a
-                href="/forgot-password"
-                className="text-sm text-primary hover:underline"
-                tabIndex={-1}
-              >
+              <a href="/forgot-password" className="text-sm text-primary hover:underline" tabIndex={-1}>
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -151,11 +145,11 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
               type="password"
               placeholder="••••••••"
               value={formData.password}
-              onChange={handleChange('password')}
+              onChange={handleChange("password")}
               disabled={isLoading}
-              className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'password-error' : undefined}
+              aria-describedby={errors.password ? "password-error" : undefined}
             />
             {errors.password && (
               <p id="password-error" className="text-sm text-red-600 dark:text-red-400">
@@ -167,24 +161,20 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
 
         <CardFooter className="flex flex-col space-y-4 pt-6">
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Logowanie...
               </>
             ) : (
-              'Zaloguj się'
+              "Zaloguj się"
             )}
           </Button>
 
           {/* Register Link */}
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-            Nie masz konta?{' '}
+            Nie masz konta?{" "}
             <a href="/register" className="text-primary font-medium hover:underline">
               Zarejestruj się
             </a>
@@ -194,4 +184,3 @@ export default function LoginForm({ redirectTo = '/fridge' }: LoginFormProps) {
     </Card>
   );
 }
-

@@ -1,14 +1,11 @@
 /**
  * RecipePromptBuilder
- * 
+ *
  * Builds structured prompts for AI recipe generation
  * Ensures consistent output format and includes JSON schema for validation
  */
 
-import type { 
-  SearchRecipePreferencesDTO,
-  ProductReferenceDTO 
-} from '../../../types';
+import type { SearchRecipePreferencesDTO, ProductReferenceDTO } from "../../../types";
 
 /**
  * RecipePromptBuilder class
@@ -18,19 +15,16 @@ export class RecipePromptBuilder {
    * Build user prompt for recipe generation
    * Contains specific task, format requirements, and examples
    * (System role/persona should be provided separately via systemMessage)
-   * 
+   *
    * @param products - Available products
    * @param preferences - User preferences (optional)
    * @returns Detailed user prompt with format specification
    */
-  build(
-    products: ProductReferenceDTO[],
-    preferences?: SearchRecipePreferencesDTO
-  ): string {
-    const productList = products.map(p => `- ${p.name}`).join('\n');
-    
+  build(products: ProductReferenceDTO[], preferences?: SearchRecipePreferencesDTO): string {
+    const productList = products.map((p) => `- ${p.name}`).join("\n");
+
     const preferencesText = this.buildPreferencesText(preferences);
-    
+
     const prompt = `Wygeneruj 5 różnych przepisów kulinarnych używając następujących składników:
 
 ${productList}
@@ -94,7 +88,7 @@ KRYTYCZNE: Wszystkie przepisy (tytuły, opisy, instrukcje, nazwy składników, t
    */
   private buildPreferencesText(preferences?: SearchRecipePreferencesDTO): string {
     if (!preferences) {
-      return '';
+      return "";
     }
 
     const parts: string[] = [];
@@ -108,15 +102,15 @@ KRYTYCZNE: Wszystkie przepisy (tytuły, opisy, instrukcje, nazwy składników, t
     }
 
     if (preferences.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
-      const restrictions = preferences.dietary_restrictions.join(', ');
+      const restrictions = preferences.dietary_restrictions.join(", ");
       parts.push(`- Dietary restrictions: ${restrictions} (recipe must be ${restrictions})`);
     }
 
     if (parts.length === 0) {
-      return '';
+      return "";
     }
 
-    return `User preferences:\n${parts.join('\n')}\n`;
+    return `User preferences:\n${parts.join("\n")}\n`;
   }
 }
 
@@ -124,4 +118,3 @@ KRYTYCZNE: Wszystkie przepisy (tytuły, opisy, instrukcje, nazwy składników, t
  * Export singleton instance
  */
 export const recipePromptBuilder = new RecipePromptBuilder();
-

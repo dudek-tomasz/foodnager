@@ -3,25 +3,20 @@
  * Główny hook zarządzający stanem i logiką widoku Recipe Details
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import type {
-  RecipeDTO,
-  RecipeSummaryDTO,
-  FridgeItemDTO,
-  CreateCookingHistoryResponseDTO,
-} from '../../../types';
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import type { RecipeDTO, RecipeSummaryDTO, FridgeItemDTO, CreateCookingHistoryResponseDTO } from "../../../types";
 import type {
   RecipeViewModel,
   RecipeDetailsUIState,
   IngredientWithAvailability,
-} from '../../../lib/types/recipe-view-models';
-import { fetchRecipe, deleteRecipe, updateRecipe, createRecipe } from '../../../lib/api/recipes-client';
-import { fetchAllFridgeItems } from '../../../lib/api/fridge-client';
-import { cookRecipe } from '../../../lib/api/cooking-history-client';
-import { createRecipeViewModel, validateIngredientsAvailability } from '../../../lib/utils/recipe-utils';
-import { ApiError } from '../../../lib/api-client';
-import type { ExternalRecipe } from '../../../lib/services/external-api.service';
+} from "../../../lib/types/recipe-view-models";
+import { fetchRecipe, deleteRecipe, updateRecipe } from "../../../lib/api/recipes-client";
+import { fetchAllFridgeItems } from "../../../lib/api/fridge-client";
+import { cookRecipe } from "../../../lib/api/cooking-history-client";
+import { createRecipeViewModel } from "../../../lib/utils/recipe-utils";
+import { ApiError } from "../../../lib/api-client";
+import type { ExternalRecipe } from "../../../lib/services/external-api.service";
 
 interface UseRecipeDetailsParams {
   recipeId?: number;
@@ -39,7 +34,7 @@ interface UseRecipeDetailsReturn {
   uiState: RecipeDetailsUIState;
   recipe: RecipeViewModel | null;
   fridgeItems: FridgeItemDTO[];
-  
+
   // Actions
   handleCook: () => void;
   handleDelete: () => void;
@@ -47,7 +42,7 @@ interface UseRecipeDetailsReturn {
   handleGenerateShoppingList: () => void;
   handleEdit: () => void;
   refetch: () => void;
-  
+
   // Dialog controls
   openCookDialog: () => void;
   closeCookDialog: () => void;
@@ -60,7 +55,7 @@ interface UseRecipeDetailsReturn {
   openManualConversionModal: () => void;
   closeManualConversionModal: () => void;
   handleManualConversionConfirm: (conversions: Record<number, number>) => void;
-  
+
   // Składniki wymagające ręcznej konwersji
   unknownIngredients: IngredientWithAvailability[];
 }
@@ -95,17 +90,15 @@ export function useRecipeDetails({
 
   const [fridgeItems, setFridgeItems] = useState<FridgeItemDTO[]>([]);
   const [recipe, setRecipe] = useState<RecipeViewModel | null>(null);
-  
+
   // Track if this is an external recipe (not yet saved to DB)
   const [isExternalRecipe, setIsExternalRecipe] = useState(!!externalRecipe);
-  
+
   // Track if this is an AI-generated recipe with temporary ID (not yet saved to DB)
   const [isAIRecipe, setIsAIRecipe] = useState(!!aiRecipe);
-  
+
   // Składniki wymagające ręcznej konwersji
-  const unknownIngredients = recipe?.enrichedIngredients.filter(
-    (ing) => ing.availabilityStatus === 'unknown'
-  ) || [];
+  const unknownIngredients = recipe?.enrichedIngredients.filter((ing) => ing.availabilityStatus === "unknown") || [];
 
   // =============================================================================
   // HELPER FUNCTIONS
@@ -115,10 +108,7 @@ export function useRecipeDetails({
    * Konwertuje ExternalRecipe do RecipeDTO format
    * Używane dla wyświetlenia external recipe bez zapisywania do bazy
    */
-  const convertExternalRecipeToDTO = async (
-    external: ExternalRecipe,
-    fridgeData: FridgeItemDTO[]
-  ): Promise<RecipeDTO> => {
+  const convertExternalRecipeToDTO = async (external: ExternalRecipe): Promise<RecipeDTO> => {
     // Create a temporary RecipeDTO-like object for display
     // Note: This won't have a real ID until saved
     // Ingredients will be matched to fridge items by name
@@ -128,8 +118,8 @@ export function useRecipeDetails({
       description: external.description || null,
       instructions: external.instructions,
       cooking_time: external.cooking_time || null,
-      difficulty: external.difficulty || 'medium',
-      source: 'api', // External recipe
+      difficulty: external.difficulty || "medium",
+      source: "api", // External recipe
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       metadata: {
@@ -139,7 +129,7 @@ export function useRecipeDetails({
       },
       // Map external ingredients to RecipeIngredientDTO format
       // Match by name with fridge items
-      ingredients: external.ingredients.map((ing, index) => ({
+      ingredients: external.ingredients.map((ing) => ({
         product: {
           id: 0, // Temporary - will be resolved on save
           name: ing.name,
@@ -152,13 +142,13 @@ export function useRecipeDetails({
         },
       })),
       // Tags from external recipe
-      tags: (external.tags || []).map((tagName, index) => ({
+      tags: (external.tags || []).map((tagName) => ({
         id: 0, // Temporary - will be resolved on save
         name: tagName,
         created_at: new Date().toISOString(),
       })),
     };
-    
+
     return recipeDTO;
   };
 
@@ -195,21 +185,17 @@ export function useRecipeDetails({
       else if (externalRecipe && isExternalRecipe) {
         // Convert ExternalRecipe to RecipeDTO format
         // External recipes don't have an ID yet, use temporary ID
-        recipeData = await convertExternalRecipeToDTO(externalRecipe, fridgeData);
+        recipeData = await convertExternalRecipeToDTO(externalRecipe);
       }
       // Mode 3: Saved recipe (has ID in DB)
       else if (recipeId) {
         recipeData = await fetchRecipe(recipeId);
       } else {
-        throw new Error('Either recipeId, externalRecipe, or aiRecipe must be provided');
+        throw new Error("Either recipeId, externalRecipe, or aiRecipe must be provided");
       }
 
       // Transform do RecipeViewModel z availability check
-      const viewModel = createRecipeViewModel(
-        recipeData,
-        fridgeData,
-        initialMatchScore
-      );
+      const viewModel = createRecipeViewModel(recipeData, fridgeData, initialMatchScore);
 
       setRecipe(viewModel);
       setUiState((prev) => ({
@@ -218,15 +204,19 @@ export function useRecipeDetails({
         recipe: viewModel,
       }));
     } catch (error) {
-      console.error('Error fetching recipe details:', error);
-      
-      let errorMessage = 'Wystąpił błąd podczas ładowania przepisu';
-      
+      // Error fetching recipe details - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching recipe details:", error);
+      }
+
+      let errorMessage = "Wystąpił błąd podczas ładowania przepisu";
+
       if (error instanceof ApiError) {
         if (error.status === 404) {
-          errorMessage = 'Przepis nie został znaleziony';
+          errorMessage = "Przepis nie został znaleziony";
         } else if (error.status === 401) {
-          errorMessage = 'Musisz być zalogowany aby zobaczyć ten przepis';
+          errorMessage = "Musisz być zalogowany aby zobaczyć ten przepis";
         } else {
           errorMessage = error.message;
         }
@@ -238,7 +228,7 @@ export function useRecipeDetails({
         error: errorMessage,
       }));
     }
-  }, [recipeId, externalRecipe, isExternalRecipe, initialMatchScore]);
+  }, [recipeId, externalRecipe, aiRecipe, isExternalRecipe, isAIRecipe, initialMatchScore]);
 
   // Fetch on mount
   useEffect(() => {
@@ -265,21 +255,19 @@ export function useRecipeDetails({
     if (!recipe) return;
 
     // Sprawdź czy są składniki wymagające ręcznej konwersji
-    const unknownIngs = recipe.enrichedIngredients.filter(
-      (ing) => ing.availabilityStatus === 'unknown'
-    );
+    const unknownIngs = recipe.enrichedIngredients.filter((ing) => ing.availabilityStatus === "unknown");
 
     // Sprawdź czy są brakujące składniki (partial lub none)
     const missingIngs = recipe.enrichedIngredients.filter(
-      (ing) => ing.availabilityStatus === 'partial' || ing.availabilityStatus === 'none'
+      (ing) => ing.availabilityStatus === "partial" || ing.availabilityStatus === "none"
     );
 
     // Jeśli są missing, nie możemy gotować
     if (missingIngs.length > 0) {
-      toast.error('Brak składników', {
+      toast.error("Brak składników", {
         description: `Brakuje ${missingIngs.length} składników do ugotowania tego przepisu.`,
         action: {
-          label: 'Generuj listę zakupów',
+          label: "Generuj listę zakupów",
           onClick: handleGenerateShoppingList,
         },
       });
@@ -294,66 +282,73 @@ export function useRecipeDetails({
 
     // Jeśli wszystko jest dostępne, otwórz confirmation dialog
     openCookDialog();
-  }, [recipe]);
+  }, [recipe, openCookDialog, openManualConversionModal, handleGenerateShoppingList]);
 
   /**
    * Potwierdza ugotowanie przepisu i wywołuje API
    * @param manualConversions - Opcjonalne ręczne konwersje dla składników z różnymi jednostkami
    */
-  const confirmCook = useCallback(async (manualConversions?: Record<number, number>) => {
-    if (!recipe) return;
+  const confirmCook = useCallback(
+    async (manualConversions?: Record<number, number>) => {
+      if (!recipe) return;
 
-    // Prevent cooking AI or external recipes that haven't been saved yet
-    if (isAIRecipe || isExternalRecipe || recipe.id === 0) {
-      toast.error('Zapisz przepis', {
-        description: 'Aby ugotować ten przepis, musisz najpierw go zapisać.',
-      });
+      // Prevent cooking AI or external recipes that haven't been saved yet
+      if (isAIRecipe || isExternalRecipe || recipe.id === 0) {
+        toast.error("Zapisz przepis", {
+          description: "Aby ugotować ten przepis, musisz najpierw go zapisać.",
+        });
+        closeCookDialog();
+        closeManualConversionModal();
+        return;
+      }
+
+      setUiState((prev) => ({ ...prev, isCooking: true }));
       closeCookDialog();
       closeManualConversionModal();
-      return;
-    }
 
-    setUiState((prev) => ({ ...prev, isCooking: true }));
-    closeCookDialog();
-    closeManualConversionModal();
+      try {
+        const result: CreateCookingHistoryResponseDTO = await cookRecipe({
+          recipe_id: recipe.id,
+          manual_conversions: manualConversions,
+        });
 
-    try {
-      const result: CreateCookingHistoryResponseDTO = await cookRecipe({
-        recipe_id: recipe.id,
-        manual_conversions: manualConversions,
-      });
+        toast.success("Przepis ugotowany!", {
+          description: `Zaktualizowano ${result.updated_fridge_items.length} produktów w lodówce.`,
+        });
 
-      toast.success('Przepis ugotowany!', {
-        description: `Zaktualizowano ${result.updated_fridge_items.length} produktów w lodówce.`,
-      });
-
-      // Call callback if provided (for modal close)
-      if (onCookSuccess) {
-        onCookSuccess();
-      } else {
-        // Redirect do historii (only if not in modal mode)
-        window.location.href = '/history';
-      }
-    } catch (error) {
-      console.error('Error cooking recipe:', error);
-      
-      let errorMessage = 'Nie udało się ugotować przepisu';
-      
-      if (error instanceof ApiError) {
-        if (error.status === 422) {
-          errorMessage = 'Brak wystarczających składników w lodówce';
+        // Call callback if provided (for modal close)
+        if (onCookSuccess) {
+          onCookSuccess();
         } else {
-          errorMessage = error.message;
+          // Redirect do historii (only if not in modal mode)
+          window.location.href = "/history";
         }
+      } catch (error) {
+        // Error cooking recipe - log to monitoring service in production
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.error("Error cooking recipe:", error);
+        }
+
+        let errorMessage = "Nie udało się ugotować przepisu";
+
+        if (error instanceof ApiError) {
+          if (error.status === 422) {
+            errorMessage = "Brak wystarczających składników w lodówce";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
+        toast.error("Błąd gotowania", {
+          description: errorMessage,
+        });
+
+        setUiState((prev) => ({ ...prev, isCooking: false }));
       }
-
-      toast.error('Błąd gotowania', {
-        description: errorMessage,
-      });
-
-      setUiState((prev) => ({ ...prev, isCooking: false }));
-    }
-  }, [recipe, isAIRecipe, isExternalRecipe, closeCookDialog, onCookSuccess]);
+    },
+    [recipe, isAIRecipe, isExternalRecipe, closeCookDialog, closeManualConversionModal, onCookSuccess]
+  );
 
   // =============================================================================
   // DELETE RECIPE
@@ -382,8 +377,8 @@ export function useRecipeDetails({
 
     // Can't delete AI or external recipes that haven't been saved
     if (isAIRecipe || isExternalRecipe || recipe.id === 0) {
-      toast.error('Nie można usunąć', {
-        description: 'Ten przepis nie jest jeszcze zapisany w bazie danych.',
+      toast.error("Nie można usunąć", {
+        description: "Ten przepis nie jest jeszcze zapisany w bazie danych.",
       });
       closeDeleteDialog();
       return;
@@ -395,8 +390,8 @@ export function useRecipeDetails({
     try {
       await deleteRecipe(recipe.id);
 
-      toast.success('Przepis usunięty', {
-        description: 'Przepis został pomyślnie usunięty.',
+      toast.success("Przepis usunięty", {
+        description: "Przepis został pomyślnie usunięty.",
       });
 
       // Call callback if provided (for modal close)
@@ -404,18 +399,22 @@ export function useRecipeDetails({
         onDeleteSuccess();
       } else {
         // Redirect do listy przepisów (only if not in modal mode)
-        window.location.href = '/recipes';
+        window.location.href = "/recipes";
       }
     } catch (error) {
-      console.error('Error deleting recipe:', error);
-      
-      let errorMessage = 'Nie udało się usunąć przepisu';
-      
+      // Error deleting recipe - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Error deleting recipe:", error);
+      }
+
+      let errorMessage = "Nie udało się usunąć przepisu";
+
       if (error instanceof ApiError) {
         errorMessage = error.message;
       }
 
-      toast.error('Błąd usuwania', {
+      toast.error("Błąd usuwania", {
         description: errorMessage,
       });
 
@@ -429,7 +428,7 @@ export function useRecipeDetails({
 
   /**
    * Handler dla akcji "Zapisz do moich przepisów"
-   * 
+   *
    * Three modes:
    * 1. AI recipe (not in DB yet) - creates new recipe from RecipeSummaryDTO
    * 2. External recipe (not in DB yet) - creates new recipe from ExternalRecipe
@@ -441,43 +440,40 @@ export function useRecipeDetails({
     setUiState((prev) => ({ ...prev, isSaving: true }));
 
     try {
-      let savedRecipeId: number;
-
       // Mode 1: AI-generated recipe - save RecipeSummaryDTO to DB
       if (isAIRecipe && aiRecipe) {
-        const response = await fetch('/api/recipes', {
-          method: 'POST',
+        const response = await fetch("/api/recipes", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             title: aiRecipe.title,
             description: aiRecipe.description || null,
             instructions: aiRecipe.instructions,
             cooking_time: aiRecipe.cooking_time || null,
-            difficulty: aiRecipe.difficulty || 'medium',
-            source: 'user', // Save as user recipe (from AI)
-            ingredients: aiRecipe.ingredients.map(ing => ({
+            difficulty: aiRecipe.difficulty || "medium",
+            source: "user", // Save as user recipe (from AI)
+            ingredients: aiRecipe.ingredients.map((ing) => ({
               product_id: ing.product.id,
               quantity: ing.quantity,
               unit_id: ing.unit.id,
             })),
-            tag_ids: aiRecipe.tags.map(tag => tag.id),
+            tag_ids: aiRecipe.tags.map((tag) => tag.id),
           }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to save AI recipe');
+          throw new Error("Failed to save AI recipe");
         }
 
-        const createdRecipe = await response.json();
-        savedRecipeId = createdRecipe.id;
-        
+        await response.json();
+
         // After saving, switch to saved mode
         setIsAIRecipe(false);
-        
-        toast.success('Przepis AI zapisany!', {
-          description: 'Przepis został dodany do Twojej kolekcji.',
+
+        toast.success("Przepis AI zapisany!", {
+          description: "Przepis został dodany do Twojej kolekcji.",
         });
 
         // Call callback if provided (for modal close)
@@ -487,18 +483,18 @@ export function useRecipeDetails({
       }
       // Mode 2: External recipe - create new recipe in DB
       else if (isExternalRecipe && externalRecipe) {
-        const response = await fetch('/api/recipes/from-external', {
-          method: 'POST',
+        const response = await fetch("/api/recipes/from-external", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             title: externalRecipe.title,
             description: externalRecipe.description || null,
             instructions: externalRecipe.instructions,
             cooking_time: externalRecipe.cooking_time || null,
-            difficulty: externalRecipe.difficulty || 'medium',
-            ingredients: externalRecipe.ingredients.map(ing => ({
+            difficulty: externalRecipe.difficulty || "medium",
+            ingredients: externalRecipe.ingredients.map((ing) => ({
               product_name: ing.name,
               quantity: ing.quantity,
               unit_name: ing.unit,
@@ -511,17 +507,16 @@ export function useRecipeDetails({
         });
 
         if (!response.ok) {
-          throw new Error('Failed to save recipe');
+          throw new Error("Failed to save recipe");
         }
 
-        const createdRecipe = await response.json();
-        savedRecipeId = createdRecipe.id;
-        
+        await response.json();
+
         // After saving, switch to saved mode
         setIsExternalRecipe(false);
-        
-        toast.success('Przepis zapisany!', {
-          description: 'Przepis został dodany do Twojej kolekcji.',
+
+        toast.success("Przepis zapisany!", {
+          description: "Przepis został dodany do Twojej kolekcji.",
         });
 
         // Call callback if provided (for modal close)
@@ -531,35 +526,38 @@ export function useRecipeDetails({
       }
       // Mode 3: Already saved recipe - just update source
       else if (recipe && recipe.id) {
-        await updateRecipe(recipe.id, { source: 'user' });
-        savedRecipeId = recipe.id;
-        
-        toast.success('Przepis zapisany!', {
-          description: 'Przepis został dodany do Twojej kolekcji.',
+        await updateRecipe(recipe.id, { source: "user" });
+
+        toast.success("Przepis zapisany!", {
+          description: "Przepis został dodany do Twojej kolekcji.",
         });
 
         // Refetch recipe to update UI
         await fetchRecipeAndFridge();
-        
+
         // Call callback if provided (for modal close)
         if (onSaveSuccess) {
           onSaveSuccess();
         }
       } else {
-        throw new Error('No recipe data available to save');
+        throw new Error("No recipe data available to save");
       }
-      
+
       setUiState((prev) => ({ ...prev, isSaving: false }));
     } catch (error) {
-      console.error('Error saving recipe:', error);
-      
-      let errorMessage = 'Nie udało się zapisać przepisu';
-      
+      // Error saving recipe - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Error saving recipe:", error);
+      }
+
+      let errorMessage = "Nie udało się zapisać przepisu";
+
       if (error instanceof ApiError) {
         errorMessage = error.message;
       }
 
-      toast.error('Błąd zapisywania', {
+      toast.error("Błąd zapisywania", {
         description: errorMessage,
       });
 
@@ -578,7 +576,7 @@ export function useRecipeDetails({
   const handleGenerateShoppingList = useCallback(() => {
     if (!recipe) return;
     openShoppingListModal();
-  }, [recipe]);
+  }, [recipe, openShoppingListModal]);
 
   /**
    * Otwiera modal Shopping List
@@ -610,9 +608,13 @@ export function useRecipeDetails({
    * Handler potwierdzenia ręcznej konwersji
    * Wywołuje confirmCook z wartościami z modala
    */
-  const handleManualConversionConfirm = useCallback((conversions: Record<number, number>) => {
-    confirmCook(conversions);
-  }, [confirmCook]);
+  const handleManualConversionConfirm = useCallback(
+    (conversions: Record<number, number>) => {
+      closeManualConversionModal();
+      confirmCook(conversions);
+    },
+    [confirmCook, closeManualConversionModal]
+  );
 
   // =============================================================================
   // EDIT RECIPE
@@ -662,4 +664,3 @@ export function useRecipeDetails({
     unknownIngredients,
   };
 }
-

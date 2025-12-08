@@ -1,14 +1,14 @@
 ---
 /**
  * Login Page
- * 
+ *
  * Authentication page using AuthLayout and LoginForm component.
  * Features:
  * - Server-side rendering with session check
  * - Redirects logged-in users to /fridge
  * - Clean, centered design without navigation
  * - Query param support for redirect after login
- * 
+ *
  * Following auth-spec.md:
  * - Uses Astro.locals.user populated by middleware
  * - Public route (accessible without auth)
@@ -46,32 +46,35 @@ const sessionExpired = Astro.url.searchParams.get("session_expired") === "true";
         <span class="text-6xl">🍳</span>
       </div>
       <h1 class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Foodnager</h1>
-      <p class="text-neutral-600 dark:text-neutral-300">
-        Zarządzaj przepisami i wirtualną lodówką
-      </p>
+      <p class="text-neutral-600 dark:text-neutral-300">Zarządzaj przepisami i wirtualną lodówką</p>
     </div>
 
     <!-- Success/Info Messages -->
-    {verified && (
-      <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
-        ✅ Email zweryfikowany pomyślnie! Możesz się teraz zalogować.
-      </div>
-    )}
-    
-    {resetSuccess && (
-      <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
-        ✅ Hasło zostało zmienione. Zaloguj się używając nowego hasła.
-      </div>
-    )}
-    
-    {sessionExpired && (
-      <div class="p-3 text-sm text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-900">
-        ⚠️ Sesja wygasła. Zaloguj się ponownie.
-      </div>
-    )}
+    {
+      verified && (
+        <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
+          ✅ Email zweryfikowany pomyślnie! Możesz się teraz zalogować.
+        </div>
+      )
+    }
+
+    {
+      resetSuccess && (
+        <div class="p-3 text-sm text-green-700 bg-green-50 dark:bg-green-950/30 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-900">
+          ✅ Hasło zostało zmienione. Zaloguj się używając nowego hasła.
+        </div>
+      )
+    }
+
+    {
+      sessionExpired && (
+        <div class="p-3 text-sm text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-900">
+          ⚠️ Sesja wygasła. Zaloguj się ponownie.
+        </div>
+      )
+    }
 
     <!-- Login Form -->
     <LoginForm client:load redirectTo={redirectTo} />
   </div>
 </AuthLayout>
-

@@ -1,10 +1,13 @@
 /**
  * Recipe Translator - Translate recipe content using OpenRouter LLM
- * 
+ *
  * Translates English recipe titles, descriptions, and instructions to Polish
  */
 
-import { OpenRouterClient } from '../services/ai/openrouter.client';
+/* eslint-disable no-console */
+// Console logs are intentional for debugging translation
+
+import { OpenRouterClient } from "../services/ai/openrouter.client";
 
 export interface RecipeToTranslate {
   title: string;
@@ -25,7 +28,7 @@ export async function translateRecipe(recipe: RecipeToTranslate): Promise<Transl
   const openRouter = new OpenRouterClient();
 
   if (!openRouter.isConfigured()) {
-    console.warn('🌍 [TRANSLATOR] OpenRouter not configured, skipping translation');
+    console.warn("🌍 [TRANSLATOR] OpenRouter not configured, skipping translation");
     return {
       title: recipe.title,
       description: recipe.description,
@@ -37,20 +40,19 @@ export async function translateRecipe(recipe: RecipeToTranslate): Promise<Transl
     console.log(`🌍 [TRANSLATOR] Translating recipe: "${recipe.title}"`);
 
     const prompt = buildTranslationPrompt(recipe);
-    
+
     const response = await openRouter.generateText(prompt, {
       temperature: 0.3, // Low temperature for consistent translations
       max_tokens: 2000,
     });
 
     const translated = parseTranslationResponse(response);
-    
+
     console.log(`🌍 [TRANSLATOR] ✅ Translated to: "${translated.title}"`);
-    
+
     return translated;
-    
   } catch (error) {
-    console.error('🌍 [TRANSLATOR] ❌ Translation failed:', error);
+    console.error("🌍 [TRANSLATOR] ❌ Translation failed:", error);
     // Fallback to original if translation fails
     return {
       title: recipe.title,
@@ -69,10 +71,14 @@ function buildTranslationPrompt(recipe: RecipeToTranslate): string {
 TYTUŁ (EN):
 ${recipe.title}
 
-${recipe.description ? `OPIS (EN):
+${
+  recipe.description
+    ? `OPIS (EN):
 ${recipe.description}
 
-` : ''}INSTRUKCJE (EN):
+`
+    : ""
+}INSTRUKCJE (EN):
 ${recipe.instructions}
 
 ---
@@ -80,7 +86,7 @@ ${recipe.instructions}
 Zwróć odpowiedź TYLKO w formacie JSON (bez żadnego dodatkowego tekstu):
 {
   "title": "przetłumaczony tytuł po polsku",
-  ${recipe.description ? '"description": "przetłumaczony opis po polsku",' : ''}
+  ${recipe.description ? '"description": "przetłumaczony opis po polsku",' : ""}
   "instructions": "przetłumaczone instrukcje po polsku (zachowaj numerację kroków jeśli istnieje)"
 }`;
 }
@@ -93,19 +99,18 @@ function parseTranslationResponse(response: string): TranslatedRecipe {
     // Try to extract JSON from response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No JSON found in response');
+      throw new Error("No JSON found in response");
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    
+
     return {
-      title: parsed.title || '',
+      title: parsed.title || "",
       description: parsed.description,
-      instructions: parsed.instructions || '',
+      instructions: parsed.instructions || "",
     };
-    
   } catch (error) {
-    console.error('Failed to parse translation response:', error);
+    console.error("Failed to parse translation response:", error);
     throw error;
   }
 }
@@ -134,4 +139,3 @@ export async function translateRecipes(recipes: RecipeToTranslate[]): Promise<Tr
 
   return translated;
 }
-

@@ -1,6 +1,6 @@
 /**
  * FridgeView - Main component for the Virtual Fridge view
- * 
+ *
  * This component manages the entire fridge view, including:
  * - Listing fridge items with filtering and sorting
  * - Adding new products to the fridge
@@ -9,16 +9,16 @@
  * - Handling all user interactions and API communication
  */
 
-import React from 'react';
-import { toast } from 'sonner';
-import { useFridge } from './hooks/useFridge';
-import FridgeToolbar from './FridgeToolbar';
-import FridgeStats from './FridgeStats';
-import EmptyState from './EmptyState';
-import FridgeList from './FridgeList';
-import AddProductModal from './AddProductModal';
-import EditProductModal from './EditProductModal';
-import ConfirmDialog from './ConfirmDialog';
+import React from "react";
+import { toast } from "sonner";
+import { useFridge } from "./hooks/useFridge";
+import FridgeToolbar from "./FridgeToolbar";
+import FridgeStats from "./FridgeStats";
+import EmptyState from "./EmptyState";
+import FridgeList from "./FridgeList";
+import AddProductModal from "./AddProductModal";
+import EditProductModal from "./EditProductModal";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function FridgeView() {
   const { state, handlers } = useFridge();
@@ -26,37 +26,33 @@ export default function FridgeView() {
   // Wrapped handlers with toast notifications
   const handleAddSuccess = (addAnother: boolean) => {
     handlers.handleAddSuccess(addAnother);
-    toast.success('Produkt dodany pomyślnie');
+    toast.success("Produkt dodany pomyślnie");
   };
 
   const handleEditSuccess = () => {
     handlers.handleEditSuccess();
-    toast.success('Produkt zaktualizowany pomyślnie');
+    toast.success("Produkt zaktualizowany pomyślnie");
   };
 
   const handleDeleteConfirm = async () => {
     try {
       await handlers.handleDeleteConfirm();
-      toast.success('Produkt usunięty pomyślnie');
-    } catch (error) {
-      toast.error('Nie udało się usunąć produktu');
+      toast.success("Produkt usunięty pomyślnie");
+    } catch {
+      toast.error("Nie udało się usunąć produktu");
     }
   };
 
   const handleRetry = () => {
     handlers.refetch();
-    toast.loading('Ponowne pobieranie danych...');
+    toast.loading("Ponowne pobieranie danych...");
   };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Twoja lodówka
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Zarządzaj produktami w swojej wirtualnej lodówce
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Twoja lodówka</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">Zarządzaj produktami w swojej wirtualnej lodówce</p>
       </header>
 
       {/* Toolbar with search, sort, and add button */}
@@ -70,10 +66,7 @@ export default function FridgeView() {
       />
 
       {/* Stats */}
-      <FridgeStats
-        totalCount={state.stats.totalCount}
-        expiredCount={state.stats.expiredCount}
-      />
+      <FridgeStats totalCount={state.stats.totalCount} expiredCount={state.stats.expiredCount} />
 
       {/* Loading state */}
       {state.isLoading && (
@@ -124,11 +117,7 @@ export default function FridgeView() {
       )}
 
       {/* Add Product Modal */}
-      <AddProductModal
-        isOpen={state.isAddModalOpen}
-        onClose={handlers.closeAddModal}
-        onSuccess={handleAddSuccess}
-      />
+      <AddProductModal isOpen={state.isAddModalOpen} onClose={handlers.closeAddModal} onSuccess={handleAddSuccess} />
 
       {/* Edit Product Modal */}
       <EditProductModal
@@ -145,7 +134,7 @@ export default function FridgeView() {
         description={
           state.deletingItemName
             ? `Czy na pewno chcesz usunąć "${state.deletingItemName}"? Ta operacja jest nieodwracalna.`
-            : 'Czy na pewno chcesz usunąć ten produkt? Ta operacja jest nieodwracalna.'
+            : "Czy na pewno chcesz usunąć ten produkt? Ta operacja jest nieodwracalna."
         }
         confirmLabel="Usuń"
         cancelLabel="Anuluj"
@@ -156,4 +145,3 @@ export default function FridgeView() {
     </div>
   );
 }
-

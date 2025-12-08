@@ -1,10 +1,10 @@
 /**
  * ShoppingListSkeleton - Loading state dla listy zakupów
- * 
+ *
  * Wyświetla animowane placeholder podczas ładowania danych z API.
  */
 
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from "../ui/skeleton";
 
 /**
  * Skeleton loader dla pojedynczej pozycji
@@ -50,10 +50,7 @@ export function ShoppingListSkeleton() {
       </div>
 
       {/* Loading message */}
-      <p className="text-center text-sm text-muted-foreground animate-pulse mt-6">
-        Generowanie listy zakupów...
-      </p>
+      <p className="text-center text-sm text-muted-foreground animate-pulse mt-6">Generowanie listy zakupów...</p>
     </div>
   );
 }
-

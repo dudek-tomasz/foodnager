@@ -3,7 +3,10 @@
  * Formatowanie i eksport listy zakupów
  */
 
-import type { EditableShoppingListItem } from './types';
+/* eslint-disable no-console */
+// Console logs are intentional for debugging shopping list operations
+
+import type { EditableShoppingListItem } from "./types";
 
 /**
  * Formatuje listę zakupów do plain text
@@ -11,35 +14,32 @@ import type { EditableShoppingListItem } from './types';
  * @param recipeTitle - Tytuł przepisu
  * @returns Sformatowany tekst listy zakupów
  */
-export function formatForClipboard(
-  items: EditableShoppingListItem[],
-  recipeTitle: string
-): string {
+export function formatForClipboard(items: EditableShoppingListItem[], recipeTitle: string): string {
   // Walidacja wejścia
   if (!items || items.length === 0) {
-    return '';
+    return "";
   }
 
   const checkedItems = items.filter((item) => item.checked);
 
   if (checkedItems.length === 0) {
-    return '';
+    return "";
   }
 
   // Fallback dla pustego tytułu
-  const safeTitle = recipeTitle && recipeTitle.trim() !== '' ? recipeTitle : 'Przepis';
+  const safeTitle = recipeTitle && recipeTitle.trim() !== "" ? recipeTitle : "Przepis";
 
   const header = `Lista zakupów: ${safeTitle}\n\n`;
   const itemsList = checkedItems
     .map((item) => {
       // Walidacja danych pozycji
       const quantity = item.editedQuantity || item.missing_quantity || 0;
-      const unit = item.unit?.abbreviation || item.unit?.name || '';
-      const name = item.product?.name || 'Produkt';
-      
+      const unit = item.unit?.abbreviation || item.unit?.name || "";
+      const name = item.product?.name || "Produkt";
+
       return `- ${quantity} ${unit} ${name}`;
     })
-    .join('\n');
+    .join("\n");
 
   return header + itemsList;
 }
@@ -59,7 +59,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return fallbackCopyToClipboard(text);
     }
   } catch (error) {
-    console.error('Clipboard error:', error);
+    console.error("Clipboard error:", error);
     return fallbackCopyToClipboard(text);
   }
 }
@@ -70,19 +70,19 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  * @returns Czy operacja się powiodła
  */
 function fallbackCopyToClipboard(text: string): boolean {
-  const textarea = document.createElement('textarea');
+  const textarea = document.createElement("textarea");
   textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
   document.body.appendChild(textarea);
   textarea.select();
 
   try {
-    document.execCommand('copy');
+    document.execCommand("copy");
     document.body.removeChild(textarea);
     return true;
   } catch (error) {
-    console.error('Fallback copy error:', error);
+    console.error("Fallback copy error:", error);
     document.body.removeChild(textarea);
     return false;
   }
@@ -98,11 +98,11 @@ export function slugify(text: string): string {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
-    .replace(/\-\-+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start
-    .replace(/-+$/, ''); // Trim - from end
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(/[^\w-]+/g, "") // Remove all non-word chars
+    .replace(/--+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start
+    .replace(/-+$/, ""); // Trim - from end
 }
 
 /**
@@ -110,28 +110,25 @@ export function slugify(text: string): string {
  * @param items - Lista składników
  * @param recipeTitle - Tytuł przepisu
  */
-export function exportToTxtFile(
-  items: EditableShoppingListItem[],
-  recipeTitle: string
-): void {
+export function exportToTxtFile(items: EditableShoppingListItem[], recipeTitle: string): void {
   const content = formatForClipboard(items, recipeTitle);
-  
-  if (!content || content.trim() === '') {
-    console.warn('No content to export');
+
+  if (!content || content.trim() === "") {
+    console.warn("No content to export");
     return;
   }
 
   try {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    
+
     // Fallback dla pustego tytułu w nazwie pliku
-    const safeTitle = recipeTitle && recipeTitle.trim() !== '' ? recipeTitle : 'przepis';
+    const safeTitle = recipeTitle && recipeTitle.trim() !== "" ? recipeTitle : "przepis";
     link.download = `lista-zakupow-${slugify(safeTitle)}.txt`;
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -141,7 +138,7 @@ export function exportToTxtFile(
       URL.revokeObjectURL(url);
     }, 100);
   } catch (error) {
-    console.error('Export to txt file error:', error);
+    console.error("Export to txt file error:", error);
     throw error;
   }
 }
@@ -152,4 +149,3 @@ export function exportToTxtFile(
 export function printShoppingList(): void {
   window.print();
 }
-

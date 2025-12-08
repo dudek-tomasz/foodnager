@@ -1,6 +1,6 @@
 /**
  * AddProductModal - Modal for adding new product to fridge
- * 
+ *
  * Features:
  * - Product selection with autocomplete
  * - Quantity and unit selection
@@ -9,7 +9,7 @@
  * - Validation
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,22 +17,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import ProductAutocomplete from './ProductAutocomplete';
-import UnitSelect from './UnitSelect';
-import DatePicker from './DatePicker';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import ProductAutocomplete from "./ProductAutocomplete";
+import UnitSelect from "./UnitSelect";
+import DatePicker from "./DatePicker";
 import {
   validateQuantity,
   validateExpiryDate,
   validateProductSelection,
   validateUnitSelection,
   isDateInPast,
-} from '@/lib/utils/form-validation';
-import type { ProductDTO, CreateFridgeItemDTO } from '@/types';
+} from "@/lib/utils/form-validation";
+import type { ProductDTO, CreateFridgeItemDTO } from "@/types";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -57,17 +57,13 @@ interface FormErrors {
 
 const initialFormState: FormState = {
   product: null,
-  quantity: '',
+  quantity: "",
   unitId: null,
   expiryDate: null,
   addAnother: false,
 };
 
-export default function AddProductModal({
-  isOpen,
-  onClose,
-  onSuccess,
-}: AddProductModalProps) {
+export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalProps) {
   const [formState, setFormState] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,7 +83,7 @@ export default function AddProductModal({
   // Check for date warning
   useEffect(() => {
     if (formState.expiryDate && isDateInPast(formState.expiryDate)) {
-      setDateWarning('Data w przeszłości - produkt może być już przeterminowany');
+      setDateWarning("Data w przeszłości - produkt może być już przeterminowany");
     } else {
       setDateWarning(null);
     }
@@ -136,24 +132,28 @@ export default function AddProductModal({
     setIsSubmitting(true);
 
     try {
+      if (!formState.product || !formState.unitId) {
+        return;
+      }
+
       const payload: CreateFridgeItemDTO = {
-        product_id: formState.product!.id,
+        product_id: formState.product.id,
         quantity: parseFloat(formState.quantity),
-        unit_id: formState.unitId!,
+        unit_id: formState.unitId,
         expiry_date: formState.expiryDate || null,
       };
 
-      const response = await fetch('/api/fridge', {
-        method: 'POST',
+      const response = await fetch("/api/fridge", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to add product');
+        throw new Error(errorData.error?.message || "Failed to add product");
       }
 
       // Success!
@@ -171,10 +171,8 @@ export default function AddProductModal({
 
       onSuccess(formState.addAnother);
     } catch (error) {
-      console.error('Failed to add product:', error);
-      setSubmitError(
-        error instanceof Error ? error.message : 'Nie udało się dodać produktu'
-      );
+      console.error("Failed to add product:", error);
+      setSubmitError(error instanceof Error ? error.message : "Nie udało się dodać produktu");
     } finally {
       setIsSubmitting(false);
     }
@@ -191,9 +189,7 @@ export default function AddProductModal({
       <DialogContent className="sm:max-w-[500px]" data-testid="add-product-modal">
         <DialogHeader>
           <DialogTitle>Dodaj produkt do lodówki</DialogTitle>
-          <DialogDescription>
-            Wybierz produkt, podaj ilość i opcjonalnie datę ważności
-          </DialogDescription>
+          <DialogDescription>Wybierz produkt, podaj ilość i opcjonalnie datę ważności</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} data-testid="add-product-form">
@@ -205,9 +201,7 @@ export default function AddProductModal({
               </Label>
               <ProductAutocomplete
                 value={formState.product}
-                onChange={(product) =>
-                  setFormState((prev) => ({ ...prev, product }))
-                }
+                onChange={(product) => setFormState((prev) => ({ ...prev, product }))}
                 error={errors.product}
                 testId="product-autocomplete"
               />
@@ -225,17 +219,13 @@ export default function AddProductModal({
                   min="0"
                   step="0.01"
                   value={formState.quantity}
-                  onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, quantity: e.target.value }))
-                  }
+                  onChange={(e) => setFormState((prev) => ({ ...prev, quantity: e.target.value }))}
                   placeholder="0"
-                  className={errors.quantity ? 'border-red-500' : ''}
+                  className={errors.quantity ? "border-red-500" : ""}
                   disabled={isSubmitting}
                   data-testid="quantity-input"
                 />
-                {errors.quantity && (
-                  <p className="text-xs text-red-600">{errors.quantity}</p>
-                )}
+                {errors.quantity && <p className="text-xs text-red-600">{errors.quantity}</p>}
               </div>
 
               <div className="space-y-2">
@@ -244,9 +234,7 @@ export default function AddProductModal({
                 </Label>
                 <UnitSelect
                   value={formState.unitId}
-                  onChange={(unitId) =>
-                    setFormState((prev) => ({ ...prev, unitId }))
-                  }
+                  onChange={(unitId) => setFormState((prev) => ({ ...prev, unitId }))}
                   error={errors.unit}
                   disabled={isSubmitting}
                   testId="unit-select"
@@ -259,9 +247,7 @@ export default function AddProductModal({
               <Label htmlFor="expiryDate">Data ważności (opcjonalnie)</Label>
               <DatePicker
                 value={formState.expiryDate}
-                onChange={(expiryDate) =>
-                  setFormState((prev) => ({ ...prev, expiryDate }))
-                }
+                onChange={(expiryDate) => setFormState((prev) => ({ ...prev, expiryDate }))}
                 error={errors.expiryDate}
                 disabled={isSubmitting}
                 showClearButton
@@ -293,16 +279,11 @@ export default function AddProductModal({
               <Checkbox
                 id="addAnother"
                 checked={formState.addAnother}
-                onCheckedChange={(checked) =>
-                  setFormState((prev) => ({ ...prev, addAnother: !!checked }))
-                }
+                onCheckedChange={(checked) => setFormState((prev) => ({ ...prev, addAnother: !!checked }))}
                 disabled={isSubmitting}
                 data-testid="add-another-checkbox"
               />
-              <Label
-                htmlFor="addAnother"
-                className="text-sm font-normal cursor-pointer"
-              >
+              <Label htmlFor="addAnother" className="text-sm font-normal cursor-pointer">
                 Dodaj kolejny produkt po zapisaniu
               </Label>
             </div>
@@ -310,9 +291,7 @@ export default function AddProductModal({
             {/* Submit Error */}
             {submitError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  {submitError}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-200">{submitError}</p>
               </div>
             )}
           </div>
@@ -328,7 +307,7 @@ export default function AddProductModal({
               Anuluj
             </Button>
             <Button type="submit" disabled={isSubmitting} data-testid="submit-button">
-              {isSubmitting ? 'Dodawanie...' : 'Dodaj produkt'}
+              {isSubmitting ? "Dodawanie..." : "Dodaj produkt"}
             </Button>
           </DialogFooter>
         </form>
@@ -336,5 +315,3 @@ export default function AddProductModal({
     </Dialog>
   );
 }
-
-

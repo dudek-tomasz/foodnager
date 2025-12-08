@@ -1,6 +1,6 @@
 /**
  * Authentication Middleware
- * 
+ *
  * Handles session management, user authentication, and route protection.
  * Following auth-spec.md and supabase-auth.mdc best practices:
  * - Uses @supabase/ssr for proper SSR support
@@ -10,8 +10,8 @@
  * - Populates Astro.locals with user and session data
  */
 
-import { defineMiddleware } from 'astro:middleware';
-import { createSupabaseServerInstance } from '../db/supabase.client.ts';
+import { defineMiddleware } from "astro:middleware";
+import { createSupabaseServerInstance } from "../db/supabase.client.ts";
 
 // ============================================================================
 // Route Configuration
@@ -23,32 +23,27 @@ import { createSupabaseServerInstance } from '../db/supabase.client.ts';
  */
 const PUBLIC_PATHS = [
   // Auth pages (server-rendered)
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+
   // Auth API endpoints
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/logout',
-  '/api/auth/forgot-password',
-  '/api/auth/reset-password',
-  '/api/auth/verify',
-  '/api/auth/session',
-  '/api/auth/test', // Test endpoint
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/logout",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/verify",
+  "/api/auth/session",
+  "/api/auth/test", // Test endpoint
 ];
 
 /**
  * Auth-only paths (redirect authenticated users away)
  * Users should not see these pages when logged in
  */
-const AUTH_ONLY_PATHS = [
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-];
+const AUTH_ONLY_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 // ============================================================================
 // Middleware
@@ -79,7 +74,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (user && session) {
     locals.user = {
       id: user.id,
-      email: user.email!,
+      email: user.email || "",
     };
     locals.session = session;
   } else {
@@ -92,12 +87,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // ============================================================================
 
   // If user is logged in and tries to access auth-only pages → redirect to /fridge
-  if (user && AUTH_ONLY_PATHS.some(path => pathname.startsWith(path))) {
-    return redirect('/fridge');
+  if (user && AUTH_ONLY_PATHS.some((path) => pathname.startsWith(path))) {
+    return redirect("/fridge");
   }
 
   // If path is public → allow access
-  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return next();
   }
 
@@ -117,4 +112,3 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Continue to the requested page
   return next();
 });
-

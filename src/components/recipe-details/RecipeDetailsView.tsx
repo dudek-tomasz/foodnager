@@ -3,22 +3,22 @@
  * Integrates all subcomponents and manages the view state
  */
 
-import React from 'react';
-import { useRecipeDetails } from './hooks/useRecipeDetails';
-import { useScrollVisibility } from './hooks/useScrollVisibility';
-import RecipeHeader from './RecipeHeader';
-import RecipeMetaSection from './RecipeMetaSection';
-import RecipeIngredientsSection from './RecipeIngredientsSection';
-import RecipeInstructionsSection from './RecipeInstructionsSection';
-import StickyBottomBar from './StickyBottomBar';
-import CookConfirmationDialog from './dialogs/CookConfirmationDialog';
-import DeleteConfirmationDialog from './dialogs/DeleteConfirmationDialog';
-import ManualConversionModal from './ManualConversionModal';
-import { ShoppingListModal } from '@/components/shopping-list';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import ErrorState from '@/components/ui/error-state';
-import type { ExternalRecipe } from '@/lib/services/external-api.service';
-import type { RecipeSummaryDTO } from '@/types';
+import React from "react";
+import { useRecipeDetails } from "./hooks/useRecipeDetails";
+import { useScrollVisibility } from "./hooks/useScrollVisibility";
+import RecipeHeader from "./RecipeHeader";
+import RecipeMetaSection from "./RecipeMetaSection";
+import RecipeIngredientsSection from "./RecipeIngredientsSection";
+import RecipeInstructionsSection from "./RecipeInstructionsSection";
+import StickyBottomBar from "./StickyBottomBar";
+import CookConfirmationDialog from "./dialogs/CookConfirmationDialog";
+import DeleteConfirmationDialog from "./dialogs/DeleteConfirmationDialog";
+import ManualConversionModal from "./ManualConversionModal";
+import { ShoppingListModal } from "@/components/shopping-list";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import ErrorState from "@/components/ui/error-state";
+import type { ExternalRecipe } from "@/lib/services/external-api.service";
+import type { RecipeSummaryDTO } from "@/types";
 
 export interface RecipeDetailsViewProps {
   recipeId?: number;
@@ -39,6 +39,7 @@ export default function RecipeDetailsView({
   aiRecipe,
   from,
   matchScore,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hideHistory = false,
   onSaveSuccess,
   onDeleteSuccess,
@@ -54,14 +55,18 @@ export default function RecipeDetailsView({
     handleGenerateShoppingList,
     handleEdit,
     refetch,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     openCookDialog,
     closeCookDialog,
     confirmCook,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     openDeleteDialog,
     closeDeleteDialog,
     confirmDelete,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     openShoppingListModal,
     closeShoppingListModal,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     openManualConversionModal,
     closeManualConversionModal,
     handleManualConversionConfirm,
@@ -98,11 +103,7 @@ export default function RecipeDetailsView({
   if (uiState.error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <ErrorState
-          error={uiState.error}
-          onRetry={refetch}
-          showBackButton={true}
-        />
+        <ErrorState error={uiState.error} onRetry={refetch} showBackButton={true} />
       </div>
     );
   }
@@ -114,10 +115,7 @@ export default function RecipeDetailsView({
   if (!recipe) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <ErrorState
-          error="Przepis nie został znaleziony"
-          showBackButton={true}
-        />
+        <ErrorState error="Przepis nie został znaleziony" showBackButton={true} />
       </div>
     );
   }
@@ -141,11 +139,7 @@ export default function RecipeDetailsView({
       />
 
       {/* Meta information: cooking time, difficulty, tags */}
-      <RecipeMetaSection
-        cookingTime={recipe.cooking_time}
-        difficulty={recipe.difficulty}
-        tags={recipe.tags}
-      />
+      <RecipeMetaSection cookingTime={recipe.cooking_time} difficulty={recipe.difficulty} tags={recipe.tags} />
 
       {/* Ingredients section with availability status */}
       <RecipeIngredientsSection
@@ -156,10 +150,7 @@ export default function RecipeDetailsView({
       />
 
       {/* Instructions section */}
-      <RecipeInstructionsSection
-        instructions={recipe.instructions}
-        description={recipe.description}
-      />
+      <RecipeInstructionsSection instructions={recipe.instructions} description={recipe.description} />
 
       {/* Primary action buttons (visible in main content) */}
       <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -176,16 +167,12 @@ export default function RecipeDetailsView({
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          {uiState.isCooking ? 'Gotowanie...' : 'Ugotuj to'}
+          {uiState.isCooking ? "Gotowanie..." : "Ugotuj to"}
         </button>
 
-        {recipe.source !== 'user' && (
+        {recipe.source !== "user" && (
           <button
             onClick={handleSave}
             disabled={uiState.isSaving}
@@ -205,7 +192,7 @@ export default function RecipeDetailsView({
                 d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
               />
             </svg>
-            {uiState.isSaving ? 'Zapisywanie...' : 'Zapisz przepis'}
+            {uiState.isSaving ? "Zapisywanie..." : "Zapisz przepis"}
           </button>
         )}
       </div>
@@ -257,4 +244,3 @@ export default function RecipeDetailsView({
     </div>
   );
 }
-

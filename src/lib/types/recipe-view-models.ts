@@ -3,13 +3,7 @@
  * These types extend base DTOs with additional UI-specific fields
  */
 
-import type {
-  RecipeDTO,
-  RecipeIngredientDTO,
-  FridgeItemDTO,
-  DifficultyEnum,
-  SourceEnum,
-} from '../../types';
+import type { RecipeDTO, RecipeIngredientDTO } from "../../types";
 
 // =============================================================================
 // AVAILABILITY TYPES
@@ -22,7 +16,7 @@ import type {
  * - none: Niedostępny
  * - unknown: Wymaga ręcznej konwersji przez użytkownika (różne jednostki)
  */
-export type AvailabilityStatus = 'full' | 'partial' | 'none' | 'unknown';
+export type AvailabilityStatus = "full" | "partial" | "none" | "unknown";
 
 /**
  * Składnik z informacją o dostępności w lodówce
@@ -132,4 +126,3 @@ export interface CookingValidationResult {
   missingIngredients: IngredientWithAvailability[];
   message?: string;
 }
-

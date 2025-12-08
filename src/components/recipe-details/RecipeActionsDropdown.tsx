@@ -3,16 +3,16 @@
  * Shows Edit/Delete for user recipes, Save for external recipes
  */
 
-import React from 'react';
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import type { SourceEnum } from '../../types';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import type { SourceEnum } from "../../types";
 
 interface RecipeActionsDropdownProps {
   source: SourceEnum;
@@ -29,17 +29,12 @@ export default function RecipeActionsDropdown({
   onSave,
   disabled = false,
 }: RecipeActionsDropdownProps) {
-  const isUserRecipe = source === 'user';
+  const isUserRecipe = source === "user";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={disabled}
-          aria-label="Więcej akcji"
-        >
+        <Button variant="ghost" size="sm" disabled={disabled} aria-label="Więcej akcji">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"
@@ -125,4 +120,3 @@ export default function RecipeActionsDropdown({
     </DropdownMenu>
   );
 }
-

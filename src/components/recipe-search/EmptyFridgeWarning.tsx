@@ -1,12 +1,12 @@
 /**
  * EmptyFridgeWarning - Warning displayed when fridge is empty
- * 
+ *
  * Informs user that search will be less precise and encourages adding products
  */
 
-import React from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EmptyFridgeWarningProps {
   onAddProducts: () => void;
@@ -20,16 +20,10 @@ export default function EmptyFridgeWarning({ onAddProducts }: EmptyFridgeWarning
         <p className="text-yellow-900 font-medium mb-2">
           Twoja lodówka jest pusta. Wyszukiwanie będzie mniej precyzyjne.
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onAddProducts}
-          className="bg-white hover:bg-yellow-50"
-        >
+        <Button variant="outline" size="sm" onClick={onAddProducts} className="bg-white hover:bg-yellow-50">
           Dodaj produkty
         </Button>
       </div>
     </div>
   );
 }
-

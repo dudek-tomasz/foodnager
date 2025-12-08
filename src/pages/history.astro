@@ -1,6 +1,6 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { CookingHistoryView } from '../components/cooking-history';
+import Layout from "../layouts/Layout.astro";
+import { CookingHistoryView } from "../components/cooking-history";
 
 export const prerender = false;
 
@@ -10,8 +10,5 @@ export const prerender = false;
 ---
 
 <Layout title="Historia gotowania - Foodnager">
-  <CookingHistoryView 
-    client:load
-  />
+  <CookingHistoryView client:load />
 </Layout>
-

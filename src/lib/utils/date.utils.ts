@@ -46,7 +46,7 @@ export function isExpiringSoon(expiryDate: string | null, days: number): boolean
  * @returns ISO date string
  */
 export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 /**
@@ -78,4 +78,3 @@ export function isValidISODate(dateString: string): boolean {
 export function getCurrentDate(): string {
   return formatDate(new Date());
 }
-

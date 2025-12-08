@@ -1,7 +1,7 @@
 ---
 /**
  * Register Page
- * 
+ *
  * User registration page using AuthLayout and RegisterForm component.
  * Features:
  * - Server-side rendering with session check
@@ -9,7 +9,7 @@
  * - Clean, centered design without navigation
  * - Password strength validation
  * - Success state with auto-redirect to login
- * 
+ *
  * Following auth-spec.md:
  * - Uses Astro.locals.user populated by middleware
  * - Public route (accessible without auth)
@@ -39,13 +39,10 @@ if (user) {
         <span class="text-6xl">🍳</span>
       </div>
       <h1 class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Foodnager</h1>
-      <p class="text-neutral-600 dark:text-neutral-300">
-        Zacznij zarządzać swoją kuchnią
-      </p>
+      <p class="text-neutral-600 dark:text-neutral-300">Zacznij zarządzać swoją kuchnią</p>
     </div>
 
     <!-- Register Form -->
     <RegisterForm client:load />
   </div>
 </AuthLayout>
-

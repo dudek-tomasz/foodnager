@@ -1,6 +1,6 @@
 /**
  * EditProductModal - Modal for editing existing fridge item
- * 
+ *
  * Features:
  * - Read-only product name display
  * - Edit quantity, unit, and expiry date
@@ -8,7 +8,7 @@
  * - Remove expiry date option
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,19 +16,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import UnitSelect from './UnitSelect';
-import DatePicker from './DatePicker';
-import {
-  validateQuantity,
-  validateExpiryDate,
-  isDateInPast,
-  hasChanges,
-} from '@/lib/utils/form-validation';
-import type { FridgeItemDTO, UpdateFridgeItemDTO } from '@/types';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import UnitSelect from "./UnitSelect";
+import DatePicker from "./DatePicker";
+import { validateQuantity, validateExpiryDate, isDateInPast, hasChanges } from "@/lib/utils/form-validation";
+import type { FridgeItemDTO, UpdateFridgeItemDTO } from "@/types";
 
 interface EditProductModalProps {
   isOpen: boolean;
@@ -49,19 +44,14 @@ interface FormErrors {
   expiryDate?: string;
 }
 
-export default function EditProductModal({
-  isOpen,
-  item,
-  onClose,
-  onSuccess,
-}: EditProductModalProps) {
+export default function EditProductModal({ isOpen, item, onClose, onSuccess }: EditProductModalProps) {
   const [formState, setFormState] = useState<FormState>({
-    quantity: '',
+    quantity: "",
     unitId: null,
     expiryDate: null,
   });
   const [initialState, setInitialState] = useState<FormState>({
-    quantity: '',
+    quantity: "",
     unitId: null,
     expiryDate: null,
   });
@@ -89,7 +79,7 @@ export default function EditProductModal({
   // Check for date warning
   useEffect(() => {
     if (formState.expiryDate && isDateInPast(formState.expiryDate)) {
-      setDateWarning('Data w przeszłości - produkt może być już przeterminowany');
+      setDateWarning("Data w przeszłości - produkt może być już przeterminowany");
     } else {
       setDateWarning(null);
     }
@@ -136,7 +126,7 @@ export default function EditProductModal({
 
     // Check if at least one field changed
     if (!formHasChanges) {
-      setSubmitError('Wprowadź przynajmniej jedną zmianę');
+      setSubmitError("Wprowadź przynajmniej jedną zmianę");
       return;
     }
 
@@ -166,26 +156,24 @@ export default function EditProductModal({
       }
 
       const response = await fetch(`/api/fridge/${item.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to update product');
+        throw new Error(errorData.error?.message || "Failed to update product");
       }
 
       // Success!
       await response.json();
       onSuccess();
     } catch (error) {
-      console.error('Failed to update product:', error);
-      setSubmitError(
-        error instanceof Error ? error.message : 'Nie udało się zaktualizować produktu'
-      );
+      console.error("Failed to update product:", error);
+      setSubmitError(error instanceof Error ? error.message : "Nie udało się zaktualizować produktu");
     } finally {
       setIsSubmitting(false);
     }
@@ -204,9 +192,7 @@ export default function EditProductModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edytuj produkt</DialogTitle>
-          <DialogDescription>
-            Zmień ilość, jednostkę lub datę ważności produktu
-          </DialogDescription>
+          <DialogDescription>Zmień ilość, jednostkę lub datę ważności produktu</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
@@ -216,11 +202,7 @@ export default function EditProductModal({
               <Label>Produkt</Label>
               <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
                 <span className="text-sm font-medium">{item.product.name}</span>
-                {item.product.id && (
-                  <span className="ml-2 text-xs text-gray-500">
-                    (nie można zmienić)
-                  </span>
-                )}
+                {item.product.id && <span className="ml-2 text-xs text-gray-500">(nie można zmienić)</span>}
               </div>
             </div>
 
@@ -234,25 +216,19 @@ export default function EditProductModal({
                   min="0"
                   step="0.01"
                   value={formState.quantity}
-                  onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, quantity: e.target.value }))
-                  }
+                  onChange={(e) => setFormState((prev) => ({ ...prev, quantity: e.target.value }))}
                   placeholder="0"
-                  className={errors.quantity ? 'border-red-500' : ''}
+                  className={errors.quantity ? "border-red-500" : ""}
                   disabled={isSubmitting}
                 />
-                {errors.quantity && (
-                  <p className="text-xs text-red-600">{errors.quantity}</p>
-                )}
+                {errors.quantity && <p className="text-xs text-red-600">{errors.quantity}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="unit">Jednostka</Label>
                 <UnitSelect
                   value={formState.unitId}
-                  onChange={(unitId) =>
-                    setFormState((prev) => ({ ...prev, unitId }))
-                  }
+                  onChange={(unitId) => setFormState((prev) => ({ ...prev, unitId }))}
                   error={errors.unit}
                   disabled={isSubmitting}
                 />
@@ -264,9 +240,7 @@ export default function EditProductModal({
               <Label htmlFor="expiryDate">Data ważności</Label>
               <DatePicker
                 value={formState.expiryDate}
-                onChange={(expiryDate) =>
-                  setFormState((prev) => ({ ...prev, expiryDate }))
-                }
+                onChange={(expiryDate) => setFormState((prev) => ({ ...prev, expiryDate }))}
                 error={errors.expiryDate}
                 disabled={isSubmitting}
                 showClearButton
@@ -304,24 +278,17 @@ export default function EditProductModal({
             {/* Submit Error */}
             {submitError && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  {submitError}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-200">{submitError}</p>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
               Anuluj
             </Button>
             <Button type="submit" disabled={isSubmitting || !formHasChanges}>
-              {isSubmitting ? 'Zapisywanie...' : 'Zapisz zmiany'}
+              {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
             </Button>
           </DialogFooter>
         </form>
@@ -329,5 +296,3 @@ export default function EditProductModal({
     </Dialog>
   );
 }
-
-

@@ -1,8 +1,8 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * DatePickerComponent - POM for date picker input
- * 
+ *
  * Handles:
  * - Setting date value
  * - Clearing date
@@ -16,7 +16,7 @@ export class DatePickerComponent {
   private readonly input: Locator;
   private readonly clearButton: Locator;
 
-  constructor(page: Page, testId: string = 'date-picker') {
+  constructor(page: Page, testId = "date-picker") {
     this.page = page;
     this.testId = testId;
 
@@ -37,7 +37,7 @@ export class DatePickerComponent {
    * Sets date to today
    */
   async setToday(): Promise<void> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     await this.setDate(today);
   }
 
@@ -47,7 +47,7 @@ export class DatePickerComponent {
   async setTomorrow(): Promise<void> {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateString = tomorrow.toISOString().split('T')[0];
+    const dateString = tomorrow.toISOString().split("T")[0];
     await this.setDate(dateString);
   }
 
@@ -58,7 +58,7 @@ export class DatePickerComponent {
   async setDaysFromNow(days: number): Promise<void> {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
-    const dateString = futureDate.toISOString().split('T')[0];
+    const dateString = futureDate.toISOString().split("T")[0];
     await this.setDate(dateString);
   }
 
@@ -97,4 +97,3 @@ export class DatePickerComponent {
     return await this.clearButton.isVisible().catch(() => false);
   }
 }
-

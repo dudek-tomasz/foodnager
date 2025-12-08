@@ -2,7 +2,7 @@
  * Custom hook zarządzający stanem i logiką widoku lodówki
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 import type {
   FridgeViewState,
   FridgeItemDTO,
@@ -10,7 +10,7 @@ import type {
   ListFridgeQueryDTO,
   SortField,
   SortOrderEnum,
-} from '@/types';
+} from "@/types";
 
 /**
  * Initial state dla widoku lodówki
@@ -18,10 +18,10 @@ import type {
 const initialState: FridgeViewState = {
   items: [],
   pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
-  searchQuery: '',
-  sortBy: 'created_at',
-  sortOrder: 'desc',
-  expiredFilter: 'all',
+  searchQuery: "",
+  sortBy: "created_at",
+  sortOrder: "desc",
+  expiredFilter: "all",
   expiringSoonDays: undefined,
   isLoading: false,
   error: null,
@@ -39,77 +39,105 @@ const initialState: FridgeViewState = {
  */
 export function useFridge() {
   const [state, setState] = useState<FridgeViewState>(initialState);
+  const isInitialMount = useRef(true);
 
   /**
    * Fetch items from API
    */
-  const fetchItems = useCallback(async (overrideParams?: Partial<ListFridgeQueryDTO>) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+  const fetchItems = useCallback(
+    async (overrideParams?: Partial<ListFridgeQueryDTO>) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-    try {
-      const params: Record<string, string> = {
-        page: String(overrideParams?.page ?? state.pagination.page),
-        limit: String(overrideParams?.limit ?? state.pagination.limit),
-        sort: overrideParams?.sort ?? state.sortBy,
-        order: overrideParams?.order ?? state.sortOrder,
-      };
+      try {
+        const params: Record<string, string> = {
+          page: String(overrideParams?.page ?? state.pagination.page),
+          limit: String(overrideParams?.limit ?? state.pagination.limit),
+          sort: overrideParams?.sort ?? state.sortBy,
+          order: overrideParams?.order ?? state.sortOrder,
+        };
 
-      // Add optional filters
-      if (state.searchQuery) {
-        params.search = state.searchQuery;
+        // Add optional filters
+        if (state.searchQuery) {
+          params.search = state.searchQuery;
+        }
+        if (state.expiredFilter !== "all") {
+          params.expired = state.expiredFilter;
+        }
+        if (state.expiringSoonDays !== undefined) {
+          params.expiring_soon = String(state.expiringSoonDays);
+        }
+
+        const queryParams = new URLSearchParams(params);
+        const response = await fetch(`/api/fridge?${queryParams}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch items");
+        }
+
+        const data: FridgeListResponseDTO = await response.json();
+
+        // Calculate stats
+        const expiredCount = data.data.filter((item) => {
+          if (!item.expiry_date) return false;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const expiryDate = new Date(item.expiry_date);
+          expiryDate.setHours(0, 0, 0, 0);
+          return expiryDate < today;
+        }).length;
+
+        setState((prev) => ({
+          ...prev,
+          items: data.data,
+          pagination: data.pagination,
+          stats: {
+            totalCount: data.pagination.total,
+            expiredCount,
+          },
+          isLoading: false,
+        }));
+      } catch (error) {
+        // Error fetching items - log to monitoring service in production
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to fetch items:", error);
+        }
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: "Nie udało się pobrać produktów",
+        }));
       }
-      if (state.expiredFilter !== 'all') {
-        params.expired = state.expiredFilter;
-      }
-      if (state.expiringSoonDays !== undefined) {
-        params.expiring_soon = String(state.expiringSoonDays);
-      }
-
-      const queryParams = new URLSearchParams(params);
-      const response = await fetch(`/api/fridge?${queryParams}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch items');
-      }
-
-      const data: FridgeListResponseDTO = await response.json();
-
-      // Calculate stats
-      const expiredCount = data.data.filter((item) => {
-        if (!item.expiry_date) return false;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const expiryDate = new Date(item.expiry_date);
-        expiryDate.setHours(0, 0, 0, 0);
-        return expiryDate < today;
-      }).length;
-
-      setState((prev) => ({
-        ...prev,
-        items: data.data,
-        pagination: data.pagination,
-        stats: {
-          totalCount: data.pagination.total,
-          expiredCount,
-        },
-        isLoading: false,
-      }));
-    } catch (error) {
-      console.error('Failed to fetch items:', error);
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: 'Nie udało się pobrać produktów',
-      }));
-    }
-  }, [state.pagination.page, state.pagination.limit, state.sortBy, state.sortOrder, state.searchQuery, state.expiredFilter, state.expiringSoonDays]);
+    },
+    [
+      state.pagination.page,
+      state.pagination.limit,
+      state.sortBy,
+      state.sortOrder,
+      state.searchQuery,
+      state.expiredFilter,
+      state.expiringSoonDays,
+    ]
+  );
 
   /**
-   * Initial fetch on mount
+   * Initial fetch on mount and when filters change
    */
   useEffect(() => {
-    fetchItems();
-  }, []); // Only run once on mount
+    // Initial fetch - no debounce
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchItems();
+      return;
+    }
+
+    // Subsequent fetches - with debounce
+    const timer = setTimeout(() => {
+      fetchItems();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [fetchItems, state.searchQuery, state.sortBy, state.sortOrder, state.expiredFilter, state.expiringSoonDays]);
 
   /**
    * Handle search query change
@@ -124,17 +152,6 @@ export function useFridge() {
   }, []);
 
   /**
-   * Trigger fetch when search, sort, or filters change
-   */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchItems();
-    }, 300); // Debounce
-
-    return () => clearTimeout(timer);
-  }, [state.searchQuery, state.sortBy, state.sortOrder, state.expiredFilter, state.expiringSoonDays]);
-
-  /**
    * Handle sort change
    */
   const handleSortChange = useCallback((sortBy: SortField, order: SortOrderEnum) => {
@@ -144,10 +161,13 @@ export function useFridge() {
   /**
    * Handle page change
    */
-  const handlePageChange = useCallback((page: number) => {
-    setState((prev) => ({ ...prev, pagination: { ...prev.pagination, page } }));
-    fetchItems({ page });
-  }, [fetchItems]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setState((prev) => ({ ...prev, pagination: { ...prev.pagination, page } }));
+      fetchItems({ page });
+    },
+    [fetchItems]
+  );
 
   /**
    * Modal handlers
@@ -189,12 +209,15 @@ export function useFridge() {
   /**
    * Success handlers (trigger refetch)
    */
-  const handleAddSuccess = useCallback(async (addAnother: boolean) => {
-    await fetchItems();
-    if (!addAnother) {
-      closeAddModal();
-    }
-  }, [fetchItems, closeAddModal]);
+  const handleAddSuccess = useCallback(
+    async (addAnother: boolean) => {
+      await fetchItems();
+      if (!addAnother) {
+        closeAddModal();
+      }
+    },
+    [fetchItems, closeAddModal]
+  );
 
   const handleEditSuccess = useCallback(async () => {
     await fetchItems();
@@ -209,17 +232,21 @@ export function useFridge() {
 
     try {
       const response = await fetch(`/api/fridge/${state.deletingItemId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete item');
+        throw new Error("Failed to delete item");
       }
 
       await fetchItems();
       closeDeleteConfirm();
     } catch (error) {
-      console.error('Failed to delete item:', error);
+      // Error deleting item - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to delete item:", error);
+      }
       // Error will be shown via toast in component
     }
   }, [state.deletingItemId, fetchItems, closeDeleteConfirm]);
@@ -243,4 +270,3 @@ export function useFridge() {
     },
   };
 }
-

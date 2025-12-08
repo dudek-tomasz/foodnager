@@ -1,9 +1,9 @@
 /**
  * RecipeListView Component
- * 
+ *
  * Main view component for recipe list page.
  * Manages state, integrates all subcomponents, and handles user interactions.
- * 
+ *
  * Features:
  * - Recipe list with search, filter, sort, pagination
  * - Add/Edit/Delete recipe functionality
@@ -11,30 +11,26 @@
  * - Navigation to recipe details
  */
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { useRecipeList } from '@/hooks/useRecipeList';
-import { RecipeDetailsModal } from '@/components/recipe-details';
-import { RecipeListHeader } from './RecipeListHeader';
-import { RecipeToolbar } from './RecipeToolbar';
-import { RecipeGrid } from './RecipeGrid';
-import { PaginationControls } from './PaginationControls';
-import { RecipeFormModal } from './RecipeFormModal';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { calculateRecipeStats } from '@/lib/mappers/recipe-view.mapper';
-import type { RecipesPageProps } from './types';
-import type { RecipeSummaryDTO, TagDTO, RecipeDTO } from '@/types';
+import { useState } from "react";
+import { toast } from "sonner";
+import { useRecipeList } from "@/hooks/useRecipeList";
+import { RecipeDetailsModal } from "@/components/recipe-details";
+import { RecipeListHeader } from "./RecipeListHeader";
+import { RecipeToolbar } from "./RecipeToolbar";
+import { RecipeGrid } from "./RecipeGrid";
+import { PaginationControls } from "./PaginationControls";
+import { RecipeFormModal } from "./RecipeFormModal";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { calculateRecipeStats } from "@/lib/mappers/recipe-view.mapper";
+import type { RecipesPageProps } from "./types";
+import type { RecipeSummaryDTO, TagDTO, UnitDTO } from "@/types";
 
 interface RecipeListViewProps extends RecipesPageProps {
   initialTags?: TagDTO[];
-  initialUnits?: any[]; // UnitDTO
+  initialUnits?: UnitDTO[];
 }
 
-export function RecipeListView({
-  initialData,
-  initialTags = [],
-  initialUnits = [],
-}: RecipeListViewProps) {
+export function RecipeListView({ initialData, initialTags = [], initialUnits = [] }: RecipeListViewProps) {
   // Recipe list state management
   const {
     recipes,
@@ -54,7 +50,7 @@ export function RecipeListView({
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [editingRecipe, setEditingRecipe] = useState<RecipeSummaryDTO | null>(null);
 
   // Delete dialog state
@@ -75,7 +71,7 @@ export function RecipeListView({
    * Opens add recipe modal
    */
   const handleAddRecipe = () => {
-    setModalMode('add');
+    setModalMode("add");
     setEditingRecipe(null);
     setIsModalOpen(true);
   };
@@ -84,7 +80,7 @@ export function RecipeListView({
    * Opens edit recipe modal
    */
   const handleEditRecipe = (recipe: RecipeSummaryDTO) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setEditingRecipe(recipe);
     setIsModalOpen(true);
   };
@@ -93,7 +89,7 @@ export function RecipeListView({
    * Opens delete confirmation dialog
    */
   const handleDeleteRecipe = (id: number) => {
-    const recipe = recipes.find(r => r.id === id);
+    const recipe = recipes.find((r) => r.id === id);
     if (recipe) {
       setRecipeToDelete({ id: recipe.id, name: recipe.title });
       setIsDeleteDialogOpen(true);
@@ -108,12 +104,12 @@ export function RecipeListView({
 
     try {
       await deleteRecipe(recipeToDelete.id);
-      toast.success('Przepis został usunięty');
+      toast.success("Przepis został usunięty");
       setIsDeleteDialogOpen(false);
       setRecipeToDelete(null);
     } catch (err) {
-      console.error('Failed to delete recipe:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Nie udało się usunąć przepisu';
+      console.error("Failed to delete recipe:", err);
+      const errorMessage = err instanceof Error ? err.message : "Nie udało się usunąć przepisu";
       toast.error(errorMessage);
     }
   };
@@ -129,7 +125,7 @@ export function RecipeListView({
   /**
    * Handles successful recipe save (add or edit)
    */
-  const handleRecipeSaveSuccess = async (recipe: RecipeDTO) => {
+  const handleRecipeSaveSuccess = async () => {
     await refreshList();
   };
 
@@ -164,25 +160,25 @@ export function RecipeListView({
    */
   const handleCookRecipe = async (id: number) => {
     try {
-      const response = await fetch('/api/cooking-history', {
-        method: 'POST',
+      const response = await fetch("/api/cooking-history", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ recipe_id: id }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create cooking history');
+        throw new Error("Failed to create cooking history");
       }
 
-      toast.success('Przepis został ugotowany! Składniki zostały odjęte z lodówki.');
-      
+      toast.success("Przepis został ugotowany! Składniki zostały odjęte z lodówki.");
+
       // Optionally navigate to cooking history or recipe details
       // window.location.href = '/cooking-history';
     } catch (err) {
-      console.error('Failed to cook recipe:', err);
-      toast.error('Nie udało się ugotować przepisu. Sprawdź czy masz wystarczającą ilość składników.');
+      console.error("Failed to cook recipe:", err);
+      toast.error("Nie udało się ugotować przepisu. Sprawdź czy masz wystarczającą ilość składników.");
     }
   };
 
@@ -206,12 +202,8 @@ export function RecipeListView({
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-            Wystąpił błąd
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 text-center max-w-md mb-6">
-            {error}
-          </p>
+          <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Wystąpił błąd</h2>
+          <p className="text-neutral-600 dark:text-neutral-400 text-center max-w-md mb-6">{error}</p>
           <button
             onClick={() => refreshList()}
             className="px-4 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-md hover:bg-neutral-800 dark:hover:bg-neutral-200"
@@ -226,10 +218,7 @@ export function RecipeListView({
   return (
     <main className="container mx-auto px-4 py-8" role="main" aria-label="Lista przepisów">
       {/* Header with statistics and add button */}
-      <RecipeListHeader
-        stats={stats}
-        onAddRecipe={handleAddRecipe}
-      />
+      <RecipeListHeader stats={stats} onAddRecipe={handleAddRecipe} />
 
       {/* Toolbar with search, sort, and filters */}
       <RecipeToolbar
@@ -257,12 +246,7 @@ export function RecipeListView({
       />
 
       {/* Pagination controls */}
-      {!loading && recipes.length > 0 && (
-        <PaginationControls
-          pagination={pagination}
-          onPageChange={setPage}
-        />
-      )}
+      {!loading && recipes.length > 0 && <PaginationControls pagination={pagination} onPageChange={setPage} />}
 
       {/* Recipe Form Modal (Add/Edit) */}
       <RecipeFormModal
@@ -297,4 +281,3 @@ export function RecipeListView({
     </main>
   );
 }
-

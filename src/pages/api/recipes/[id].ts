@@ -1,20 +1,17 @@
 /**
  * API Endpoint: /api/recipes/:id
- * 
+ *
  * GET - Get recipe by ID
  * PATCH - Update recipe
  * DELETE - Delete recipe
  */
 
-import type { APIContext } from 'astro';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { RecipeService } from '../../../lib/services/recipe.service';
-import {
-  recipeIdSchema,
-  updateRecipeSchema,
-} from '../../../lib/validations/recipe.validation';
-import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { RecipeService } from "../../../lib/services/recipe.service";
+import { recipeIdSchema, updateRecipeSchema } from "../../../lib/validations/recipe.validation";
+import { successResponse, errorResponse } from "../../../lib/utils/api-response";
+import { NotFoundError, UnauthorizedError } from "../../../lib/errors";
 
 export const prerender = false;
 
@@ -25,7 +22,7 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
@@ -49,7 +46,7 @@ export async function GET(context: APIContext): Promise<Response> {
     const idValidation = recipeIdSchema.safeParse(context.params.id);
 
     if (!idValidation.success) {
-      return errorResponse('VALIDATION_ERROR', 'Invalid recipe ID', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid recipe ID", undefined, 400);
     }
 
     const recipeId = idValidation.data;
@@ -60,13 +57,13 @@ export async function GET(context: APIContext): Promise<Response> {
 
     return successResponse(recipe, 200);
   } catch (error) {
-    console.error('Error in GET /api/recipes/:id:', error);
+    console.error("Error in GET /api/recipes/:id:", error);
 
     if (error instanceof NotFoundError) {
-      return errorResponse('NOT_FOUND', 'Recipe not found', undefined, 404);
+      return errorResponse("NOT_FOUND", "Recipe not found", undefined, 404);
     }
 
-    return errorResponse('INTERNAL_ERROR', 'Failed to fetch recipe', undefined, 500);
+    return errorResponse("INTERNAL_ERROR", "Failed to fetch recipe", undefined, 500);
   }
 }
 
@@ -89,7 +86,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     const idValidation = recipeIdSchema.safeParse(context.params.id);
 
     if (!idValidation.success) {
-      return errorResponse('VALIDATION_ERROR', 'Invalid recipe ID', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid recipe ID", undefined, 400);
     }
 
     const recipeId = idValidation.data;
@@ -99,15 +96,15 @@ export async function PATCH(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      return errorResponse('VALIDATION_ERROR', 'Invalid JSON body', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid JSON body", undefined, 400);
     }
 
     const validationResult = updateRecipeSchema.safeParse(body);
 
     if (!validationResult.success) {
       return errorResponse(
-        'VALIDATION_ERROR',
-        'Invalid request body',
+        "VALIDATION_ERROR",
+        "Invalid request body",
         validationResult.error.flatten().fieldErrors,
         400
       );
@@ -121,13 +118,13 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
     return successResponse(recipe, 200);
   } catch (error) {
-    console.error('Error in PATCH /api/recipes/:id:', error);
+    console.error("Error in PATCH /api/recipes/:id:", error);
 
     if (error instanceof NotFoundError) {
-      return errorResponse('NOT_FOUND', error.message, undefined, 404);
+      return errorResponse("NOT_FOUND", error.message, undefined, 404);
     }
 
-    return errorResponse('INTERNAL_ERROR', 'Failed to update recipe', undefined, 500);
+    return errorResponse("INTERNAL_ERROR", "Failed to update recipe", undefined, 500);
   }
 }
 
@@ -150,7 +147,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
     const idValidation = recipeIdSchema.safeParse(context.params.id);
 
     if (!idValidation.success) {
-      return errorResponse('VALIDATION_ERROR', 'Invalid recipe ID', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid recipe ID", undefined, 400);
     }
 
     const recipeId = idValidation.data;
@@ -162,13 +159,12 @@ export async function DELETE(context: APIContext): Promise<Response> {
     // Return 204 No Content
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error('Error in DELETE /api/recipes/:id:', error);
+    console.error("Error in DELETE /api/recipes/:id:", error);
 
     if (error instanceof NotFoundError) {
-      return errorResponse('NOT_FOUND', 'Recipe not found', undefined, 404);
+      return errorResponse("NOT_FOUND", "Recipe not found", undefined, 404);
     }
 
-    return errorResponse('INTERNAL_ERROR', 'Failed to delete recipe', undefined, 500);
+    return errorResponse("INTERNAL_ERROR", "Failed to delete recipe", undefined, 500);
   }
 }
-

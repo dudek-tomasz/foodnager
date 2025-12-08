@@ -1,16 +1,11 @@
 /**
  * Types and ViewModels for Recipe Search View
- * 
+ *
  * This file contains type definitions specific to the recipe search functionality,
  * complementing the base DTO types from types.ts
  */
 
-import type {
-  RecipeSearchResultDTO,
-  SearchMetadataDTO,
-  SearchRecipesByFridgeDTO,
-  GenerateRecipeDTO,
-} from '../types';
+import type { RecipeSearchResultDTO, SearchMetadataDTO } from "../types";
 
 // =============================================================================
 // ENUMS AND BASE TYPES
@@ -19,12 +14,12 @@ import type {
 /**
  * Enum reprezentujący źródła przepisów do wyboru
  */
-export type RecipeSource = 'user' | 'api' | 'ai' | 'all';
+export type RecipeSource = "user" | "api" | "ai" | "all";
 
 /**
  * Stan widoku wyszukiwania
  */
-export type SearchViewStep = 'source_selection' | 'loading' | 'results';
+export type SearchViewStep = "source_selection" | "loading" | "results";
 
 // =============================================================================
 // VIEW STATE
@@ -119,28 +114,28 @@ export interface UseRecipeSearchReturn {
  */
 export const RECIPE_SOURCES: SourceCardData[] = [
   {
-    source: 'user',
-    title: 'Moje przepisy',
-    description: 'Przeszukuj swoje zapisane przepisy',
-    icon: 'BookOpen',
+    source: "user",
+    title: "Moje przepisy",
+    description: "Przeszukuj swoje zapisane przepisy",
+    icon: "BookOpen",
   },
   {
-    source: 'api',
-    title: 'API przepisów',
-    description: 'Szukaj w bazie przepisów online',
-    icon: 'Globe',
+    source: "api",
+    title: "API przepisów",
+    description: "Szukaj w bazie przepisów online",
+    icon: "Globe",
   },
   {
-    source: 'ai',
-    title: 'Generuj AI',
-    description: 'Wygeneruj nowy przepis za pomocą AI',
-    icon: 'Sparkles',
+    source: "ai",
+    title: "Generuj AI",
+    description: "Wygeneruj nowy przepis za pomocą AI",
+    icon: "Sparkles",
   },
   {
-    source: 'all',
-    title: 'Wszystkie źródła',
-    description: 'Przeszukaj wszystkie dostępne źródła',
-    icon: 'Search',
+    source: "all",
+    title: "Wszystkie źródła",
+    description: "Przeszukaj wszystkie dostępne źródła",
+    icon: "Search",
   },
 ];
 
@@ -156,10 +151,4 @@ export const SEARCH_TIMEOUTS = {
 // RE-EXPORTS FOR CONVENIENCE
 // =============================================================================
 
-export type {
-  RecipeSearchResultDTO,
-  SearchMetadataDTO,
-  SearchRecipesByFridgeDTO,
-  GenerateRecipeDTO,
-} from '../types';
-
+export type { RecipeSearchResultDTO, SearchMetadataDTO, SearchRecipesByFridgeDTO, GenerateRecipeDTO } from "../types";

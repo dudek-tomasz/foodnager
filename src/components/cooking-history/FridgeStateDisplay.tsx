@@ -1,9 +1,9 @@
-import type { FridgeStateDTO } from '../../types';
-import { cn } from '@/lib/utils';
+import type { FridgeStateDTO } from "../../types";
+import { cn } from "@/lib/utils";
 
 interface FridgeStateDisplayProps {
   state: FridgeStateDTO;
-  type: 'before' | 'after';
+  type: "before" | "after";
   changedProducts?: number[];
 }
 
@@ -11,7 +11,7 @@ interface FridgeStateDisplayProps {
  * Komponent wyświetlający szczegółowy stan lodówki (przed lub po gotowaniu)
  */
 export function FridgeStateDisplay({ state, type, changedProducts = [] }: FridgeStateDisplayProps) {
-  const title = type === 'before' ? 'Stan lodówki przed' : 'Stan lodówki po';
+  const title = type === "before" ? "Stan lodówki przed" : "Stan lodówki po";
 
   if (state.items.length === 0) {
     return (
@@ -28,13 +28,13 @@ export function FridgeStateDisplay({ state, type, changedProducts = [] }: Fridge
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {state.items.map((item) => {
           const isChanged = changedProducts.includes(item.product_id);
-          
+
           return (
             <li
               key={item.product_id}
               className={cn(
-                'flex items-center justify-between p-2 rounded-md border text-sm',
-                isChanged && 'bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800'
+                "flex items-center justify-between p-2 rounded-md border text-sm",
+                isChanged && "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800"
               )}
             >
               <span className="font-medium">{item.product_name}</span>
@@ -48,4 +48,3 @@ export function FridgeStateDisplay({ state, type, changedProducts = [] }: Fridge
     </div>
   );
 }
-

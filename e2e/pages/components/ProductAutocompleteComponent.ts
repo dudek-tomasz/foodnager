@@ -1,8 +1,8 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * ProductAutocompleteComponent - POM for product autocomplete/combobox
- * 
+ *
  * Handles:
  * - Searching for products
  * - Selecting existing products
@@ -20,7 +20,7 @@ export class ProductAutocompleteComponent {
   private readonly createSubmitButton: Locator;
   private readonly createCancelButton: Locator;
 
-  constructor(page: Page, testId: string = 'product-autocomplete') {
+  constructor(page: Page, testId = "product-autocomplete") {
     this.page = page;
     this.testId = testId;
 
@@ -38,7 +38,7 @@ export class ProductAutocompleteComponent {
    */
   async open(): Promise<void> {
     await this.trigger.click();
-    await this.searchInput.waitFor({ state: 'visible' });
+    await this.searchInput.waitFor({ state: "visible" });
   }
 
   /**
@@ -67,10 +67,10 @@ export class ProductAutocompleteComponent {
   async searchAndSelect(productName: string): Promise<void> {
     await this.open();
     await this.search(productName);
-    
+
     // Click first result
     const firstOption = this.page.locator('[data-testid^="product-autocomplete-option-"]').first();
-    await firstOption.waitFor({ state: 'visible' });
+    await firstOption.waitFor({ state: "visible" });
     await firstOption.click();
   }
 
@@ -81,16 +81,16 @@ export class ProductAutocompleteComponent {
   async createNewProduct(productName: string): Promise<void> {
     await this.open();
     await this.search(productName);
-    
+
     // Wait for "Create new" button to appear
-    await this.createNewButton.waitFor({ state: 'visible' });
+    await this.createNewButton.waitFor({ state: "visible" });
     await this.createNewButton.click();
-    
+
     // Fill in the new product name and submit
-    await this.newProductNameInput.waitFor({ state: 'visible' });
+    await this.newProductNameInput.waitFor({ state: "visible" });
     await this.newProductNameInput.fill(productName);
     await this.createSubmitButton.click();
-    
+
     // Wait for creation to complete
     await this.page.waitForTimeout(1000);
   }
@@ -106,7 +106,7 @@ export class ProductAutocompleteComponent {
    * Gets the currently selected product text
    */
   async getSelectedProductText(): Promise<string> {
-    return await this.trigger.textContent() || '';
+    return (await this.trigger.textContent()) || "";
   }
 
   /**
@@ -125,4 +125,3 @@ export class ProductAutocompleteComponent {
     return await this.createNewButton.isVisible().catch(() => false);
   }
 }
-

@@ -1,8 +1,8 @@
-import { ChevronDown, ArrowDown } from 'lucide-react';
-import { FridgeStateDisplay } from './FridgeStateDisplay';
-import { Button } from '@/components/ui/button';
-import type { FridgeStateDTO } from '../../types';
-import { cn } from '@/lib/utils';
+import { ChevronDown, ArrowDown } from "lucide-react";
+import { FridgeStateDisplay } from "./FridgeStateDisplay";
+import { Button } from "@/components/ui/button";
+import type { FridgeStateDTO } from "../../types";
+import { cn } from "@/lib/utils";
 
 interface ExpandableDetailsProps {
   fridgeStateBefore: FridgeStateDTO;
@@ -13,15 +13,15 @@ interface ExpandableDetailsProps {
 }
 
 /**
- * Sekcja zawierająca szczegóły stanu lodówki przed i po gotowaniu, 
+ * Sekcja zawierająca szczegóły stanu lodówki przed i po gotowaniu,
  * z możliwością zwijania/rozwijania
  */
-export function ExpandableDetails({ 
-  fridgeStateBefore, 
-  fridgeStateAfter, 
-  isExpanded, 
+export function ExpandableDetails({
+  fridgeStateBefore,
+  fridgeStateAfter,
+  isExpanded,
   onToggle,
-  changedProducts = []
+  changedProducts = [],
 }: ExpandableDetailsProps) {
   return (
     <div className="border-t pt-4 mt-4">
@@ -32,29 +32,18 @@ export function ExpandableDetails({
         className="w-full justify-between"
         aria-expanded={isExpanded}
       >
-        <span className="text-sm font-medium">
-          {isExpanded ? 'Ukryj szczegóły' : 'Pokaż szczegóły'}
-        </span>
-        <ChevronDown 
-          className={cn(
-            'h-4 w-4 transition-transform duration-300',
-            isExpanded && 'rotate-180'
-          )} 
-        />
+        <span className="text-sm font-medium">{isExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isExpanded && "rotate-180")} />
       </Button>
 
       <div
         className={cn(
-          'overflow-hidden transition-all duration-300',
-          isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+          "overflow-hidden transition-all duration-300",
+          isExpanded ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0"
         )}
       >
         <div className="space-y-6">
-          <FridgeStateDisplay 
-            state={fridgeStateBefore} 
-            type="before"
-            changedProducts={changedProducts}
-          />
+          <FridgeStateDisplay state={fridgeStateBefore} type="before" changedProducts={changedProducts} />
 
           <div className="flex items-center justify-center">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -64,19 +53,13 @@ export function ExpandableDetails({
             </div>
           </div>
 
-          <FridgeStateDisplay 
-            state={fridgeStateAfter} 
-            type="after"
-            changedProducts={changedProducts}
-          />
+          <FridgeStateDisplay state={fridgeStateAfter} type="after" changedProducts={changedProducts} />
 
           {changedProducts.length > 0 && (
             <div className="bg-muted p-3 rounded-md">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">
-                  {changedProducts.length}
-                </span>
-                {' '}produktów zostało zużytych podczas gotowania
+                <span className="font-medium text-foreground">{changedProducts.length}</span> produktów zostało zużytych
+                podczas gotowania
               </p>
             </div>
           )}
@@ -85,4 +68,3 @@ export function ExpandableDetails({
     </div>
   );
 }
-

@@ -1,11 +1,11 @@
 /**
  * Data Transfer Objects (DTOs) and Command Models for Foodnager API
- * 
+ *
  * This file contains all type definitions for API requests and responses,
  * derived from database entity types defined in database.types.ts
  */
 
-import type { Tables, Enums, Json } from './db/database.types';
+import type { Tables, Enums, Json } from "./db/database.types";
 
 // =============================================================================
 // BASE ENTITY TYPES (derived from database tables)
@@ -14,19 +14,19 @@ import type { Tables, Enums, Json } from './db/database.types';
 /**
  * Database entity types - direct mappings from database.types.ts
  */
-export type ProductEntity = Tables<'products'>;
-export type UnitEntity = Tables<'units'>;
-export type TagEntity = Tables<'tags'>;
-export type UserProductEntity = Tables<'user_products'>;
-export type RecipeEntity = Tables<'recipes'>;
-export type RecipeIngredientEntity = Tables<'recipe_ingredients'>;
-export type CookingHistoryEntity = Tables<'cooking_history'>;
+export type ProductEntity = Tables<"products">;
+export type UnitEntity = Tables<"units">;
+export type TagEntity = Tables<"tags">;
+export type UserProductEntity = Tables<"user_products">;
+export type RecipeEntity = Tables<"recipes">;
+export type RecipeIngredientEntity = Tables<"recipe_ingredients">;
+export type CookingHistoryEntity = Tables<"cooking_history">;
 
 /**
  * Database enums
  */
-export type DifficultyEnum = Enums<'difficulty_enum'>;
-export type SourceEnum = Enums<'source_enum'>;
+export type DifficultyEnum = Enums<"difficulty_enum">;
+export type SourceEnum = Enums<"source_enum">;
 
 // =============================================================================
 // COMMON TYPES
@@ -45,7 +45,7 @@ export interface PaginationMetaDTO {
 /**
  * Sort order enum
  */
-export type SortOrderEnum = 'asc' | 'desc';
+export type SortOrderEnum = "asc" | "desc";
 
 // =============================================================================
 // PRODUCTS (2.2)
@@ -55,7 +55,7 @@ export type SortOrderEnum = 'asc' | 'desc';
  * Product DTO with computed is_global field
  * Extends ProductEntity with a computed field indicating if product is global
  */
-export interface ProductDTO extends Omit<ProductEntity, 'user_id'> {
+export interface ProductDTO extends Omit<ProductEntity, "user_id"> {
   user_id: string | null;
   is_global: boolean;
 }
@@ -65,7 +65,7 @@ export interface ProductDTO extends Omit<ProductEntity, 'user_id'> {
  */
 export interface ListProductsQueryDTO {
   search?: string;
-  scope?: 'global' | 'private' | 'all';
+  scope?: "global" | "private" | "all";
   page?: number;
   limit?: number;
 }
@@ -178,10 +178,10 @@ export interface FridgeItemDTO {
  * Query parameters for listing fridge items
  */
 export interface ListFridgeQueryDTO {
-  expired?: 'yes' | 'no' | 'all';
+  expired?: "yes" | "no" | "all";
   expiring_soon?: number;
   search?: string;
-  sort?: 'name' | 'quantity' | 'expiry_date' | 'created_at';
+  sort?: "name" | "quantity" | "expiry_date" | "created_at";
   order?: SortOrderEnum;
   page?: number;
   limit?: number;
@@ -262,7 +262,7 @@ export interface RecipeDTO {
 /**
  * Simplified recipe DTO (without metadata, used in some responses)
  */
-export type RecipeSummaryDTO = Omit<RecipeDTO, 'metadata'>;
+export type RecipeSummaryDTO = Omit<RecipeDTO, "metadata">;
 
 /**
  * Query parameters for listing recipes
@@ -273,7 +273,7 @@ export interface ListRecipesQueryDTO {
   difficulty?: DifficultyEnum;
   tags?: number[];
   max_cooking_time?: number;
-  sort?: 'title' | 'cooking_time' | 'difficulty' | 'created_at';
+  sort?: "title" | "cooking_time" | "difficulty" | "created_at";
   order?: SortOrderEnum;
   page?: number;
   limit?: number;
@@ -336,7 +336,7 @@ export interface SearchRecipesByFridgeDTO {
   custom_product_ids?: number[];
   max_results?: number;
   preferences?: SearchRecipePreferencesDTO;
-  source?: 'user' | 'api' | 'ai' | 'all';
+  source?: "user" | "api" | "ai" | "all";
 }
 
 /**
@@ -366,7 +366,7 @@ export interface RecipeSearchResultDTO {
  * Metadata about the search operation
  */
 export interface SearchMetadataDTO {
-  source: 'user_recipes' | 'external_api' | 'ai_generated';
+  source: "user_recipes" | "external_api" | "ai_generated";
   total_results: number;
   search_duration_ms: number;
 }
@@ -506,7 +506,7 @@ export interface ListCookingHistoryQueryDTO {
  */
 export interface CreateCookingHistoryDTO {
   recipe_id: number;
-  /** 
+  /**
    * Opcjonalne ręczne konwersje dla składników z różnymi jednostkami
    * Klucz: product_id, Wartość: ilość do odjęcia z lodówki (w jednostce z lodówki)
    * Jeśli wartość = 0, składnik nie zostanie odjęty z lodówki
@@ -549,14 +549,14 @@ export interface ErrorResponseDTO {
  * Common error codes used across the API
  */
 export enum ErrorCode {
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  NOT_FOUND = 'NOT_FOUND',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  CONFLICT = 'CONFLICT',
-  INSUFFICIENT_INGREDIENTS = 'INSUFFICIENT_INGREDIENTS',
-  EXTERNAL_API_ERROR = 'EXTERNAL_API_ERROR',
-  AI_SERVICE_ERROR = 'AI_SERVICE_ERROR',
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+  NOT_FOUND = "NOT_FOUND",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  CONFLICT = "CONFLICT",
+  INSUFFICIENT_INGREDIENTS = "INSUFFICIENT_INGREDIENTS",
+  EXTERNAL_API_ERROR = "EXTERNAL_API_ERROR",
+  AI_SERVICE_ERROR = "AI_SERVICE_ERROR",
 }
 
 // =============================================================================
@@ -566,12 +566,12 @@ export enum ErrorCode {
 /**
  * Status daty ważności produktu
  */
-export type ExpiryStatus = 'expired' | 'expiring-soon' | 'fresh' | 'no-expiry';
+export type ExpiryStatus = "expired" | "expiring-soon" | "fresh" | "no-expiry";
 
 /**
  * Pole sortowania w widoku lodówki
  */
-export type SortField = 'name' | 'quantity' | 'expiry_date' | 'created_at';
+export type SortField = "name" | "quantity" | "expiry_date" | "created_at";
 
 /**
  * Stan głównego widoku lodówki
@@ -580,28 +580,28 @@ export interface FridgeViewState {
   // Dane
   items: FridgeItemDTO[];
   pagination: PaginationMetaDTO;
-  
+
   // Filtrowanie i sortowanie
   searchQuery: string;
   sortBy: SortField;
   sortOrder: SortOrderEnum;
-  expiredFilter: 'yes' | 'no' | 'all';
+  expiredFilter: "yes" | "no" | "all";
   expiringSoonDays: number | undefined;
-  
+
   // UI state
   isLoading: boolean;
   error: string | null;
-  
+
   // Modals
   isAddModalOpen: boolean;
   isEditModalOpen: boolean;
   editingItem: FridgeItemDTO | null;
-  
+
   // Confirm dialog
   isConfirmDialogOpen: boolean;
   deletingItemId: number | null;
   deletingItemName: string | null;
-  
+
   // Stats
   stats: {
     totalCount: number;
@@ -618,7 +618,7 @@ export interface AddProductFormState {
   unit: UnitDTO | null;
   expiryDate: string | null;
   addAnother: boolean;
-  
+
   // Validation errors
   errors: {
     product?: string;
@@ -635,7 +635,7 @@ export interface EditProductFormState {
   quantity: number | null;
   unit: UnitDTO | null;
   expiryDate: string | null;
-  
+
   // Validation errors
   errors: {
     quantity?: string;
@@ -654,4 +654,3 @@ export interface ProductAutocompleteState {
   showCreateForm: boolean;
   newProductName: string;
 }
-

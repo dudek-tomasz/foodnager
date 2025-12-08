@@ -1,12 +1,12 @@
 /**
  * EditableShoppingList - Lista edytowalnych pozycji zakupowych
- * 
+ *
  * Komponent prezentuje listę brakujących składników z możliwością edycji ilości,
  * zaznaczania/odznaczania i usuwania pozycji.
  */
 
-import { ShoppingListItem } from './ShoppingListItem';
-import type { EditableShoppingListProps } from './types';
+import { ShoppingListItem } from "./ShoppingListItem";
+import type { EditableShoppingListProps } from "./types";
 
 /**
  * Komponent wyświetlający edytowalną listę składników
@@ -16,9 +16,7 @@ export function EditableShoppingList({ items, onItemsChange }: EditableShoppingL
    * Obsługuje zmianę stanu checkbox dla konkretnej pozycji
    */
   const handleItemCheck = (itemId: string, checked: boolean) => {
-    const updatedItems = items.map((item) =>
-      item.id === itemId ? { ...item, checked } : item
-    );
+    const updatedItems = items.map((item) => (item.id === itemId ? { ...item, checked } : item));
     onItemsChange(updatedItems);
   };
 
@@ -26,9 +24,7 @@ export function EditableShoppingList({ items, onItemsChange }: EditableShoppingL
    * Obsługuje zmianę ilości dla konkretnej pozycji
    */
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
-    const updatedItems = items.map((item) =>
-      item.id === itemId ? { ...item, editedQuantity: newQuantity } : item
-    );
+    const updatedItems = items.map((item) => (item.id === itemId ? { ...item, editedQuantity: newQuantity } : item));
     onItemsChange(updatedItems);
   };
 
@@ -46,9 +42,7 @@ export function EditableShoppingList({ items, onItemsChange }: EditableShoppingL
       <div className="flex flex-col items-center justify-center py-8 space-y-3 text-center">
         <p className="text-2xl">📋</p>
         <p className="text-lg font-semibold">Lista jest pusta</p>
-        <p className="text-sm text-muted-foreground">
-          Wszystkie składniki zostały usunięte z listy.
-        </p>
+        <p className="text-sm text-muted-foreground">Wszystkie składniki zostały usunięte z listy.</p>
       </div>
     );
   }
@@ -57,7 +51,7 @@ export function EditableShoppingList({ items, onItemsChange }: EditableShoppingL
     <div className="space-y-3">
       {/* Info header */}
       <p className="text-sm text-muted-foreground" aria-live="polite">
-        {items.length} {items.length === 1 ? 'składnik' : 'składników'} do kupienia
+        {items.length} {items.length === 1 ? "składnik" : "składników"} do kupienia
       </p>
 
       {/* Lista pozycji */}
@@ -80,4 +74,3 @@ export function EditableShoppingList({ items, onItemsChange }: EditableShoppingL
     </div>
   );
 }
-

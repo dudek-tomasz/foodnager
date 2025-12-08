@@ -2,7 +2,7 @@
  * Unit tests for Recipe validation schemas
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 import {
   createRecipeSchema,
   listRecipesQuerySchema,
@@ -10,26 +10,25 @@ import {
   recipeIngredientSchema,
   updateRecipeSchema,
   type CreateRecipeSchema,
-  type ListRecipesQuerySchema,
   type UpdateRecipeSchema,
-} from './recipe.validation';
+} from "./recipe.validation";
 
 // =============================================================================
 // QUERY PARAMETERS SCHEMA TESTS
 // =============================================================================
 
-describe('listRecipesQuerySchema', () => {
-  describe('happy path', () => {
-    it('should validate query with all optional parameters', () => {
+describe("listRecipesQuerySchema", () => {
+  describe("happy path", () => {
+    it("should validate query with all optional parameters", () => {
       // Arrange
       const input = {
-        search: 'pasta',
-        source: 'user' as const,
-        difficulty: 'easy' as const,
-        tags: '1,2,3',
+        search: "pasta",
+        source: "user" as const,
+        difficulty: "easy" as const,
+        tags: "1,2,3",
         max_cooking_time: 30,
-        sort: 'title' as const,
-        order: 'asc' as const,
+        sort: "title" as const,
+        order: "asc" as const,
         page: 2,
         limit: 50,
       };
@@ -41,20 +40,20 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toMatchObject({
-          search: 'pasta',
-          source: 'user',
-          difficulty: 'easy',
+          search: "pasta",
+          source: "user",
+          difficulty: "easy",
           tags: [1, 2, 3],
           max_cooking_time: 30,
-          sort: 'title',
-          order: 'asc',
+          sort: "title",
+          order: "asc",
           page: 2,
           limit: 50,
         });
       }
     });
 
-    it('should apply default values for sort, order, page, and limit', () => {
+    it("should apply default values for sort, order, page, and limit", () => {
       // Arrange
       const input = {};
 
@@ -64,16 +63,16 @@ describe('listRecipesQuerySchema', () => {
       // Assert
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.sort).toBe('created_at');
-        expect(result.data.order).toBe('desc');
+        expect(result.data.sort).toBe("created_at");
+        expect(result.data.order).toBe("desc");
         expect(result.data.page).toBe(1);
         expect(result.data.limit).toBe(20);
       }
     });
 
-    it('should trim search parameter', () => {
+    it("should trim search parameter", () => {
       // Arrange
-      const input = { search: '  pasta  ' };
+      const input = { search: "  pasta  " };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -81,13 +80,13 @@ describe('listRecipesQuerySchema', () => {
       // Assert
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.search).toBe('pasta');
+        expect(result.data.search).toBe("pasta");
       }
     });
 
-    it('should transform empty tags string to undefined', () => {
+    it("should transform empty tags string to undefined", () => {
       // Arrange
-      const input = { tags: '  ' };
+      const input = { tags: "  " };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -99,12 +98,12 @@ describe('listRecipesQuerySchema', () => {
       }
     });
 
-    it('should coerce string numbers to numbers', () => {
+    it("should coerce string numbers to numbers", () => {
       // Arrange
       const input = {
-        max_cooking_time: '45',
-        page: '3',
-        limit: '25',
+        max_cooking_time: "45",
+        page: "3",
+        limit: "25",
       };
 
       // Act
@@ -120,8 +119,8 @@ describe('listRecipesQuerySchema', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should accept minimum valid page (1)', () => {
+  describe("edge cases", () => {
+    it("should accept minimum valid page (1)", () => {
       // Arrange
       const input = { page: 1 };
 
@@ -132,7 +131,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept minimum valid limit (1)', () => {
+    it("should accept minimum valid limit (1)", () => {
       // Arrange
       const input = { limit: 1 };
 
@@ -143,7 +142,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept maximum valid limit (100)', () => {
+    it("should accept maximum valid limit (100)", () => {
       // Arrange
       const input = { limit: 100 };
 
@@ -154,9 +153,9 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should parse single tag', () => {
+    it("should parse single tag", () => {
       // Arrange
-      const input = { tags: '5' };
+      const input = { tags: "5" };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -168,9 +167,9 @@ describe('listRecipesQuerySchema', () => {
       }
     });
 
-    it('should handle tags with spaces', () => {
+    it("should handle tags with spaces", () => {
       // Arrange
-      const input = { tags: ' 1 , 2 , 3 ' };
+      const input = { tags: " 1 , 2 , 3 " };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -183,10 +182,10 @@ describe('listRecipesQuerySchema', () => {
     });
   });
 
-  describe('validation errors', () => {
-    it('should reject invalid source enum value', () => {
+  describe("validation errors", () => {
+    it("should reject invalid source enum value", () => {
       // Arrange
-      const input = { source: 'invalid' };
+      const input = { source: "invalid" };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -195,9 +194,9 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid difficulty enum value', () => {
+    it("should reject invalid difficulty enum value", () => {
       // Arrange
-      const input = { difficulty: 'super-hard' };
+      const input = { difficulty: "super-hard" };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -206,9 +205,9 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid sort value', () => {
+    it("should reject invalid sort value", () => {
       // Arrange
-      const input = { sort: 'invalid_field' };
+      const input = { sort: "invalid_field" };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -217,9 +216,9 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid order value', () => {
+    it("should reject invalid order value", () => {
       // Arrange
-      const input = { order: 'random' };
+      const input = { order: "random" };
 
       // Act
       const result = listRecipesQuerySchema.safeParse(input);
@@ -228,7 +227,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject page less than 1', () => {
+    it("should reject page less than 1", () => {
       // Arrange
       const input = { page: 0 };
 
@@ -239,7 +238,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject negative page', () => {
+    it("should reject negative page", () => {
       // Arrange
       const input = { page: -1 };
 
@@ -250,7 +249,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject limit less than 1', () => {
+    it("should reject limit less than 1", () => {
       // Arrange
       const input = { limit: 0 };
 
@@ -261,7 +260,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject limit greater than 100', () => {
+    it("should reject limit greater than 100", () => {
       // Arrange
       const input = { limit: 101 };
 
@@ -272,7 +271,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject zero max_cooking_time', () => {
+    it("should reject zero max_cooking_time", () => {
       // Arrange
       const input = { max_cooking_time: 0 };
 
@@ -283,7 +282,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject negative max_cooking_time', () => {
+    it("should reject negative max_cooking_time", () => {
       // Arrange
       const input = { max_cooking_time: -10 };
 
@@ -294,7 +293,7 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-integer max_cooking_time', () => {
+    it("should reject non-integer max_cooking_time", () => {
       // Arrange
       const input = { max_cooking_time: 30.5 };
 
@@ -305,13 +304,13 @@ describe('listRecipesQuerySchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject tags with invalid format (non-numeric)', () => {
+    it("should reject tags with invalid format (non-numeric)", () => {
       // Arrange
-      const input = { tags: '1,abc,3' };
+      const input = { tags: "1,abc,3" };
 
       // Act & Assert
       // The transform function throws an error for invalid tag IDs
-      expect(() => listRecipesQuerySchema.parse(input)).toThrow('Invalid tag ID');
+      expect(() => listRecipesQuerySchema.parse(input)).toThrow("Invalid tag ID");
     });
   });
 });
@@ -320,9 +319,9 @@ describe('listRecipesQuerySchema', () => {
 // RECIPE INGREDIENT SCHEMA TESTS
 // =============================================================================
 
-describe('recipeIngredientSchema', () => {
-  describe('happy path', () => {
-    it('should validate valid ingredient', () => {
+describe("recipeIngredientSchema", () => {
+  describe("happy path", () => {
+    it("should validate valid ingredient", () => {
       // Arrange
       const input = {
         product_id: 1,
@@ -340,7 +339,7 @@ describe('recipeIngredientSchema', () => {
       }
     });
 
-    it('should accept decimal quantity', () => {
+    it("should accept decimal quantity", () => {
       // Arrange
       const input = {
         product_id: 1,
@@ -356,8 +355,8 @@ describe('recipeIngredientSchema', () => {
     });
   });
 
-  describe('validation errors', () => {
-    it('should reject zero product_id', () => {
+  describe("validation errors", () => {
+    it("should reject zero product_id", () => {
       // Arrange
       const input = {
         product_id: 0,
@@ -371,11 +370,11 @@ describe('recipeIngredientSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('positive integer');
+        expect(result.error.issues[0].message).toContain("positive integer");
       }
     });
 
-    it('should reject negative product_id', () => {
+    it("should reject negative product_id", () => {
       // Arrange
       const input = {
         product_id: -1,
@@ -390,7 +389,7 @@ describe('recipeIngredientSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject decimal product_id', () => {
+    it("should reject decimal product_id", () => {
       // Arrange
       const input = {
         product_id: 1.5,
@@ -405,7 +404,7 @@ describe('recipeIngredientSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject zero quantity', () => {
+    it("should reject zero quantity", () => {
       // Arrange
       const input = {
         product_id: 1,
@@ -419,11 +418,11 @@ describe('recipeIngredientSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('positive');
+        expect(result.error.issues[0].message).toContain("positive");
       }
     });
 
-    it('should reject negative quantity', () => {
+    it("should reject negative quantity", () => {
       // Arrange
       const input = {
         product_id: 1,
@@ -438,7 +437,7 @@ describe('recipeIngredientSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject zero unit_id', () => {
+    it("should reject zero unit_id", () => {
       // Arrange
       const input = {
         product_id: 1,
@@ -452,11 +451,11 @@ describe('recipeIngredientSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('positive integer');
+        expect(result.error.issues[0].message).toContain("positive integer");
       }
     });
 
-    it('should reject missing required fields', () => {
+    it("should reject missing required fields", () => {
       // Arrange
       const input = {};
 
@@ -473,22 +472,22 @@ describe('recipeIngredientSchema', () => {
 // CREATE RECIPE SCHEMA TESTS
 // =============================================================================
 
-describe('createRecipeSchema', () => {
+describe("createRecipeSchema", () => {
   const validIngredient = {
     product_id: 1,
     quantity: 2,
     unit_id: 1,
   };
 
-  describe('happy path', () => {
-    it('should validate complete recipe with all fields', () => {
+  describe("happy path", () => {
+    it("should validate complete recipe with all fields", () => {
       // Arrange
       const input: CreateRecipeSchema = {
-        title: 'Pasta Carbonara',
-        description: 'Classic Italian pasta dish',
-        instructions: 'Cook pasta, mix with eggs and cheese',
+        title: "Pasta Carbonara",
+        description: "Classic Italian pasta dish",
+        instructions: "Cook pasta, mix with eggs and cheese",
         cooking_time: 30,
-        difficulty: 'medium',
+        difficulty: "medium",
         ingredients: [validIngredient],
         tag_ids: [1, 2],
       };
@@ -503,11 +502,11 @@ describe('createRecipeSchema', () => {
       }
     });
 
-    it('should validate recipe with minimal required fields', () => {
+    it("should validate recipe with minimal required fields", () => {
       // Arrange
       const input = {
-        title: 'Simple Recipe',
-        instructions: 'Cook',
+        title: "Simple Recipe",
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -518,11 +517,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should trim title and instructions', () => {
+    it("should trim title and instructions", () => {
       // Arrange
       const input = {
-        title: '  Pasta  ',
-        instructions: '  Cook it  ',
+        title: "  Pasta  ",
+        instructions: "  Cook it  ",
         ingredients: [validIngredient],
       };
 
@@ -532,16 +531,16 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.title).toBe('Pasta');
-        expect(result.data.instructions).toBe('Cook it');
+        expect(result.data.title).toBe("Pasta");
+        expect(result.data.instructions).toBe("Cook it");
       }
     });
 
-    it('should accept null cooking_time', () => {
+    it("should accept null cooking_time", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         cooking_time: null,
         ingredients: [validIngredient],
       };
@@ -553,11 +552,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept null difficulty', () => {
+    it("should accept null difficulty", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         difficulty: null,
         ingredients: [validIngredient],
       };
@@ -569,11 +568,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept multiple ingredients', () => {
+    it("should accept multiple ingredients", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [
           { product_id: 1, quantity: 2, unit_id: 1 },
           { product_id: 2, quantity: 3, unit_id: 2 },
@@ -588,11 +587,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept empty tag_ids array', () => {
+    it("should accept empty tag_ids array", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [validIngredient],
         tag_ids: [],
       };
@@ -605,12 +604,12 @@ describe('createRecipeSchema', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should accept title with exactly 255 characters', () => {
+  describe("edge cases", () => {
+    it("should accept title with exactly 255 characters", () => {
       // Arrange
       const input = {
-        title: 'a'.repeat(255),
-        instructions: 'Cook',
+        title: "a".repeat(255),
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -621,11 +620,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept cooking_time of 1 minute', () => {
+    it("should accept cooking_time of 1 minute", () => {
       // Arrange
       const input = {
-        title: 'Quick Recipe',
-        instructions: 'Cook',
+        title: "Quick Recipe",
+        instructions: "Cook",
         cooking_time: 1,
         ingredients: [validIngredient],
       };
@@ -637,11 +636,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept very long cooking_time', () => {
+    it("should accept very long cooking_time", () => {
       // Arrange
       const input = {
-        title: 'Slow Cooked',
-        instructions: 'Cook',
+        title: "Slow Cooked",
+        instructions: "Cook",
         cooking_time: 999999,
         ingredients: [validIngredient],
       };
@@ -654,12 +653,12 @@ describe('createRecipeSchema', () => {
     });
   });
 
-  describe('validation errors', () => {
-    it('should reject empty title', () => {
+  describe("validation errors", () => {
+    it("should reject empty title", () => {
       // Arrange
       const input = {
-        title: '',
-        instructions: 'Cook',
+        title: "",
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -669,15 +668,15 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('required');
+        expect(result.error.issues[0].message).toContain("required");
       }
     });
 
-    it('should reject title with only whitespace', () => {
+    it("should reject title with only whitespace", () => {
       // Arrange
       const input = {
-        title: '   ',
-        instructions: 'Cook',
+        title: "   ",
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -688,11 +687,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject title exceeding 255 characters', () => {
+    it("should reject title exceeding 255 characters", () => {
       // Arrange
       const input = {
-        title: 'a'.repeat(256),
-        instructions: 'Cook',
+        title: "a".repeat(256),
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -702,14 +701,14 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('255 characters');
+        expect(result.error.issues[0].message).toContain("255 characters");
       }
     });
 
-    it('should reject missing title', () => {
+    it("should reject missing title", () => {
       // Arrange
       const input = {
-        instructions: 'Cook',
+        instructions: "Cook",
         ingredients: [validIngredient],
       };
 
@@ -720,11 +719,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty instructions', () => {
+    it("should reject empty instructions", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: '',
+        title: "Recipe",
+        instructions: "",
         ingredients: [validIngredient],
       };
 
@@ -734,15 +733,15 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('required');
+        expect(result.error.issues[0].message).toContain("required");
       }
     });
 
-    it('should reject instructions with only whitespace', () => {
+    it("should reject instructions with only whitespace", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: '   ',
+        title: "Recipe",
+        instructions: "   ",
         ingredients: [validIngredient],
       };
 
@@ -753,10 +752,10 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject missing instructions', () => {
+    it("should reject missing instructions", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
+        title: "Recipe",
         ingredients: [validIngredient],
       };
 
@@ -767,11 +766,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject zero cooking_time', () => {
+    it("should reject zero cooking_time", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         cooking_time: 0,
         ingredients: [validIngredient],
       };
@@ -782,15 +781,15 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('positive');
+        expect(result.error.issues[0].message).toContain("positive");
       }
     });
 
-    it('should reject negative cooking_time', () => {
+    it("should reject negative cooking_time", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         cooking_time: -10,
         ingredients: [validIngredient],
       };
@@ -802,11 +801,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject decimal cooking_time', () => {
+    it("should reject decimal cooking_time", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         cooking_time: 30.5,
         ingredients: [validIngredient],
       };
@@ -818,12 +817,12 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid difficulty value', () => {
+    it("should reject invalid difficulty value", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
-        difficulty: 'impossible',
+        title: "Recipe",
+        instructions: "Cook",
+        difficulty: "impossible",
         ingredients: [validIngredient],
       };
 
@@ -834,11 +833,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty ingredients array', () => {
+    it("should reject empty ingredients array", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [],
       };
 
@@ -848,15 +847,15 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least one ingredient');
+        expect(result.error.issues[0].message).toContain("at least one ingredient");
       }
     });
 
-    it('should reject missing ingredients', () => {
+    it("should reject missing ingredients", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
       };
 
       // Act
@@ -866,11 +865,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject duplicate product_ids in ingredients', () => {
+    it("should reject duplicate product_ids in ingredients", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [
           { product_id: 1, quantity: 2, unit_id: 1 },
           { product_id: 2, quantity: 3, unit_id: 2 },
@@ -884,15 +883,15 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Duplicate products');
+        expect(result.error.issues[0].message).toContain("Duplicate products");
       }
     });
 
-    it('should reject invalid ingredient in array', () => {
+    it("should reject invalid ingredient in array", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [
           { product_id: 1, quantity: 2, unit_id: 1 },
           { product_id: 0, quantity: -1, unit_id: 2 }, // invalid
@@ -906,11 +905,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-positive tag_ids', () => {
+    it("should reject non-positive tag_ids", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [validIngredient],
         tag_ids: [1, 0, 3],
       };
@@ -922,11 +921,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject negative tag_ids', () => {
+    it("should reject negative tag_ids", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [validIngredient],
         tag_ids: [1, -2, 3],
       };
@@ -938,11 +937,11 @@ describe('createRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject decimal tag_ids', () => {
+    it("should reject decimal tag_ids", () => {
       // Arrange
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [validIngredient],
         tag_ids: [1, 2.5, 3],
       };
@@ -955,12 +954,12 @@ describe('createRecipeSchema', () => {
     });
   });
 
-  describe('business rules', () => {
-    it('should enforce unique products across ingredients (business rule)', () => {
+  describe("business rules", () => {
+    it("should enforce unique products across ingredients (business rule)", () => {
       // Arrange - attempting to add same product twice
       const input = {
-        title: 'Recipe',
-        instructions: 'Cook',
+        title: "Recipe",
+        instructions: "Cook",
         ingredients: [
           { product_id: 5, quantity: 100, unit_id: 1 },
           { product_id: 5, quantity: 50, unit_id: 2 }, // same product, different unit
@@ -973,7 +972,7 @@ describe('createRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Duplicate products');
+        expect(result.error.issues[0].message).toContain("Duplicate products");
       }
     });
   });
@@ -983,18 +982,18 @@ describe('createRecipeSchema', () => {
 // UPDATE RECIPE SCHEMA TESTS
 // =============================================================================
 
-describe('updateRecipeSchema', () => {
+describe("updateRecipeSchema", () => {
   const validIngredient = {
     product_id: 1,
     quantity: 2,
     unit_id: 1,
   };
 
-  describe('happy path', () => {
-    it('should validate update with single field', () => {
+  describe("happy path", () => {
+    it("should validate update with single field", () => {
       // Arrange
       const input = {
-        title: 'Updated Title',
+        title: "Updated Title",
       };
 
       // Act
@@ -1004,13 +1003,13 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate update with multiple fields', () => {
+    it("should validate update with multiple fields", () => {
       // Arrange
       const input: UpdateRecipeSchema = {
-        title: 'Updated Title',
-        description: 'Updated description',
+        title: "Updated Title",
+        description: "Updated description",
         cooking_time: 45,
-        difficulty: 'hard',
+        difficulty: "hard",
       };
 
       // Act
@@ -1020,15 +1019,15 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate update with all fields', () => {
+    it("should validate update with all fields", () => {
       // Arrange
       const input: UpdateRecipeSchema = {
-        title: 'Updated Recipe',
-        description: 'New description',
-        instructions: 'New instructions',
+        title: "Updated Recipe",
+        description: "New description",
+        instructions: "New instructions",
         cooking_time: 60,
-        difficulty: 'easy',
-        source: 'ai',
+        difficulty: "easy",
+        source: "ai",
         ingredients: [validIngredient],
         tag_ids: [1, 2],
       };
@@ -1040,11 +1039,11 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should trim title and instructions when provided', () => {
+    it("should trim title and instructions when provided", () => {
       // Arrange
       const input = {
-        title: '  Updated  ',
-        instructions: '  New steps  ',
+        title: "  Updated  ",
+        instructions: "  New steps  ",
       };
 
       // Act
@@ -1053,12 +1052,12 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.title).toBe('Updated');
-        expect(result.data.instructions).toBe('New steps');
+        expect(result.data.title).toBe("Updated");
+        expect(result.data.instructions).toBe("New steps");
       }
     });
 
-    it('should accept null values for nullable fields', () => {
+    it("should accept null values for nullable fields", () => {
       // Arrange
       const input = {
         description: null,
@@ -1073,10 +1072,10 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept source field update', () => {
+    it("should accept source field update", () => {
       // Arrange
       const input = {
-        source: 'ai' as const,
+        source: "ai" as const,
       };
 
       // Act
@@ -1087,11 +1086,11 @@ describe('updateRecipeSchema', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should accept title with exactly 255 characters', () => {
+  describe("edge cases", () => {
+    it("should accept title with exactly 255 characters", () => {
       // Arrange
       const input = {
-        title: 'a'.repeat(255),
+        title: "a".repeat(255),
       };
 
       // Act
@@ -1101,7 +1100,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept empty tag_ids array', () => {
+    it("should accept empty tag_ids array", () => {
       // Arrange
       const input = {
         tag_ids: [],
@@ -1115,8 +1114,8 @@ describe('updateRecipeSchema', () => {
     });
   });
 
-  describe('validation errors', () => {
-    it('should reject empty update object', () => {
+  describe("validation errors", () => {
+    it("should reject empty update object", () => {
       // Arrange
       const input = {};
 
@@ -1126,14 +1125,14 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('At least one field is required');
+        expect(result.error.issues[0].message).toContain("At least one field is required");
       }
     });
 
-    it('should reject empty title when provided', () => {
+    it("should reject empty title when provided", () => {
       // Arrange
       const input = {
-        title: '',
+        title: "",
       };
 
       // Act
@@ -1142,14 +1141,14 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('cannot be empty');
+        expect(result.error.issues[0].message).toContain("cannot be empty");
       }
     });
 
-    it('should reject title with only whitespace', () => {
+    it("should reject title with only whitespace", () => {
       // Arrange
       const input = {
-        title: '   ',
+        title: "   ",
       };
 
       // Act
@@ -1159,10 +1158,10 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject title exceeding 255 characters', () => {
+    it("should reject title exceeding 255 characters", () => {
       // Arrange
       const input = {
-        title: 'a'.repeat(256),
+        title: "a".repeat(256),
       };
 
       // Act
@@ -1171,14 +1170,14 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('255 characters');
+        expect(result.error.issues[0].message).toContain("255 characters");
       }
     });
 
-    it('should reject empty instructions when provided', () => {
+    it("should reject empty instructions when provided", () => {
       // Arrange
       const input = {
-        instructions: '',
+        instructions: "",
       };
 
       // Act
@@ -1187,14 +1186,14 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('cannot be empty');
+        expect(result.error.issues[0].message).toContain("cannot be empty");
       }
     });
 
-    it('should reject instructions with only whitespace', () => {
+    it("should reject instructions with only whitespace", () => {
       // Arrange
       const input = {
-        instructions: '   ',
+        instructions: "   ",
       };
 
       // Act
@@ -1204,7 +1203,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject zero cooking_time when provided', () => {
+    it("should reject zero cooking_time when provided", () => {
       // Arrange
       const input = {
         cooking_time: 0,
@@ -1217,7 +1216,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject negative cooking_time', () => {
+    it("should reject negative cooking_time", () => {
       // Arrange
       const input = {
         cooking_time: -5,
@@ -1230,7 +1229,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject decimal cooking_time', () => {
+    it("should reject decimal cooking_time", () => {
       // Arrange
       const input = {
         cooking_time: 30.5,
@@ -1243,10 +1242,10 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid difficulty value', () => {
+    it("should reject invalid difficulty value", () => {
       // Arrange
       const input = {
-        difficulty: 'super-easy',
+        difficulty: "super-easy",
       };
 
       // Act
@@ -1256,10 +1255,10 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject invalid source value', () => {
+    it("should reject invalid source value", () => {
       // Arrange
       const input = {
-        source: 'external',
+        source: "external",
       };
 
       // Act
@@ -1269,7 +1268,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty ingredients array when provided', () => {
+    it("should reject empty ingredients array when provided", () => {
       // Arrange
       const input = {
         ingredients: [],
@@ -1281,11 +1280,11 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least one ingredient');
+        expect(result.error.issues[0].message).toContain("at least one ingredient");
       }
     });
 
-    it('should reject duplicate product_ids in ingredients when provided', () => {
+    it("should reject duplicate product_ids in ingredients when provided", () => {
       // Arrange
       const input = {
         ingredients: [
@@ -1300,11 +1299,11 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Duplicate products');
+        expect(result.error.issues[0].message).toContain("Duplicate products");
       }
     });
 
-    it('should reject invalid ingredient in array', () => {
+    it("should reject invalid ingredient in array", () => {
       // Arrange
       const input = {
         ingredients: [
@@ -1320,7 +1319,7 @@ describe('updateRecipeSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-positive tag_ids', () => {
+    it("should reject non-positive tag_ids", () => {
       // Arrange
       const input = {
         tag_ids: [1, 0, 3],
@@ -1334,8 +1333,8 @@ describe('updateRecipeSchema', () => {
     });
   });
 
-  describe('business rules', () => {
-    it('should require at least one field for update (business rule)', () => {
+  describe("business rules", () => {
+    it("should require at least one field for update (business rule)", () => {
       // Arrange - empty update object
       const input = {};
 
@@ -1345,11 +1344,11 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('At least one field is required');
+        expect(result.error.issues[0].message).toContain("At least one field is required");
       }
     });
 
-    it('should enforce unique products in ingredients when updating (business rule)', () => {
+    it("should enforce unique products in ingredients when updating (business rule)", () => {
       // Arrange
       const input = {
         ingredients: [
@@ -1364,7 +1363,7 @@ describe('updateRecipeSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Duplicate products');
+        expect(result.error.issues[0].message).toContain("Duplicate products");
       }
     });
   });
@@ -1374,9 +1373,9 @@ describe('updateRecipeSchema', () => {
 // RECIPE ID SCHEMA TESTS
 // =============================================================================
 
-describe('recipeIdSchema', () => {
-  describe('happy path', () => {
-    it('should validate positive integer', () => {
+describe("recipeIdSchema", () => {
+  describe("happy path", () => {
+    it("should validate positive integer", () => {
       // Arrange
       const input = 123;
 
@@ -1390,9 +1389,9 @@ describe('recipeIdSchema', () => {
       }
     });
 
-    it('should coerce string number to number', () => {
+    it("should coerce string number to number", () => {
       // Arrange
-      const input = '456';
+      const input = "456";
 
       // Act
       const result = recipeIdSchema.safeParse(input);
@@ -1404,7 +1403,7 @@ describe('recipeIdSchema', () => {
       }
     });
 
-    it('should accept ID value of 1', () => {
+    it("should accept ID value of 1", () => {
       // Arrange
       const input = 1;
 
@@ -1416,8 +1415,8 @@ describe('recipeIdSchema', () => {
     });
   });
 
-  describe('validation errors', () => {
-    it('should reject zero', () => {
+  describe("validation errors", () => {
+    it("should reject zero", () => {
       // Arrange
       const input = 0;
 
@@ -1427,11 +1426,11 @@ describe('recipeIdSchema', () => {
       // Assert
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Invalid recipe ID');
+        expect(result.error.issues[0].message).toContain("Invalid recipe ID");
       }
     });
 
-    it('should reject negative number', () => {
+    it("should reject negative number", () => {
       // Arrange
       const input = -5;
 
@@ -1442,7 +1441,7 @@ describe('recipeIdSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject decimal number', () => {
+    it("should reject decimal number", () => {
       // Arrange
       const input = 12.5;
 
@@ -1453,9 +1452,9 @@ describe('recipeIdSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject non-numeric string', () => {
+    it("should reject non-numeric string", () => {
       // Arrange
-      const input = 'abc';
+      const input = "abc";
 
       // Act
       const result = recipeIdSchema.safeParse(input);
@@ -1464,9 +1463,9 @@ describe('recipeIdSchema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty string', () => {
+    it("should reject empty string", () => {
       // Arrange
-      const input = '';
+      const input = "";
 
       // Act
       const result = recipeIdSchema.safeParse(input);
@@ -1476,4 +1475,3 @@ describe('recipeIdSchema', () => {
     });
   });
 });
-

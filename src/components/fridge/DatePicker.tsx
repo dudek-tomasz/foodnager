@@ -1,12 +1,12 @@
 /**
  * DatePicker - Simple date picker for expiry date selection
- * 
+ *
  * Uses HTML5 date input with styling
  */
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface DatePickerProps {
   value: string | null;
@@ -25,7 +25,7 @@ export default function DatePicker({
   disabled = false,
   minDate,
   showClearButton = true,
-  testId = 'date-picker',
+  testId = "date-picker",
 }: DatePickerProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -37,7 +37,7 @@ export default function DatePicker({
   };
 
   // Format date for display (if needed)
-  const displayValue = value || '';
+  const displayValue = value || "";
 
   return (
     <div className="space-y-2">
@@ -48,11 +48,11 @@ export default function DatePicker({
           onChange={handleChange}
           disabled={disabled}
           min={minDate}
-          className={`flex-1 ${error ? 'border-red-500' : ''}`}
+          className={`flex-1 ${error ? "border-red-500" : ""}`}
           aria-label="Wybierz datę ważności"
           data-testid={`${testId}-input`}
         />
-        
+
         {showClearButton && value && !disabled && (
           <Button
             type="button"
@@ -71,19 +71,13 @@ export default function DatePicker({
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </Button>
         )}
       </div>
-      
+
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }
-
-

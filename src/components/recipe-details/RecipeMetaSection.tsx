@@ -2,15 +2,11 @@
  * RecipeMetaSection - Recipe metadata display (cooking time, difficulty, tags)
  */
 
-import React from 'react';
-import MetaItem from './MetaItem';
-import TagBadge from './TagBadge';
-import type { DifficultyEnum, TagDTO } from '../../types';
-import {
-  getDifficultyLabel,
-  getDifficultyColor,
-  formatCookingTime,
-} from '../../lib/utils/recipe-utils';
+import React from "react";
+import MetaItem from "./MetaItem";
+import TagBadge from "./TagBadge";
+import type { DifficultyEnum, TagDTO } from "../../types";
+import { getDifficultyLabel, getDifficultyColor, formatCookingTime } from "../../lib/utils/recipe-utils";
 
 interface RecipeMetaSectionProps {
   cookingTime: number | null;
@@ -18,11 +14,7 @@ interface RecipeMetaSectionProps {
   tags: TagDTO[];
 }
 
-export default function RecipeMetaSection({
-  cookingTime,
-  difficulty,
-  tags,
-}: RecipeMetaSectionProps) {
+export default function RecipeMetaSection({ cookingTime, difficulty, tags }: RecipeMetaSectionProps) {
   const hasMeta = cookingTime !== null || difficulty !== null || tags.length > 0;
 
   if (!hasMeta) {
@@ -44,11 +36,7 @@ export default function RecipeMetaSection({
                 stroke="currentColor"
                 strokeWidth={2}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
             label="Czas przygotowania"
@@ -112,4 +100,3 @@ export default function RecipeMetaSection({
     </section>
   );
 }
-

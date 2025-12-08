@@ -1,20 +1,20 @@
 /**
  * POST /api/auth/login
- * 
+ *
  * Endpoint for user login with email and password.
  * Following auth-spec.md specifications:
  * - Server-side validation using Zod
  * - Uses authService for business logic
  * - Proper error handling and status codes
  * - Sets session cookies via Supabase SSR
- * 
+ *
  * MVP: Email verification is optional - user can login without verification
  */
 
-import type { APIRoute } from 'astro';
-import { authService } from '@/lib/services/auth.service';
-import { loginSchema } from '@/lib/validations/auth.validation';
-import { isAuthError } from '@/lib/errors/auth.error';
+import type { APIRoute } from "astro";
+import { authService } from "@/lib/services/auth.service";
+import { loginSchema } from "@/lib/validations/auth.validation";
+import { isAuthError } from "@/lib/errors/auth.error";
 
 export const prerender = false;
 
@@ -30,10 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         JSON.stringify({
           success: false,
           error: {
-            message: 'Nieprawidłowe dane wejściowe',
-            code: 'VALIDATION_ERROR',
+            message: "Nieprawidłowe dane wejściowe",
+            code: "VALIDATION_ERROR",
             details: validationResult.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -94,29 +94,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: error.statusCode,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: {
-          message: 'Wystąpił błąd podczas logowania. Spróbuj ponownie.',
-          code: 'INTERNAL_ERROR',
+          message: "Wystąpił błąd podczas logowania. Spróbuj ponownie.",
+          code: "INTERNAL_ERROR",
         },
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   }
 };
-

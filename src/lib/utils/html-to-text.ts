@@ -1,6 +1,6 @@
 /**
  * HTML to Text Converter
- * 
+ *
  * Converts HTML content (especially recipe instructions) to readable text
  */
 
@@ -8,7 +8,7 @@
  * Convert HTML ordered/unordered list to numbered/bulleted text
  */
 export function htmlToText(html: string): string {
-  if (!html) return '';
+  if (!html) return "";
 
   let text = html;
 
@@ -38,20 +38,20 @@ export function htmlToText(html: string): string {
   });
 
   // Convert paragraphs to newlines
-  text = text.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+  text = text.replace(/<p[^>]*>(.*?)<\/p>/gi, "$1\n\n");
 
   // Convert breaks to newlines
-  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<br\s*\/?>/gi, "\n");
 
   // Convert headers to text with newlines
-  text = text.replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '\n$1\n');
+  text = text.replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, "\n$1\n");
 
   // Remove remaining HTML tags
   text = stripHtmlTags(text);
 
   // Clean up excessive whitespace
-  text = text.replace(/\n{3,}/g, '\n\n'); // Max 2 newlines
-  text = text.replace(/[ \t]+/g, ' '); // Single spaces
+  text = text.replace(/\n{3,}/g, "\n\n"); // Max 2 newlines
+  text = text.replace(/[ \t]+/g, " "); // Single spaces
   text = text.trim();
 
   return text;
@@ -62,11 +62,11 @@ export function htmlToText(html: string): string {
  */
 export function stripHtmlTags(html: string): string {
   return html
-    .replace(/<[^>]*>/g, '') // Remove tags
-    .replace(/&nbsp;/g, ' ') // Replace &nbsp;
-    .replace(/&amp;/g, '&') // Replace &amp;
-    .replace(/&lt;/g, '<') // Replace &lt;
-    .replace(/&gt;/g, '>') // Replace &gt;
+    .replace(/<[^>]*>/g, "") // Remove tags
+    .replace(/&nbsp;/g, " ") // Replace &nbsp;
+    .replace(/&amp;/g, "&") // Replace &amp;
+    .replace(/&lt;/g, "<") // Replace &lt;
+    .replace(/&gt;/g, ">") // Replace &gt;
     .replace(/&quot;/g, '"') // Replace &quot;
     .replace(/&#39;/g, "'") // Replace &#39;
     .trim();
@@ -76,21 +76,20 @@ export function stripHtmlTags(html: string): string {
  * Extract plain text summary from HTML (for descriptions)
  * Removes all formatting and limits to reasonable length
  */
-export function extractSummary(html: string, maxLength: number = 500): string {
+export function extractSummary(html: string, maxLength = 500): string {
   const plainText = htmlToText(html);
-  
+
   if (plainText.length <= maxLength) {
     return plainText;
   }
 
   // Cut at sentence boundary if possible
-  const cutPoint = plainText.lastIndexOf('. ', maxLength);
+  const cutPoint = plainText.lastIndexOf(". ", maxLength);
   if (cutPoint > maxLength * 0.7) {
     return plainText.substring(0, cutPoint + 1);
   }
 
   // Otherwise cut at word boundary
-  const wordCutPoint = plainText.lastIndexOf(' ', maxLength);
-  return plainText.substring(0, wordCutPoint) + '...';
+  const wordCutPoint = plainText.lastIndexOf(" ", maxLength);
+  return plainText.substring(0, wordCutPoint) + "...";
 }
-

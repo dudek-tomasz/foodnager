@@ -1,16 +1,16 @@
 /**
  * SearchLoadingView - Step 2: Loading state during search
- * 
+ *
  * Shows skeleton cards with shimmer animation while searching for recipes
  */
 
-import React from 'react';
-import type { RecipeSource } from '@/types/recipe-search.types';
-import { SEARCH_TIMEOUTS } from '@/types/recipe-search.types';
-import SearchProgress from './SearchProgress';
-import RecipeCardSkeleton from './RecipeCardSkeleton';
-import TimeoutWarning from './TimeoutWarning';
-import CancelButton from './CancelButton';
+import React from "react";
+import type { RecipeSource } from "@/types/recipe-search.types";
+import { SEARCH_TIMEOUTS } from "@/types/recipe-search.types";
+import SearchProgress from "./SearchProgress";
+import RecipeCardSkeleton from "./RecipeCardSkeleton";
+import TimeoutWarning from "./TimeoutWarning";
+import CancelButton from "./CancelButton";
 
 interface SearchLoadingViewProps {
   currentSource: RecipeSource;
@@ -18,11 +18,7 @@ interface SearchLoadingViewProps {
   onCancel: () => void;
 }
 
-export default function SearchLoadingView({
-  currentSource,
-  searchDuration,
-  onCancel,
-}: SearchLoadingViewProps) {
+export default function SearchLoadingView({ currentSource, searchDuration, onCancel }: SearchLoadingViewProps) {
   const isTimedOut = searchDuration > SEARCH_TIMEOUTS.WARNING_THRESHOLD;
 
   return (
@@ -34,7 +30,7 @@ export default function SearchLoadingView({
       {isTimedOut && <TimeoutWarning />}
 
       {/* Grid of skeleton cards */}
-      <div 
+      <div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         aria-busy="true"
         aria-label="Ładowanie przepisów"
@@ -49,4 +45,3 @@ export default function SearchLoadingView({
     </div>
   );
 }
-

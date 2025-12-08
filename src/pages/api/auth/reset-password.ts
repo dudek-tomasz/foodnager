@@ -1,20 +1,20 @@
 /**
  * POST /api/auth/reset-password
- * 
+ *
  * Endpoint for resetting user password using token from email.
  * Following auth-spec.md specifications:
  * - Server-side validation using Zod
  * - Uses authService for business logic
  * - Verifies token from email link
  * - Updates password in Supabase Auth
- * 
+ *
  * US-001.7: Password recovery functionality
  */
 
-import type { APIRoute } from 'astro';
-import { authService } from '@/lib/services/auth.service';
-import { resetPasswordSchema } from '@/lib/validations/auth.validation';
-import { isAuthError } from '@/lib/errors/auth.error';
+import type { APIRoute } from "astro";
+import { authService } from "@/lib/services/auth.service";
+import { resetPasswordSchema } from "@/lib/validations/auth.validation";
+import { isAuthError } from "@/lib/errors/auth.error";
 
 export const prerender = false;
 
@@ -30,10 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         JSON.stringify({
           success: false,
           error: {
-            message: 'Nieprawidłowe dane wejściowe',
-            code: 'VALIDATION_ERROR',
+            message: "Nieprawidłowe dane wejściowe",
+            code: "VALIDATION_ERROR",
             details: validationResult.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -62,13 +62,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       JSON.stringify({
         success: true,
         data: {
-          message: 'Hasło zostało zmienione',
+          message: "Hasło zostało zmienione",
         },
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -86,29 +86,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: error.statusCode,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Reset password error:', error);
+    console.error("Reset password error:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: {
-          message: 'Wystąpił błąd podczas resetowania hasła',
-          code: 'INTERNAL_ERROR',
+          message: "Wystąpił błąd podczas resetowania hasła",
+          code: "INTERNAL_ERROR",
         },
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   }
 };
-

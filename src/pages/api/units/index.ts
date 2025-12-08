@@ -1,24 +1,20 @@
 /**
  * Units Dictionary API Endpoint
- * 
+ *
  * GET /api/units - List all measurement units
- * 
+ *
  * This is a simple dictionary endpoint that returns all available
  * measurement units in the system. Data is global (not user-specific)
  * and heavily cached due to infrequent changes.
  */
 
-import type { APIContext } from 'astro';
-import { UnitsService } from '../../../lib/services/units.service';
-import type { UnitsListResponseDTO } from '../../../types';
-import {
-  successResponse,
-  errorResponse,
-  handleError,
-} from '../../../lib/utils/api-response';
-import { cache, CACHE_KEYS, CACHE_TTL } from '../../../lib/utils/cache';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { UnitsService } from "../../../lib/services/units.service";
+import type { UnitsListResponseDTO } from "../../../types";
+import { successResponse, handleError } from "../../../lib/utils/api-response";
+import { cache, CACHE_KEYS, CACHE_TTL } from "../../../lib/utils/cache";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { UnauthorizedError } from "../../../lib/errors";
 
 // Disable pre-rendering for API routes
 export const prerender = false;
@@ -30,7 +26,7 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
@@ -38,13 +34,13 @@ function getAuthenticatedUser(context: APIContext): string {
 /**
  * GET /api/units
  * Lists all available measurement units
- * 
+ *
  * Features:
  * - Aggressive caching (1 hour TTL)
  * - No pagination (small dataset)
  * - Sorted alphabetically by name
  * - Returns X-Cache header (HIT/MISS) for monitoring
- * 
+ *
  * @returns UnitsListResponseDTO with all units
  */
 export async function GET(context: APIContext): Promise<Response> {
@@ -64,11 +60,11 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Try cache first
     const cached = await cache.get<UnitsListResponseDTO>(CACHE_KEYS.UNITS_ALL);
-    
+
     if (cached) {
       // Cache HIT - return cached data immediately
       return successResponse(cached, 200, {
-        'X-Cache': 'HIT',
+        "X-Cache": "HIT",
       });
     }
 
@@ -85,10 +81,9 @@ export async function GET(context: APIContext): Promise<Response> {
 
     // Return response with cache MISS header
     return successResponse(response, 200, {
-      'X-Cache': 'MISS',
+      "X-Cache": "MISS",
     });
   } catch (error) {
     return handleError(error);
   }
 }
-

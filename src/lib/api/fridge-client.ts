@@ -3,24 +3,22 @@
  * Client-side functions for fridge-related API calls
  */
 
-import { apiClient } from '../api-client';
+import { apiClient } from "../api-client";
 import type {
   FridgeItemDTO,
   FridgeListResponseDTO,
   ListFridgeQueryDTO,
   CreateFridgeItemDTO,
   UpdateFridgeItemDTO,
-} from '../../types';
+} from "../../types";
 
 /**
  * Pobiera wszystkie produkty z lodówki użytkownika
  * @param query - Opcjonalne parametry filtrowania i paginacji
  * @returns Lista produktów z lodówki
  */
-export async function fetchFridgeItems(
-  query?: ListFridgeQueryDTO
-): Promise<FridgeListResponseDTO> {
-  return apiClient.get<FridgeListResponseDTO>('/api/fridge', query);
+export async function fetchFridgeItems(query?: ListFridgeQueryDTO): Promise<FridgeListResponseDTO> {
+  return apiClient.get<FridgeListResponseDTO>("/api/fridge", query);
 }
 
 /**
@@ -28,7 +26,7 @@ export async function fetchFridgeItems(
  * @returns Lista wszystkich produktów z lodówki
  */
 export async function fetchAllFridgeItems(): Promise<FridgeItemDTO[]> {
-  const response = await apiClient.get<FridgeListResponseDTO>('/api/fridge', {
+  const response = await apiClient.get<FridgeListResponseDTO>("/api/fridge", {
     limit: 1000, // Wysoki limit aby pobrać wszystkie
   });
   return response.data;
@@ -48,10 +46,8 @@ export async function fetchFridgeItem(itemId: number): Promise<FridgeItemDTO> {
  * @param item - Dane produktu do dodania
  * @returns Utworzony produkt w lodówce
  */
-export async function createFridgeItem(
-  item: CreateFridgeItemDTO
-): Promise<FridgeItemDTO> {
-  return apiClient.post<FridgeItemDTO>('/api/fridge', item);
+export async function createFridgeItem(item: CreateFridgeItemDTO): Promise<FridgeItemDTO> {
+  return apiClient.post<FridgeItemDTO>("/api/fridge", item);
 }
 
 /**
@@ -60,10 +56,7 @@ export async function createFridgeItem(
  * @param updates - Dane do aktualizacji
  * @returns Zaktualizowany produkt
  */
-export async function updateFridgeItem(
-  itemId: number,
-  updates: UpdateFridgeItemDTO
-): Promise<FridgeItemDTO> {
+export async function updateFridgeItem(itemId: number, updates: UpdateFridgeItemDTO): Promise<FridgeItemDTO> {
   return apiClient.patch<FridgeItemDTO>(`/api/fridge/${itemId}`, updates);
 }
 
@@ -72,6 +65,5 @@ export async function updateFridgeItem(
  * @param itemId - ID produktu w lodówce
  */
 export async function deleteFridgeItem(itemId: number): Promise<void> {
-  return apiClient.delete<void>(`/api/fridge/${itemId}`);
+  await apiClient.delete(`/api/fridge/${itemId}`);
 }
-

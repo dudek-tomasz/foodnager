@@ -1,11 +1,11 @@
 /**
  * ShoppingListErrorState - Error state dla listy zakupów
- * 
+ *
  * Wyświetlany gdy wystąpi błąd podczas generowania listy zakupów.
  */
 
-import { Button } from '../ui/button';
-import { AlertCircle } from 'lucide-react';
+import { Button } from "../ui/button";
+import { AlertCircle } from "lucide-react";
 
 interface ShoppingListErrorStateProps {
   /**
@@ -25,11 +25,7 @@ interface ShoppingListErrorStateProps {
 /**
  * Komponent error state z możliwością retry
  */
-export function ShoppingListErrorState({
-  errorMessage,
-  onRetry,
-  onClose,
-}: ShoppingListErrorStateProps) {
+export function ShoppingListErrorState({ errorMessage, onRetry, onClose }: ShoppingListErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
       {/* Error icon */}
@@ -59,4 +55,3 @@ export function ShoppingListErrorState({
     </div>
   );
 }
-

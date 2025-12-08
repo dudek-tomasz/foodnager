@@ -1,20 +1,20 @@
 /**
  * POST /api/auth/register
- * 
+ *
  * Endpoint for user registration with email and password.
  * Following auth-spec.md specifications:
  * - Server-side validation using Zod
  * - Uses authService for business logic
  * - Sends verification email (optional for MVP - user can login without clicking)
  * - Proper error handling and status codes
- * 
+ *
  * MVP: Email verification is OPTIONAL - user can login without verification
  */
 
-import type { APIRoute } from 'astro';
-import { authService } from '@/lib/services/auth.service';
-import { registerSchema } from '@/lib/validations/auth.validation';
-import { isAuthError } from '@/lib/errors/auth.error';
+import type { APIRoute } from "astro";
+import { authService } from "@/lib/services/auth.service";
+import { registerSchema } from "@/lib/validations/auth.validation";
+import { isAuthError } from "@/lib/errors/auth.error";
 
 export const prerender = false;
 
@@ -30,10 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         JSON.stringify({
           success: false,
           error: {
-            message: 'Nieprawidłowe dane wejściowe',
-            code: 'VALIDATION_ERROR',
+            message: "Nieprawidłowe dane wejściowe",
+            code: "VALIDATION_ERROR",
             details: validationResult.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       JSON.stringify({
         success: true,
         data: {
-          message: 'Konto utworzone! Możesz się teraz zalogować.',
+          message: "Konto utworzone! Możesz się teraz zalogować.",
           user: {
             id: user.id,
             email: user.email,
@@ -72,14 +72,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           emailVerification: {
             required: false, // MVP: not required
             sent: true,
-            message: 'Sprawdź swoją skrzynkę email aby potwierdzić adres (opcjonalne).',
+            message: "Sprawdź swoją skrzynkę email aby potwierdzić adres (opcjonalne).",
           },
         },
       }),
       {
         status: 201,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -97,29 +97,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: error.statusCode,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: {
-          message: 'Wystąpił błąd podczas rejestracji. Spróbuj ponownie.',
-          code: 'INTERNAL_ERROR',
+          message: "Wystąpił błąd podczas rejestracji. Spróbuj ponownie.",
+          code: "INTERNAL_ERROR",
         },
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   }
 };
-

@@ -1,22 +1,22 @@
 /**
  * SearchProgress - Shows current search progress
- * 
+ *
  * Displays animated spinner and current search source
  */
 
-import React from 'react';
-import { Loader2 } from 'lucide-react';
-import type { RecipeSource } from '@/types/recipe-search.types';
+import React from "react";
+import { Loader2 } from "lucide-react";
+import type { RecipeSource } from "@/types/recipe-search.types";
 
 interface SearchProgressProps {
   currentSource: RecipeSource;
 }
 
 const sourceLabels: Record<RecipeSource, string> = {
-  user: 'Moich przepisach',
-  api: 'API przepisów',
-  ai: 'Generowaniu przez AI',
-  all: 'Wszystkich źródłach',
+  user: "Moich przepisach",
+  api: "API przepisów",
+  ai: "Generowaniu przez AI",
+  all: "Wszystkich źródłach",
 };
 
 export default function SearchProgress({ currentSource }: SearchProgressProps) {
@@ -29,4 +29,3 @@ export default function SearchProgress({ currentSource }: SearchProgressProps) {
     </div>
   );
 }
-

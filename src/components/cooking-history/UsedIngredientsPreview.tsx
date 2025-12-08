@@ -1,4 +1,4 @@
-import type { FridgeStateItemDTO } from '../../types';
+import type { FridgeStateItemDTO } from "../../types";
 
 interface UsedIngredientsPreviewProps {
   ingredients: FridgeStateItemDTO[];
@@ -23,14 +23,11 @@ export function UsedIngredientsPreview({ ingredients, maxDisplay = 3 }: UsedIngr
         {displayedIngredients.map((ingredient, index) => (
           <li key={ingredient.product_id} className="inline">
             {ingredient.product_name} ({ingredient.quantity} {ingredient.unit})
-            {index < displayedIngredients.length - 1 && ', '}
+            {index < displayedIngredients.length - 1 && ", "}
           </li>
         ))}
-        {remainingCount > 0 && (
-          <li className="inline"> i {remainingCount} więcej</li>
-        )}
+        {remainingCount > 0 && <li className="inline"> i {remainingCount} więcej</li>}
       </ul>
     </div>
   );
 }
-

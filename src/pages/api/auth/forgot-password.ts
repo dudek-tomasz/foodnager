@@ -1,20 +1,20 @@
 /**
  * POST /api/auth/forgot-password
- * 
+ *
  * Endpoint for sending password reset email.
  * Following auth-spec.md specifications:
  * - Server-side validation using Zod
  * - Uses authService for business logic
  * - Always returns success (security best practice - don't reveal if email exists)
  * - Supabase sends email with reset link
- * 
+ *
  * US-001.7: Password recovery functionality
  */
 
-import type { APIRoute } from 'astro';
-import { authService } from '@/lib/services/auth.service';
-import { forgotPasswordSchema } from '@/lib/validations/auth.validation';
-import { isAuthError } from '@/lib/errors/auth.error';
+import type { APIRoute } from "astro";
+import { authService } from "@/lib/services/auth.service";
+import { forgotPasswordSchema } from "@/lib/validations/auth.validation";
+import { isAuthError } from "@/lib/errors/auth.error";
 
 export const prerender = false;
 
@@ -30,10 +30,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         JSON.stringify({
           success: false,
           error: {
-            message: 'Nieprawidłowy format email',
-            code: 'VALIDATION_ERROR',
+            message: "Nieprawidłowy format email",
+            code: "VALIDATION_ERROR",
             details: validationResult.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
@@ -62,13 +62,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       JSON.stringify({
         success: true,
         data: {
-          message: 'Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.',
+          message: "Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.",
         },
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -80,35 +80,34 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         JSON.stringify({
           success: true,
           data: {
-            message: 'Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.',
+            message: "Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.",
           },
         }),
         {
           status: 200,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Forgot password error:', error);
+    console.error("Forgot password error:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: {
-          message: 'Wystąpił błąd podczas wysyłania linku resetującego',
-          code: 'INTERNAL_ERROR',
+          message: "Wystąpił błąd podczas wysyłania linku resetującego",
+          code: "INTERNAL_ERROR",
         },
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   }
 };
-

@@ -2,10 +2,10 @@
  * IngredientItem - Single ingredient with checkbox, availability status and color coding
  */
 
-import React from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import type { IngredientWithAvailability } from '../../lib/types/recipe-view-models';
-import { getAvailabilityColors, formatQuantity } from '../../lib/utils/recipe-utils';
+import React from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { IngredientWithAvailability } from "../../lib/types/recipe-view-models";
+import { getAvailabilityColors, formatQuantity } from "../../lib/utils/recipe-utils";
 
 interface IngredientItemProps {
   ingredient: IngredientWithAvailability;
@@ -13,13 +13,13 @@ interface IngredientItemProps {
 
 export default function IngredientItem({ ingredient }: IngredientItemProps) {
   const colors = getAvailabilityColors(ingredient.availabilityStatus);
-  const isAvailable = ingredient.availabilityStatus === 'full';
-  const isPartial = ingredient.availabilityStatus === 'partial';
-  const isUnknown = ingredient.availabilityStatus === 'unknown';
+  const isAvailable = ingredient.availabilityStatus === "full";
+  const isPartial = ingredient.availabilityStatus === "partial";
+  const isUnknown = ingredient.availabilityStatus === "unknown";
 
   // Icon depending on availability status
   const AvailabilityIcon = () => {
-    if (ingredient.availabilityStatus === 'full') {
+    if (ingredient.availabilityStatus === "full") {
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -30,16 +30,12 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
           strokeWidth={2}
           aria-hidden="true"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 13l4 4L19 7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
       );
     }
 
-    if (ingredient.availabilityStatus === 'partial') {
+    if (ingredient.availabilityStatus === "partial") {
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +55,7 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
       );
     }
 
-    if (ingredient.availabilityStatus === 'unknown') {
+    if (ingredient.availabilityStatus === "unknown") {
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -90,11 +86,7 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
         strokeWidth={2}
         aria-hidden="true"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 18L18 6M6 6l12 12"
-        />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
     );
   };
@@ -106,18 +98,10 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
   );
 
   return (
-    <li
-      className={`flex items-start gap-3 py-3 px-4 rounded-lg transition-colors ${colors.bg}`}
-      role="listitem"
-    >
+    <li className={`flex items-start gap-3 py-3 px-4 rounded-lg transition-colors ${colors.bg}`}>
       {/* Checkbox (disabled, tylko wizualizacja) */}
       <div className="pt-0.5">
-        <Checkbox
-          checked={isAvailable}
-          disabled={true}
-          aria-hidden="true"
-          className="pointer-events-none"
-        />
+        <Checkbox checked={isAvailable} disabled={true} aria-hidden="true" className="pointer-events-none" />
       </div>
 
       {/* Availability icon */}
@@ -127,31 +111,21 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
 
       {/* Ingredient info */}
       <div className="flex-1 min-w-0">
-        <div className={`font-medium ${colors.text}`}>
-          {ingredient.product.name}
-        </div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          {formattedQuantity}
-        </div>
+        <div className={`font-medium ${colors.text}`}>{ingredient.product.name}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">{formattedQuantity}</div>
 
         {/* Availability label dla partial */}
         {isPartial && (
           <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Dostępne: {formatQuantity(
-              ingredient.availableQuantity,
-              ingredient.unit.name,
-              ingredient.unit.abbreviation
-            )}
-            {' '}/{' '}
-            Wymagane: {formattedQuantity}
+            Dostępne: {formatQuantity(ingredient.availableQuantity, ingredient.unit.name, ingredient.unit.abbreviation)}{" "}
+            / Wymagane: {formattedQuantity}
           </div>
         )}
 
         {/* Availability label dla unknown (różne jednostki) */}
         {isUnknown && ingredient.fridgeUnit && (
           <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Masz: {ingredient.availableQuantity} {ingredient.fridgeUnit} | 
-            Wymagane: {formattedQuantity}
+            Masz: {ingredient.availableQuantity} {ingredient.fridgeUnit} | Wymagane: {formattedQuantity}
             <div className="text-xs text-yellow-600 dark:text-yellow-500 mt-0.5">
               ⚠️ Różne jednostki - określ ilość podczas gotowania
             </div>
@@ -161,4 +135,3 @@ export default function IngredientItem({ ingredient }: IngredientItemProps) {
     </li>
   );
 }
-

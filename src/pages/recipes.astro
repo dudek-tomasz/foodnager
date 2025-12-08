@@ -16,7 +16,7 @@ let initialUnits;
 try {
   // Get authenticated user
   const user = Astro.locals.user;
-  
+
   if (user) {
     // Create Supabase client
     const supabase = createSupabaseServerInstance({
@@ -34,11 +34,11 @@ try {
       page: 1,
       limit: 20,
     });
-    
+
     initialData = {
       success: true,
       data: recipes.data,
-      pagination: recipes.pagination
+      pagination: recipes.pagination,
     };
 
     // Fetch tags directly from service
@@ -50,17 +50,11 @@ try {
     initialUnits = units;
   }
 } catch (error) {
-  console.error('Failed to fetch initial data:', error);
+  console.error("Failed to fetch initial data:", error);
   // Continue without initial data - component will fetch client-side
 }
 ---
 
 <Layout title="Przepisy - Foodnager">
-  <RecipeListView 
-    client:load
-    initialData={initialData}
-    initialTags={initialTags}
-    initialUnits={initialUnits}
-  />
+  <RecipeListView client:load initialData={initialData} initialTags={initialTags} initialUnits={initialUnits} />
 </Layout>
-

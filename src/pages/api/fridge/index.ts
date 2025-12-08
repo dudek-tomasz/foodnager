@@ -1,28 +1,21 @@
 /**
  * Virtual Fridge API Endpoint - List and Create
- * 
+ *
  * GET /api/fridge - List all fridge items with filtering and sorting
  * POST /api/fridge - Add new item to fridge
- * 
+ *
  * Following auth implementation:
  * - Uses context.locals.user from middleware
  * - Creates supabase instance per request using createSupabaseServerInstance
  * - Protected endpoint (middleware ensures user is authenticated)
  */
 
-import type { APIContext } from 'astro';
-import { FridgeService } from '../../../lib/services/fridge.service';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import {
-  listFridgeQuerySchema,
-  createFridgeItemSchema,
-} from '../../../lib/validations/fridge.validation';
-import {
-  successResponse,
-  errorResponse,
-  handleError,
-} from '../../../lib/utils/api-response';
-import { ValidationError, UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { FridgeService } from "../../../lib/services/fridge.service";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { listFridgeQuerySchema, createFridgeItemSchema } from "../../../lib/validations/fridge.validation";
+import { successResponse, handleError } from "../../../lib/utils/api-response";
+import { ValidationError, UnauthorizedError } from "../../../lib/errors";
 
 // Disable pre-rendering for API routes
 export const prerender = false;
@@ -34,9 +27,9 @@ export const prerender = false;
  */
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
-  
+
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
 
   return user.id;
@@ -61,22 +54,19 @@ export async function GET(context: APIContext): Promise<Response> {
     // Parse and validate query parameters
     const url = new URL(context.request.url);
     const queryParams = {
-      expired: url.searchParams.get('expired') || undefined,
-      expiring_soon: url.searchParams.get('expiring_soon') || undefined,
-      search: url.searchParams.get('search') || undefined,
-      sort: url.searchParams.get('sort') || undefined,
-      order: url.searchParams.get('order') || undefined,
-      page: url.searchParams.get('page') || undefined,
-      limit: url.searchParams.get('limit') || undefined,
+      expired: url.searchParams.get("expired") || undefined,
+      expiring_soon: url.searchParams.get("expiring_soon") || undefined,
+      search: url.searchParams.get("search") || undefined,
+      sort: url.searchParams.get("sort") || undefined,
+      order: url.searchParams.get("order") || undefined,
+      page: url.searchParams.get("page") || undefined,
+      limit: url.searchParams.get("limit") || undefined,
     };
 
     const validationResult = listFridgeQuerySchema.safeParse(queryParams);
 
     if (!validationResult.success) {
-      throw new ValidationError(
-        'Invalid query parameters',
-        validationResult.error.flatten().fieldErrors
-      );
+      throw new ValidationError("Invalid query parameters", validationResult.error.flatten().fieldErrors);
     }
 
     // Call service with supabase instance
@@ -109,16 +99,13 @@ export async function POST(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      throw new ValidationError('Invalid JSON in request body');
+      throw new ValidationError("Invalid JSON in request body");
     }
 
     const validationResult = createFridgeItemSchema.safeParse(body);
 
     if (!validationResult.success) {
-      throw new ValidationError(
-        'Invalid request body',
-        validationResult.error.flatten().fieldErrors
-      );
+      throw new ValidationError("Invalid request body", validationResult.error.flatten().fieldErrors);
     }
 
     // Call service with supabase instance
@@ -127,10 +114,9 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Return 201 Created with Location header
     const location = `/api/fridge/${item.id}`;
-    
+
     return successResponse(item, 201, { Location: location });
   } catch (error) {
     return handleError(error);
   }
 }
-

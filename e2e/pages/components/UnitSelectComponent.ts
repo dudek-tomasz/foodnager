@@ -1,8 +1,8 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * UnitSelectComponent - POM for unit selection dropdown
- * 
+ *
  * Handles:
  * - Opening unit dropdown
  * - Selecting a unit by ID or name
@@ -15,7 +15,7 @@ export class UnitSelectComponent {
   private readonly trigger: Locator;
   private readonly content: Locator;
 
-  constructor(page: Page, testId: string = 'unit-select') {
+  constructor(page: Page, testId = "unit-select") {
     this.page = page;
     this.testId = testId;
 
@@ -29,7 +29,7 @@ export class UnitSelectComponent {
    */
   async open(): Promise<void> {
     await this.trigger.click();
-    await this.content.waitFor({ state: 'visible' });
+    await this.content.waitFor({ state: "visible" });
   }
 
   /**
@@ -56,7 +56,7 @@ export class UnitSelectComponent {
    * Gets the currently selected unit text
    */
   async getSelectedUnitText(): Promise<string> {
-    return await this.trigger.textContent() || '';
+    return (await this.trigger.textContent()) || "";
   }
 
   /**
@@ -67,10 +67,10 @@ export class UnitSelectComponent {
     await this.open();
     const option = this.page.getByTestId(`${this.testId}-option-${unitId}`);
     const isVisible = await option.isVisible().catch(() => false);
-    
+
     // Close dropdown
-    await this.page.keyboard.press('Escape');
-    
+    await this.page.keyboard.press("Escape");
+
     return isVisible;
   }
 
@@ -82,16 +82,15 @@ export class UnitSelectComponent {
     const options = this.content.locator('[data-testid^="unit-select-option-"]');
     const count = await options.count();
     const units: string[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       const text = await options.nth(i).textContent();
       if (text) units.push(text.trim());
     }
-    
+
     // Close dropdown
-    await this.page.keyboard.press('Escape');
-    
+    await this.page.keyboard.press("Escape");
+
     return units;
   }
 }
-

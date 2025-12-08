@@ -1,4 +1,5 @@
 // @ts-check
+/* global URL */
 import { defineConfig } from "astro/config";
 import { fileURLToPath } from "url";
 

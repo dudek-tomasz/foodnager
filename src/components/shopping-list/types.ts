@@ -3,11 +3,7 @@
  * Rozszerzenia typów z src/types.ts specyficzne dla widoku
  */
 
-import type {
-  RecipeReferenceDTO,
-  ShoppingListItemDTO,
-  ShoppingListResponseDTO,
-} from '../../types';
+import type { RecipeReferenceDTO, ShoppingListItemDTO } from "../../types";
 
 /**
  * Props głównego komponentu ShoppingListModal
@@ -56,7 +52,7 @@ export interface EditableShoppingListItem extends ShoppingListItemDTO {
 /**
  * Format eksportu listy zakupów
  */
-export type ExportFormat = 'clipboard' | 'print' | 'txt';
+export type ExportFormat = "clipboard" | "print" | "txt";
 
 /**
  * Format pojedynczej pozycji do eksportu
@@ -93,4 +89,3 @@ export interface ApiError {
   message: string;
   details?: Record<string, unknown>;
 }
-

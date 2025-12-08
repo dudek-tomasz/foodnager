@@ -1,89 +1,85 @@
-import { defineConfig, devices } from '@playwright/test';
-import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { defineConfig, devices } from "@playwright/test";
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables from .env.test file
-config({ path: resolve(__dirname, '.env.test') });
+config({ path: resolve(__dirname, ".env.test") });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   // Test directory
-  testDir: './e2e',
-  
+  testDir: "./e2e",
+
   // Run tests in files in parallel
   fullyParallel: true,
-  
+
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
-  
+
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
-  
+
   // Opt out of parallel tests on CI
   workers: process.env.CI ? 1 : undefined,
-  
+
   // Reporter to use
-  reporter: [
-    ['html'],
-    ['list'],
-  ],
-  
+  reporter: [["html"], ["list"]],
+
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
-    
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
+
     // Collect trace when retrying the failed test
-    trace: 'on-first-retry',
-    
+    trace: "on-first-retry",
+
     // Screenshot on failure
-    screenshot: 'only-on-failure',
-    
+    screenshot: "only-on-failure",
+
     // Video on failure
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
   },
 
   // Configure projects for major browsers (only Chromium as per requirements)
   projects: [
     // Setup project - runs first to authenticate
-    { 
-      name: 'setup', 
-      testMatch: /.*\.setup\.ts/ 
+    {
+      name: "setup",
+      testMatch: /.*\.setup\.ts/,
     },
 
     {
-      name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
         // Use prepared auth state
-        storageState: 'playwright/.auth/user.json',
+        storageState: "playwright/.auth/user.json",
       },
-      dependencies: ['setup'],
+      dependencies: ["setup"],
     },
 
     // Teardown project - runs last to clean up database
     {
-      name: 'teardown',
+      name: "teardown",
       testMatch: /.*\.teardown\.ts/,
     },
   ],
 
   // Global teardown runs after all projects complete
-  globalTeardown: './e2e/global.teardown.ts',
+  globalTeardown: "./e2e/global.teardown.ts",
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'npm run dev:e2e',
-    url: 'http://localhost:3000',
+    command: "npm run dev:e2e",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
 });
-

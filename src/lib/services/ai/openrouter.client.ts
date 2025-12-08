@@ -1,9 +1,12 @@
 /**
  * OpenRouterClient
- * 
+ *
  * Client for OpenRouter API - provides access to various AI models
  * Used for recipe generation in Tier 3
  */
+
+/* eslint-disable no-console */
+// Console logs are intentional for debugging AI client
 
 /**
  * OpenRouter API configuration
@@ -34,7 +37,7 @@ interface GenerateRecipeOptions {
  * Response format schema following OpenRouter spec
  */
 interface ResponseSchema {
-  type: 'json_schema';
+  type: "json_schema";
   json_schema: {
     name: string;
     strict: boolean;
@@ -46,7 +49,7 @@ interface ResponseSchema {
  * JSON Schema object structure
  */
 interface JsonSchemaObject {
-  type: 'object';
+  type: "object";
   properties: Record<string, JsonSchemaProperty>;
   required?: string[];
   additionalProperties: boolean;
@@ -55,18 +58,18 @@ interface JsonSchemaObject {
 /**
  * JSON Schema property definition
  */
-type JsonSchemaProperty = 
-  | { type: 'string'; description?: string; enum?: string[] }
-  | { type: 'number'; description?: string }
-  | { type: 'boolean'; description?: string }
-  | { type: 'array'; items: JsonSchemaProperty; description?: string }
+type JsonSchemaProperty =
+  | { type: "string"; description?: string; enum?: string[] }
+  | { type: "number"; description?: string }
+  | { type: "boolean"; description?: string }
+  | { type: "array"; items: JsonSchemaProperty; description?: string }
   | JsonSchemaObject;
 
 /**
  * Message for chat completions
  */
 interface Message {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -86,13 +89,13 @@ interface HealthCheckResult {
 interface OpenRouterResponse {
   id: string;
   model: string;
-  choices: Array<{
+  choices: {
     message: {
       role: string;
       content: string;
     };
     finish_reason: string;
-  }>;
+  }[];
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -108,26 +111,26 @@ export class OpenRouterClient {
 
   constructor(config?: Partial<OpenRouterConfig>) {
     this.config = {
-      apiUrl: import.meta.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions',
-      apiKey: import.meta.env.OPENROUTER_API_KEY || '',
-      model: import.meta.env.OPENROUTER_MODEL || 'perplexity/sonar-pro',
-      timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || '45000', 10),
-      temperature: parseFloat(import.meta.env.OPENROUTER_TEMPERATURE || '0.7'),
-      maxTokens: parseInt(import.meta.env.OPENROUTER_MAX_TOKENS || '2000', 10),
-      topP: parseFloat(import.meta.env.OPENROUTER_TOP_P || '1.0'),
-      frequencyPenalty: parseFloat(import.meta.env.OPENROUTER_FREQUENCY_PENALTY || '0'),
-      presencePenalty: parseFloat(import.meta.env.OPENROUTER_PRESENCE_PENALTY || '0'),
+      apiUrl: import.meta.env.OPENROUTER_API_URL || "https://openrouter.ai/api/v1/chat/completions",
+      apiKey: import.meta.env.OPENROUTER_API_KEY || "",
+      model: import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
+      timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || "45000", 10),
+      temperature: parseFloat(import.meta.env.OPENROUTER_TEMPERATURE || "0.7"),
+      maxTokens: parseInt(import.meta.env.OPENROUTER_MAX_TOKENS || "2000", 10),
+      topP: parseFloat(import.meta.env.OPENROUTER_TOP_P || "1.0"),
+      frequencyPenalty: parseFloat(import.meta.env.OPENROUTER_FREQUENCY_PENALTY || "0"),
+      presencePenalty: parseFloat(import.meta.env.OPENROUTER_PRESENCE_PENALTY || "0"),
       ...config,
     };
 
     if (!this.config.apiKey) {
-      console.warn('OpenRouter API key not configured - AI features will not work');
+      console.warn("OpenRouter API key not configured - AI features will not work");
     }
   }
 
   /**
    * Generate text using AI (general purpose)
-   * 
+   *
    * @param prompt - Text prompt
    * @param options - Optional parameters
    * @returns Generated text
@@ -138,7 +141,7 @@ export class OpenRouterClient {
     options?: { temperature?: number; max_tokens?: number; systemMessage?: string }
   ): Promise<string> {
     if (!this.config.apiKey) {
-      throw new Error('OpenRouter API key not configured');
+      throw new Error("OpenRouter API key not configured");
     }
 
     const controller = new AbortController();
@@ -153,7 +156,7 @@ export class OpenRouterClient {
       };
 
       const response = await fetch(this.config.apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: this.buildHeaders(),
         body: JSON.stringify(requestBody),
         signal: controller.signal,
@@ -169,13 +172,12 @@ export class OpenRouterClient {
       const data: OpenRouterResponse = await response.json();
 
       if (!data.choices || data.choices.length === 0) {
-        throw new Error('No response from OpenRouter API');
+        throw new Error("No response from OpenRouter API");
       }
 
       return data.choices[0].message.content;
-      
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if ((error as Error).name === "AbortError") {
         throw new Error(`OpenRouter API request timed out after ${this.config.timeout}ms`);
       }
       throw error;
@@ -186,7 +188,7 @@ export class OpenRouterClient {
 
   /**
    * Generate recipe using AI
-   * 
+   *
    * @param prompt - Structured prompt for recipe generation
    * @param options - Optional parameters to override defaults
    * @returns Parsed AI response (structured JSON)
@@ -195,7 +197,7 @@ export class OpenRouterClient {
   async generateRecipe(prompt: string, options?: GenerateRecipeOptions): Promise<unknown> {
     // Walidacja konfiguracji
     if (!this.config.apiKey) {
-      throw new Error('OpenRouter API key not configured');
+      throw new Error("OpenRouter API key not configured");
     }
 
     // Walidacja długości promptu
@@ -229,7 +231,7 @@ export class OpenRouterClient {
 
       // Wywołanie API
       const response = await fetch(this.config.apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: this.buildHeaders(),
         body: JSON.stringify(requestBody),
         signal: controller.signal,
@@ -242,7 +244,7 @@ export class OpenRouterClient {
       console.log(`🔵 [OpenRouter] API latency: ${latency.toFixed(0)}ms`);
       console.log(`🔵 [OpenRouter] Response status: ${response.status} ${response.statusText}`);
       console.log(`🔵 [OpenRouter] Response OK: ${response.ok}`);
-      console.log(`🔵 [OpenRouter] Content-Type: ${response.headers.get('content-type')}`);
+      console.log(`🔵 [OpenRouter] Content-Type: ${response.headers.get("content-type")}`);
 
       // Najpierw pobierz tekst odpowiedzi
       const responseText = await response.text();
@@ -250,7 +252,7 @@ export class OpenRouterClient {
 
       // Obsługa błędów HTTP
       if (!response.ok) {
-        console.error('❌ [OpenRouter] HTTP Error detected');
+        console.error("❌ [OpenRouter] HTTP Error detected");
         await this.handleApiError(response, responseText);
       }
 
@@ -258,21 +260,21 @@ export class OpenRouterClient {
       let data: OpenRouterResponse;
       try {
         data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ [OpenRouter] Failed to parse response as JSON');
-        console.error('Response was:', responseText);
-        throw new Error('OpenRouter returned invalid JSON response. Check API URL and key configuration.');
+      } catch {
+        console.error("❌ [OpenRouter] Failed to parse response as JSON");
+        console.error("Response was:", responseText);
+        throw new Error("OpenRouter returned invalid JSON response. Check API URL and key configuration.");
       }
 
       if (!data.choices || data.choices.length === 0) {
-        throw new Error('OpenRouter API returned no choices');
+        throw new Error("OpenRouter API returned no choices");
       }
 
       const content = data.choices[0].message.content;
 
       // Logowanie użycia tokenów
       if (data.usage) {
-        console.log('OpenRouter token usage:', {
+        console.log("OpenRouter token usage:", {
           prompt_tokens: data.usage.prompt_tokens,
           completion_tokens: data.usage.completion_tokens,
           total_tokens: data.usage.total_tokens,
@@ -283,25 +285,24 @@ export class OpenRouterClient {
       // Parsowanie JSON z response_format
       try {
         return JSON.parse(content);
-      } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', content);
-        throw new Error('AI response is not valid JSON - check response_format configuration');
+      } catch {
+        console.error("Failed to parse AI response as JSON:", content);
+        throw new Error("AI response is not valid JSON - check response_format configuration");
       }
-      
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
+
+      if ((error as Error).name === "AbortError") {
         throw new Error(`OpenRouter API request timed out after ${this.config.timeout}ms`);
       }
-      
+
       throw error;
     }
   }
 
   /**
    * Check OpenRouter API health
-   * 
+   *
    * @returns Health check result with latency
    */
   async healthCheck(): Promise<HealthCheckResult> {
@@ -309,21 +310,21 @@ export class OpenRouterClient {
       return {
         isHealthy: false,
         model: this.config.model,
-        error: 'API key not configured',
+        error: "API key not configured",
       };
     }
 
     const startTime = performance.now();
-    
+
     try {
       const testPrompt = 'Respond with a single word: "OK"';
-      
+
       const response = await fetch(this.config.apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: this.buildHeaders(),
         body: JSON.stringify({
           model: this.config.model,
-          messages: [{ role: 'user', content: testPrompt }],
+          messages: [{ role: "user", content: testPrompt }],
           max_tokens: 10,
         }),
         signal: AbortSignal.timeout(5000), // 5s timeout dla health check
@@ -345,14 +346,14 @@ export class OpenRouterClient {
         model: this.config.model,
         latency,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const latency = performance.now() - startTime;
-      
+
       return {
         isHealthy: false,
         model: this.config.model,
         latency,
-        error: error.message || 'Unknown error',
+        error: (error as Error).message || "Unknown error",
       };
     }
   }
@@ -369,16 +370,16 @@ export class OpenRouterClient {
    */
   private buildHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.config.apiKey}`,
-      'HTTP-Referer': 'https://foodnager.app', // Required by OpenRouter
-      'X-Title': 'Foodnager', // Optional but recommended
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.config.apiKey}`,
+      "HTTP-Referer": "https://foodnager.app", // Required by OpenRouter
+      "X-Title": "Foodnager", // Optional but recommended
     };
   }
 
   /**
    * Build message array for chat completion
-   * 
+   *
    * @param userPrompt - User's prompt
    * @param systemMessage - Optional system message
    * @returns Array of messages
@@ -388,13 +389,13 @@ export class OpenRouterClient {
 
     if (systemMessage) {
       messages.push({
-        role: 'system',
+        role: "system",
         content: systemMessage,
       });
     }
 
     messages.push({
-      role: 'user',
+      role: "user",
       content: userPrompt,
     });
 
@@ -403,101 +404,110 @@ export class OpenRouterClient {
 
   /**
    * Get default JSON schema for recipe generation
-   * 
+   *
    * @returns Response schema for structured output
    */
   private getDefaultResponseSchema(): ResponseSchema {
     return {
-      type: 'json_schema',
+      type: "json_schema",
       json_schema: {
-        name: 'recipe_generation',
+        name: "recipe_generation",
         strict: true,
         schema: {
-          type: 'object',
+          type: "object",
           properties: {
             recipes: {
-              type: 'array',
-              description: 'Tablica 5 przepisów, najlepszy na pierwszym miejscu',
+              type: "array",
+              description: "Tablica 5 przepisów, najlepszy na pierwszym miejscu",
               items: {
-                type: 'object',
+                type: "object",
                 properties: {
                   title: {
-                    type: 'string',
-                    description: 'Nazwa przepisu po polsku (zwięzła i apetyczna)',
+                    type: "string",
+                    description: "Nazwa przepisu po polsku (zwięzła i apetyczna)",
                   },
                   description: {
-                    type: 'string',
-                    description: 'Krótki opis dania w jednym zdaniu po polsku',
+                    type: "string",
+                    description: "Krótki opis dania w jednym zdaniu po polsku",
                   },
                   instructions: {
-                    type: 'string',
-                    description: 'Instrukcje gotowania krok po kroku po polsku (numerowane kroki, szczegółowe)',
+                    type: "string",
+                    description: "Instrukcje gotowania krok po kroku po polsku (numerowane kroki, szczegółowe)",
                   },
                   cooking_time: {
-                    type: 'number',
-                    description: 'Czas gotowania w minutach',
+                    type: "number",
+                    description: "Czas gotowania w minutach",
                   },
                   difficulty: {
-                    type: 'string',
-                    enum: ['easy', 'medium', 'hard'],
-                    description: 'Poziom trudności przepisu',
+                    type: "string",
+                    enum: ["easy", "medium", "hard"],
+                    description: "Poziom trudności przepisu",
                   },
                   ingredients: {
-                    type: 'array',
+                    type: "array",
                     items: {
-                      type: 'object',
+                      type: "object",
                       properties: {
                         product_name: {
-                          type: 'string',
-                          description: 'Polska nazwa składnika',
+                          type: "string",
+                          description: "Polska nazwa składnika",
                         },
                         quantity: {
-                          type: 'number',
-                          description: 'Ilość składnika',
+                          type: "number",
+                          description: "Ilość składnika",
                         },
                         unit: {
-                          type: 'string',
-                          description: 'Jednostka miary po polsku (np. sztuka, gram, ml, łyżka)',
+                          type: "string",
+                          description: "Jednostka miary po polsku (np. sztuka, gram, ml, łyżka)",
                         },
                       },
-                      required: ['product_name', 'quantity', 'unit'],
+                      required: ["product_name", "quantity", "unit"],
                       additionalProperties: false,
                     },
-                    description: 'Lista składników z ilościami',
+                    description: "Lista składników z ilościami",
                   },
                   tags: {
-                    type: 'array',
+                    type: "array",
                     items: {
-                      type: 'string',
+                      type: "string",
                     },
-                    description: 'Tagi do kategoryzacji po polsku (np. wegetariańskie, szybkie danie)',
+                    description: "Tagi do kategoryzacji po polsku (np. wegetariańskie, szybkie danie)",
                   },
                   sources: {
-                    type: 'array',
+                    type: "array",
                     items: {
-                      type: 'object',
+                      type: "object",
                       properties: {
                         name: {
-                          type: 'string',
-                          description: 'Nazwa źródła (np. KwestiaSmaku, AniaGotuje, BBC Good Food)',
+                          type: "string",
+                          description: "Nazwa źródła (np. KwestiaSmaku, AniaGotuje, BBC Good Food)",
                         },
                         url: {
-                          type: 'string',
-                          description: 'Pełny URL do przepisu źródłowego',
+                          type: "string",
+                          description: "Pełny URL do przepisu źródłowego",
                         },
                       },
-                      required: ['name', 'url'],
+                      required: ["name", "url"],
                       additionalProperties: false,
                     },
-                    description: 'Źródła inspiracji - linki do oryginalnych przepisów kulinarnych',
+                    description: "Źródła inspiracji - linki do oryginalnych przepisów kulinarnych",
                   },
                 },
-                required: ['title', 'description', 'instructions', 'cooking_time', 'difficulty', 'ingredients', 'tags', 'sources'],
+                required: [
+                  "title",
+                  "description",
+                  "instructions",
+                  "cooking_time",
+                  "difficulty",
+                  "ingredients",
+                  "tags",
+                  "sources",
+                ],
                 additionalProperties: false,
               },
             },
           },
-          required: ['recipes'],
+          required: ["recipes"],
           additionalProperties: false,
         },
       },
@@ -506,7 +516,7 @@ export class OpenRouterClient {
 
   /**
    * Try to parse error response as JSON
-   * 
+   *
    * @param errorText - Raw error text
    * @returns Parsed error object or null
    */
@@ -520,14 +530,14 @@ export class OpenRouterClient {
 
   /**
    * Handle API error response
-   * 
+   *
    * @param response - Failed response object
    * @throws Error with descriptive message
    */
   private async handleApiError(response: Response, errorText: string): Promise<never> {
     const errorData = this.tryParseErrorJson(errorText);
 
-    console.error('OpenRouter API error:', {
+    console.error("OpenRouter API error:", {
       status: response.status,
       statusText: response.statusText,
       error: errorData || errorText,
@@ -536,18 +546,21 @@ export class OpenRouterClient {
 
     switch (response.status) {
       case 401:
-        throw new Error('❌ Invalid API key - check OPENROUTER_API_KEY configuration');
+        throw new Error("❌ Invalid API key - check OPENROUTER_API_KEY configuration");
       case 402:
-        throw new Error('💳 Insufficient credits - please add credits to your OpenRouter account at https://openrouter.ai/credits');
+        throw new Error(
+          "💳 Insufficient credits - please add credits to your OpenRouter account at https://openrouter.ai/credits"
+        );
       case 429:
-        throw new Error('⏱️ Rate limit exceeded - please try again later');
+        throw new Error("⏱️ Rate limit exceeded - please try again later");
       case 500:
       case 502:
       case 503:
-        throw new Error('🔧 OpenRouter service is temporarily unavailable - please try again');
-      default:
-        const message = (errorData as any)?.error?.message || errorText.substring(0, 200);
+        throw new Error("🔧 OpenRouter service is temporarily unavailable - please try again");
+      default: {
+        const message = (errorData as { error?: { message?: string } })?.error?.message || errorText.substring(0, 200);
         throw new Error(`OpenRouter API error (${response.status}): ${message}`);
+      }
     }
   }
 }
@@ -556,4 +569,3 @@ export class OpenRouterClient {
  * Export default instance
  */
 export const openRouterClient = new OpenRouterClient();
-

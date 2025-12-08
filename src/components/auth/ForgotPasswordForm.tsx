@@ -1,6 +1,6 @@
 /**
  * ForgotPasswordForm - Password reset request form
- * 
+ *
  * Features:
  * - Single email field
  * - Client-side validation using Zod
@@ -8,20 +8,20 @@
  * - Success state with message
  * - Link back to login
  * - Auto-redirect to login after 5 seconds on success
- * 
+ *
  * Following auth-spec.md US-001.7
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { forgotPasswordSchema, type ForgotPasswordInput } from '@/lib/validations/auth.validation';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validations/auth.validation";
 
 export default function ForgotPasswordForm() {
   const [formData, setFormData] = useState<ForgotPasswordInput>({
-    email: '',
+    email: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof ForgotPasswordInput, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -61,10 +61,10 @@ export default function ForgotPasswordForm() {
 
     try {
       // Call forgot password API endpoint
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -73,7 +73,7 @@ export default function ForgotPasswordForm() {
 
       if (!response.ok || !data.success) {
         // Handle API errors
-        const errorMessage = data.error?.message || 'Wystąpił błąd podczas wysyłania linku resetującego';
+        const errorMessage = data.error?.message || "Wystąpił błąd podczas wysyłania linku resetującego";
         setGeneralError(errorMessage);
         setIsLoading(false);
         return;
@@ -81,14 +81,14 @@ export default function ForgotPasswordForm() {
 
       // Success! Show success message
       setSuccess(true);
-      
+
       // Redirect to login after 5 seconds
       setTimeout(() => {
-        window.location.href = '/login';
+        window.location.href = "/login";
       }, 5000);
     } catch (error) {
-      console.error('Forgot password error:', error);
-      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
+      console.error("Forgot password error:", error);
+      setGeneralError("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
       setIsLoading(false);
     }
   };
@@ -125,16 +125,11 @@ export default function ForgotPasswordForm() {
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Jeśli konto z podanym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła.
             </p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-500">
-              Przekierowanie do logowania za 5 sekund...
-            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-500">Przekierowanie do logowania za 5 sekund...</p>
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={() => window.location.href = '/login'}
-            className="w-full"
-          >
+          <Button onClick={() => (window.location.href = "/login")} className="w-full">
             Wróć do logowania
           </Button>
         </CardFooter>
@@ -171,10 +166,9 @@ export default function ForgotPasswordForm() {
               value={formData.email}
               onChange={handleChange}
               disabled={isLoading}
-              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              autoFocus
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
               <p id="email-error" className="text-sm text-red-600 dark:text-red-400">
@@ -186,24 +180,20 @@ export default function ForgotPasswordForm() {
 
         <CardFooter className="flex flex-col space-y-4 pt-6">
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Wysyłanie...
               </>
             ) : (
-              'Wyślij link resetujący'
+              "Wyślij link resetujący"
             )}
           </Button>
 
           {/* Back to Login Link */}
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-            Pamiętasz hasło?{' '}
+            Pamiętasz hasło?{" "}
             <a href="/login" className="text-primary font-medium hover:underline">
               Wróć do logowania
             </a>

@@ -1,12 +1,12 @@
 /**
  * FridgeStats - Component displaying fridge statistics
- * 
+ *
  * Shows:
  * - Total count of products in fridge
  * - Count of expired products
  */
 
-import React from 'react';
+import React from "react";
 
 interface FridgeStatsProps {
   totalCount: number;
@@ -20,12 +20,8 @@ export default function FridgeStats({ totalCount, expiredCount }: FridgeStatsPro
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Wszystkie produkty
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {totalCount}
-            </p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Wszystkie produkty</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalCount}</p>
           </div>
           <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
             <svg
@@ -51,18 +47,14 @@ export default function FridgeStats({ totalCount, expiredCount }: FridgeStatsPro
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Przeterminowane
-            </p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {expiredCount}
-            </p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Przeterminowane</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{expiredCount}</p>
           </div>
-          <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-            expiredCount > 0 
-              ? 'bg-red-100 dark:bg-red-900/30' 
-              : 'bg-green-100 dark:bg-green-900/30'
-          }`}>
+          <div
+            className={`h-12 w-12 rounded-full flex items-center justify-center ${
+              expiredCount > 0 ? "bg-red-100 dark:bg-red-900/30" : "bg-green-100 dark:bg-green-900/30"
+            }`}
+          >
             {expiredCount > 0 ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -89,24 +81,17 @@ export default function FridgeStats({ totalCount, expiredCount }: FridgeStatsPro
                 strokeWidth={2}
                 aria-hidden="true"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
           </div>
         </div>
-        
+
         {/* Additional info for expired items */}
         {expiredCount > 0 && (
-          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-            Sprawdź i usuń przeterminowane produkty
-          </p>
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">Sprawdź i usuń przeterminowane produkty</p>
         )}
       </div>
     </div>
   );
 }
-

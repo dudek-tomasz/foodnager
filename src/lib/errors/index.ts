@@ -1,6 +1,6 @@
 /**
  * Custom error classes for Foodnager API
- * 
+ *
  * These error classes are used throughout the application to provide
  * consistent error handling and responses.
  */
@@ -25,8 +25,8 @@ export class ApiError extends Error {
  * 401 Unauthorized - Authentication required or invalid token
  */
 export class UnauthorizedError extends ApiError {
-  constructor(message = 'Authentication required', details?: Record<string, unknown>) {
-    super(message, 401, 'UNAUTHORIZED', details);
+  constructor(message = "Authentication required", details?: Record<string, unknown>) {
+    super(message, 401, "UNAUTHORIZED", details);
   }
 }
 
@@ -34,8 +34,8 @@ export class UnauthorizedError extends ApiError {
  * 403 Forbidden - User doesn't have permission to access resource
  */
 export class ForbiddenError extends ApiError {
-  constructor(message = 'Access forbidden', details?: Record<string, unknown>) {
-    super(message, 403, 'FORBIDDEN', details);
+  constructor(message = "Access forbidden", details?: Record<string, unknown>) {
+    super(message, 403, "FORBIDDEN", details);
   }
 }
 
@@ -43,8 +43,8 @@ export class ForbiddenError extends ApiError {
  * 404 Not Found - Resource doesn't exist or user doesn't have access
  */
 export class NotFoundError extends ApiError {
-  constructor(message = 'Resource not found', details?: Record<string, unknown>) {
-    super(message, 404, 'NOT_FOUND', details);
+  constructor(message = "Resource not found", details?: Record<string, unknown>) {
+    super(message, 404, "NOT_FOUND", details);
   }
 }
 
@@ -52,8 +52,8 @@ export class NotFoundError extends ApiError {
  * 409 Conflict - Resource already exists (e.g., duplicate name)
  */
 export class ConflictError extends ApiError {
-  constructor(message = 'Resource conflict', details?: Record<string, unknown>) {
-    super(message, 409, 'CONFLICT', details);
+  constructor(message = "Resource conflict", details?: Record<string, unknown>) {
+    super(message, 409, "CONFLICT", details);
   }
 }
 
@@ -61,8 +61,8 @@ export class ConflictError extends ApiError {
  * 422 Unprocessable Entity - Validation error
  */
 export class ValidationError extends ApiError {
-  constructor(message = 'Validation error', details?: Record<string, unknown>) {
-    super(message, 422, 'VALIDATION_ERROR', details);
+  constructor(message = "Validation error", details?: Record<string, unknown>) {
+    super(message, 422, "VALIDATION_ERROR", details);
   }
 }
 
@@ -70,8 +70,8 @@ export class ValidationError extends ApiError {
  * 400 Bad Request - Insufficient ingredients in fridge to cook recipe
  */
 export class InsufficientIngredientsError extends ApiError {
-  constructor(message = 'Not enough ingredients in fridge to cook this recipe', details?: Record<string, unknown>) {
-    super(message, 400, 'INSUFFICIENT_INGREDIENTS', details);
+  constructor(message = "Not enough ingredients in fridge to cook this recipe", details?: Record<string, unknown>) {
+    super(message, 400, "INSUFFICIENT_INGREDIENTS", details);
   }
 }
 
@@ -79,8 +79,7 @@ export class InsufficientIngredientsError extends ApiError {
  * 500 Internal Server Error - Unexpected server error
  */
 export class InternalError extends ApiError {
-  constructor(message = 'Internal server error', details?: Record<string, unknown>) {
-    super(message, 500, 'INTERNAL_ERROR', details);
+  constructor(message = "Internal server error", details?: Record<string, unknown>) {
+    super(message, 500, "INTERNAL_ERROR", details);
   }
 }
-

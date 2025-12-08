@@ -1,16 +1,19 @@
 /**
  * ProductMatcher
- * 
+ *
  * Fuzzy matching utility for finding or creating products
  * Used when mapping external ingredients to internal products
  */
 
-import type { SupabaseClient } from '../../db/supabase.client';
-import type { ProductReferenceDTO } from '../../types';
+/* eslint-disable no-console */
+// Console logs are intentional for debugging product matching
+
+import type { SupabaseClient } from "../../db/supabase.client";
+import type { ProductReferenceDTO } from "../../types";
 
 /**
  * ProductMatcher class
- * 
+ *
  * Implements fuzzy matching logic to find existing products by name
  * If no match found, creates new product for the user
  */
@@ -19,12 +22,12 @@ export class ProductMatcher {
 
   /**
    * Find existing product by fuzzy name match, or create new one
-   * 
+   *
    * Matching strategy:
    * 1. Exact match (case-insensitive)
    * 2. Partial match (contains)
    * 3. Create new product if no match
-   * 
+   *
    * @param productName - Product name to search for
    * @param userId - User ID for product ownership
    * @returns Product reference
@@ -56,9 +59,9 @@ export class ProductMatcher {
    */
   private normalizeName(name: string): string {
     let normalized = name.toLowerCase().trim();
-    
+
     // Remove plural 's' (simple heuristic)
-    if (normalized.endsWith('s') && normalized.length > 3) {
+    if (normalized.endsWith("s") && normalized.length > 3) {
       normalized = normalized.slice(0, -1);
     }
 
@@ -68,24 +71,21 @@ export class ProductMatcher {
   /**
    * Find product by exact name match (case-insensitive)
    * Searches both global products and user's private products
-   * 
+   *
    * @param normalizedName - Normalized product name
    * @param userId - User ID
    * @returns Product reference or null
    */
-  private async findExactMatch(
-    normalizedName: string,
-    userId: string
-  ): Promise<ProductReferenceDTO | null> {
+  private async findExactMatch(normalizedName: string, userId: string): Promise<ProductReferenceDTO | null> {
     const { data, error } = await this.supabase
-      .from('products')
-      .select('id, name')
-      .ilike('name', normalizedName)
+      .from("products")
+      .select("id, name")
+      .ilike("name", normalizedName)
       .or(`user_id.is.null,user_id.eq.${userId}`)
       .limit(1);
 
     if (error) {
-      console.error('Error searching for exact match:', error);
+      console.error("Error searching for exact match:", error);
       return null;
     }
 
@@ -101,24 +101,21 @@ export class ProductMatcher {
 
   /**
    * Find product by fuzzy match (partial name match)
-   * 
+   *
    * @param normalizedName - Normalized product name
    * @param userId - User ID
    * @returns Product reference or null
    */
-  private async findFuzzyMatch(
-    normalizedName: string,
-    userId: string
-  ): Promise<ProductReferenceDTO | null> {
+  private async findFuzzyMatch(normalizedName: string, userId: string): Promise<ProductReferenceDTO | null> {
     // Search for products where normalized name contains search term or vice versa
     const { data, error } = await this.supabase
-      .from('products')
-      .select('id, name')
+      .from("products")
+      .select("id, name")
       .or(`user_id.is.null,user_id.eq.${userId}`)
       .limit(10); // Get multiple candidates for fuzzy matching
 
     if (error) {
-      console.error('Error searching for fuzzy match:', error);
+      console.error("Error searching for fuzzy match:", error);
       return null;
     }
 
@@ -150,7 +147,7 @@ export class ProductMatcher {
   /**
    * Calculate similarity score between two strings
    * Uses simple overlap coefficient: |A ∩ B| / min(|A|, |B|)
-   * 
+   *
    * @param str1 - First string
    * @param str2 - Second string
    * @returns Similarity score (0.0 - 1.0)
@@ -168,7 +165,7 @@ export class ProductMatcher {
     const set1 = new Set(words1);
     const set2 = new Set(words2);
 
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const intersection = new Set([...set1].filter((x) => set2.has(x)));
     const minSize = Math.min(set1.size, set2.size);
 
     if (minSize === 0) return 0;
@@ -178,30 +175,27 @@ export class ProductMatcher {
 
   /**
    * Create new product for user
-   * 
+   *
    * @param normalizedName - Normalized product name
    * @param userId - User ID
    * @returns Created product reference
    */
-  private async createProduct(
-    normalizedName: string,
-    userId: string
-  ): Promise<ProductReferenceDTO> {
+  private async createProduct(normalizedName: string, userId: string): Promise<ProductReferenceDTO> {
     // Capitalize first letter for display
     const displayName = normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1);
 
     const { data, error } = await this.supabase
-      .from('products')
+      .from("products")
       .insert({
         name: displayName,
         user_id: userId,
       })
-      .select('id, name')
+      .select("id, name")
       .single();
 
     if (error || !data) {
-      console.error('Error creating product:', error);
-      throw new Error('Failed to create product');
+      console.error("Error creating product:", error);
+      throw new Error("Failed to create product");
     }
 
     return {
@@ -210,4 +204,3 @@ export class ProductMatcher {
     };
   }
 }
-

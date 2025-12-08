@@ -1,6 +1,6 @@
 /**
  * RegisterForm - User registration form
- * 
+ *
  * Features:
  * - Email, password, and password confirmation fields
  * - Client-side validation using Zod
@@ -9,25 +9,25 @@
  * - Error handling
  * - Success state with message
  * - Link to login page
- * 
+ *
  * MVP Simplifications:
  * - No "Terms & Conditions" checkbox
  * - Email verification optional (user can login without clicking verification link)
  * - Simplified success message
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { registerSchema, type RegisterInput } from '@/lib/validations/auth.validation';
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { registerSchema, type RegisterInput } from "@/lib/validations/auth.validation";
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState<RegisterInput>({
-    email: '',
-    password: '',
-    passwordConfirm: '',
+    email: "",
+    password: "",
+    passwordConfirm: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterInput, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -35,10 +35,10 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState(false);
 
   const handleChange = (field: keyof RegisterInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     // Clear field error on change
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
     // Clear general error on change
     if (generalError) {
@@ -68,10 +68,10 @@ export default function RegisterForm() {
 
     try {
       // Call register API endpoint
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: formData.email,
@@ -84,7 +84,7 @@ export default function RegisterForm() {
 
       if (!response.ok || !data.success) {
         // Handle API errors
-        const errorMessage = data.error?.message || 'Wystąpił błąd podczas rejestracji';
+        const errorMessage = data.error?.message || "Wystąpił błąd podczas rejestracji";
         setGeneralError(errorMessage);
         setIsLoading(false);
         return;
@@ -92,14 +92,14 @@ export default function RegisterForm() {
 
       // Success! Show success message
       setSuccess(true);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        window.location.href = '/login';
+        window.location.href = "/login";
       }, 3000);
     } catch (error) {
-      console.error('Registration error:', error);
-      setGeneralError('Nie udało się połączyć z serwerem. Spróbuj ponownie.');
+      console.error("Registration error:", error);
+      setGeneralError("Nie udało się połączyć z serwerem. Spróbuj ponownie.");
       setIsLoading(false);
     }
   };
@@ -122,30 +122,20 @@ export default function RegisterForm() {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-lg font-medium">Konto zostało utworzone!</p>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Możesz się teraz zalogować.
-            </p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Możesz się teraz zalogować.</p>
             <p className="text-xs text-neutral-500 dark:text-neutral-500">
               Wysłaliśmy email weryfikacyjny na Twój adres (opcjonalny).
             </p>
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={() => window.location.href = '/login'}
-            className="w-full"
-          >
+          <Button onClick={() => (window.location.href = "/login")} className="w-full">
             Przejdź do logowania
           </Button>
         </CardFooter>
@@ -158,9 +148,7 @@ export default function RegisterForm() {
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Rejestracja</CardTitle>
-        <CardDescription className="text-center">
-          Utwórz nowe konto w Foodnager
-        </CardDescription>
+        <CardDescription className="text-center">Utwórz nowe konto w Foodnager</CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
@@ -180,11 +168,11 @@ export default function RegisterForm() {
               type="email"
               placeholder="twoj@email.pl"
               value={formData.email}
-              onChange={handleChange('email')}
+              onChange={handleChange("email")}
               disabled={isLoading}
-              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
               <p id="email-error" className="text-sm text-red-600 dark:text-red-400">
@@ -201,11 +189,11 @@ export default function RegisterForm() {
               type="password"
               placeholder="••••••••"
               value={formData.password}
-              onChange={handleChange('password')}
+              onChange={handleChange("password")}
               disabled={isLoading}
-              className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'password-error password-requirements' : 'password-requirements'}
+              aria-describedby={errors.password ? "password-error password-requirements" : "password-requirements"}
             />
             {errors.password && (
               <p id="password-error" className="text-sm text-red-600 dark:text-red-400">
@@ -225,11 +213,11 @@ export default function RegisterForm() {
               type="password"
               placeholder="••••••••"
               value={formData.passwordConfirm}
-              onChange={handleChange('passwordConfirm')}
+              onChange={handleChange("passwordConfirm")}
               disabled={isLoading}
-              className={errors.passwordConfirm ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.passwordConfirm ? "border-red-500 focus-visible:ring-red-500" : ""}
               aria-invalid={!!errors.passwordConfirm}
-              aria-describedby={errors.passwordConfirm ? 'passwordConfirm-error' : undefined}
+              aria-describedby={errors.passwordConfirm ? "passwordConfirm-error" : undefined}
             />
             {errors.passwordConfirm && (
               <p id="passwordConfirm-error" className="text-sm text-red-600 dark:text-red-400">
@@ -241,24 +229,20 @@ export default function RegisterForm() {
 
         <CardFooter className="flex flex-col space-y-4 pt-6">
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Rejestrowanie...
               </>
             ) : (
-              'Zarejestruj się'
+              "Zarejestruj się"
             )}
           </Button>
 
           {/* Login Link */}
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-            Masz już konto?{' '}
+            Masz już konto?{" "}
             <a href="/login" className="text-primary font-medium hover:underline">
               Zaloguj się
             </a>
@@ -268,4 +252,3 @@ export default function RegisterForm() {
     </Card>
   );
 }
-

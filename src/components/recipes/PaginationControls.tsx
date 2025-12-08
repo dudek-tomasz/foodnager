@@ -1,26 +1,23 @@
 /**
  * PaginationControls Component
- * 
+ *
  * Displays pagination controls with previous, page numbers, and next buttons.
  * Includes current page indicator and page info.
- * 
+ *
  * Performance: Memoized to prevent unnecessary re-renders
  */
 
-import { memo } from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { PaginationMetaDTO } from '@/types';
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { PaginationMetaDTO } from "@/types";
 
 interface PaginationControlsProps {
   pagination: PaginationMetaDTO;
   onPageChange: (page: number) => void;
 }
 
-const PaginationControlsComponent = ({ 
-  pagination, 
-  onPageChange 
-}: PaginationControlsProps) => {
+const PaginationControlsComponent = ({ pagination, onPageChange }: PaginationControlsProps) => {
   const { page, total_pages } = pagination;
 
   // Don't render if only one page or no pages
@@ -30,7 +27,7 @@ const PaginationControlsComponent = ({
 
   // Calculate page numbers to display
   const getPageNumbers = () => {
-    const pages: (number | 'ellipsis')[] = [];
+    const pages: (number | "ellipsis")[] = [];
     const maxVisible = 5;
 
     if (total_pages <= maxVisible) {
@@ -43,7 +40,7 @@ const PaginationControlsComponent = ({
       pages.push(1);
 
       if (page > 3) {
-        pages.push('ellipsis');
+        pages.push("ellipsis");
       }
 
       // Show pages around current page
@@ -55,7 +52,7 @@ const PaginationControlsComponent = ({
       }
 
       if (page < total_pages - 2) {
-        pages.push('ellipsis');
+        pages.push("ellipsis");
       }
 
       // Always show last page
@@ -87,12 +84,9 @@ const PaginationControlsComponent = ({
 
         <div className="hidden sm:flex items-center gap-1">
           {pageNumbers.map((pageNum, index) => {
-            if (pageNum === 'ellipsis') {
+            if (pageNum === "ellipsis") {
               return (
-                <span 
-                  key={`ellipsis-${index}`}
-                  className="px-2 text-neutral-400"
-                >
+                <span key={`ellipsis-${index}`} className="px-2 text-neutral-400">
                   ...
                 </span>
               );
@@ -101,12 +95,12 @@ const PaginationControlsComponent = ({
             return (
               <Button
                 key={pageNum}
-                variant={pageNum === page ? 'default' : 'outline'}
+                variant={pageNum === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
                 className="min-w-[2.5rem]"
                 aria-label={`Strona ${pageNum}`}
-                aria-current={pageNum === page ? 'page' : undefined}
+                aria-current={pageNum === page ? "page" : undefined}
               >
                 {pageNum}
               </Button>
@@ -131,4 +125,3 @@ const PaginationControlsComponent = ({
 
 // Export memoized component for better performance
 export const PaginationControls = memo(PaginationControlsComponent);
-

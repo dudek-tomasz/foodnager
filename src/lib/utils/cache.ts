@@ -1,6 +1,6 @@
 /**
  * Cache utilities for Foodnager API
- * 
+ *
  * Provides a simple caching layer with TTL support.
  * Currently implements in-memory cache for development,
  * can be extended with Redis adapter for production.
@@ -32,18 +32,18 @@ export interface CacheAdapter {
  * Suitable for development and single-instance deployments
  */
 class MemoryCache implements CacheAdapter {
-  private store = new Map<string, CacheEntry<any>>();
+  private store = new Map<string, CacheEntry<unknown>>();
 
   /**
    * Gets a value from cache
    * Returns null if key doesn't exist or has expired
-   * 
+   *
    * @param key - Cache key
    * @returns Cached value or null
    */
   async get<T>(key: string): Promise<T | null> {
     const entry = this.store.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -59,14 +59,14 @@ class MemoryCache implements CacheAdapter {
 
   /**
    * Sets a value in cache with TTL
-   * 
+   *
    * @param key - Cache key
    * @param value - Value to cache
    * @param ttl - Time to live in seconds
    */
   async set<T>(key: string, value: T, ttl: number): Promise<void> {
-    const expiresAt = Date.now() + (ttl * 1000);
-    
+    const expiresAt = Date.now() + ttl * 1000;
+
     this.store.set(key, {
       value,
       expiresAt,
@@ -75,7 +75,7 @@ class MemoryCache implements CacheAdapter {
 
   /**
    * Deletes a specific key from cache
-   * 
+   *
    * @param key - Cache key to delete
    */
   async delete(key: string): Promise<void> {
@@ -92,11 +92,11 @@ class MemoryCache implements CacheAdapter {
   /**
    * Deletes all keys matching a pattern
    * Pattern uses simple wildcard matching (e.g., 'tags:*' deletes all keys starting with 'tags:')
-   * 
+   *
    * @param pattern - Pattern to match (supports * wildcard at the end)
    */
   async deletePattern(pattern: string): Promise<void> {
-    const prefix = pattern.replace('*', '');
+    const prefix = pattern.replace("*", "");
     const keysToDelete: string[] = [];
 
     for (const key of this.store.keys()) {
@@ -124,20 +124,20 @@ class MemoryCache implements CacheAdapter {
  */
 // class RedisCache implements CacheAdapter {
 //   constructor(private client: RedisClient) {}
-//   
+//
 //   async get<T>(key: string): Promise<T | null> {
 //     const value = await this.client.get(key);
 //     return value ? JSON.parse(value) : null;
 //   }
-//   
+//
 //   async set<T>(key: string, value: T, ttl: number): Promise<void> {
 //     await this.client.setex(key, ttl, JSON.stringify(value));
 //   }
-//   
+//
 //   async delete(key: string): Promise<void> {
 //     await this.client.del(key);
 //   }
-//   
+//
 //   async clear(): Promise<void> {
 //     await this.client.flushdb();
 //   }
@@ -155,8 +155,8 @@ export const cache: CacheAdapter = new MemoryCache();
  * Helps organize cache keys and avoid collisions
  */
 export const CACHE_KEYS = {
-  UNITS_ALL: 'units:all',
-  TAGS_ALL: 'tags:all',
+  UNITS_ALL: "units:all",
+  TAGS_ALL: "tags:all",
   TAGS_SEARCH: (search: string) => `tags:search:${search.toLowerCase()}`,
   PRODUCT: (id: number) => `product:${id}`,
   RECIPE: (id: number) => `recipe:${id}`,
@@ -166,9 +166,8 @@ export const CACHE_KEYS = {
  * Cache TTL constants (in seconds)
  */
 export const CACHE_TTL = {
-  UNITS: 3600,      // 1 hour - units rarely change
-  TAGS: 600,        // 10 minutes - tags change occasionally
-  PRODUCTS: 300,    // 5 minutes - products change more frequently
-  RECIPES: 600,     // 10 minutes - recipes change regularly
+  UNITS: 3600, // 1 hour - units rarely change
+  TAGS: 600, // 10 minutes - tags change occasionally
+  PRODUCTS: 300, // 5 minutes - products change more frequently
+  RECIPES: 600, // 10 minutes - recipes change regularly
 } as const;
-

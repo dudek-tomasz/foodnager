@@ -1,6 +1,6 @@
 /**
  * RecipeIngredientsSection Component
- * 
+ *
  * Dynamic list of recipe ingredients with:
  * - Add/remove ingredient rows
  * - ProductAutocomplete for each ingredient
@@ -9,23 +9,16 @@
  * - Validation (no duplicates, all fields required)
  */
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import ProductAutocomplete from '@/components/fridge/ProductAutocomplete';
-import type { RecipeIngredientFormData } from './types';
-import type { ProductDTO, UnitDTO } from '@/types';
-import { createEmptyIngredientFormData } from '@/lib/mappers/recipe-view.mapper';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import ProductAutocomplete from "@/components/fridge/ProductAutocomplete";
+import type { RecipeIngredientFormData } from "./types";
+import type { ProductDTO, UnitDTO } from "@/types";
+import { createEmptyIngredientFormData } from "@/lib/mappers/recipe-view.mapper";
 
 interface RecipeIngredientsSectionProps {
   ingredients: RecipeIngredientFormData[];
@@ -33,11 +26,7 @@ interface RecipeIngredientsSectionProps {
   onChange: (ingredients: RecipeIngredientFormData[]) => void;
 }
 
-export function RecipeIngredientsSection({
-  ingredients,
-  availableUnits,
-  onChange,
-}: RecipeIngredientsSectionProps) {
+export function RecipeIngredientsSection({ ingredients, availableUnits, onChange }: RecipeIngredientsSectionProps) {
   /**
    * Adds a new empty ingredient row
    */
@@ -51,7 +40,7 @@ export function RecipeIngredientsSection({
    */
   const handleRemoveIngredient = (index: number) => {
     if (ingredients.length === 1) {
-      toast.warning('Przepis musi mieć przynajmniej jeden składnik');
+      toast.warning("Przepis musi mieć przynajmniej jeden składnik");
       return;
     }
     const updated = ingredients.filter((_, i) => i !== index);
@@ -64,7 +53,7 @@ export function RecipeIngredientsSection({
   const updateIngredient = (
     index: number,
     field: keyof RecipeIngredientFormData,
-    value: any
+    value: RecipeIngredientFormData[keyof RecipeIngredientFormData]
   ) => {
     const updated = [...ingredients];
     updated[index] = {
@@ -73,12 +62,10 @@ export function RecipeIngredientsSection({
     };
 
     // Check for duplicate products
-    if (field === 'productId' && value) {
-      const duplicateIndex = updated.findIndex(
-        (ing, i) => i !== index && ing.productId === value
-      );
+    if (field === "productId" && value) {
+      const duplicateIndex = updated.findIndex((ing, i) => i !== index && ing.productId === value);
       if (duplicateIndex !== -1) {
-        toast.warning('Ten produkt już został dodany do listy składników');
+        toast.warning("Ten produkt już został dodany do listy składników");
         return;
       }
     }
@@ -94,14 +81,12 @@ export function RecipeIngredientsSection({
     updated[index] = {
       ...updated[index],
       productId: product?.id || null,
-      productName: product?.name || '',
+      productName: product?.name || "",
     };
 
     // Check for duplicates
     if (product) {
-      const duplicateIndex = updated.findIndex(
-        (ing, i) => i !== index && ing.productId === product.id
-      );
+      const duplicateIndex = updated.findIndex((ing, i) => i !== index && ing.productId === product.id);
       if (duplicateIndex !== -1) {
         toast.warning(`Produkt "${product.name}" już został dodany do listy składników`);
         return;
@@ -115,11 +100,7 @@ export function RecipeIngredientsSection({
    * Validates if ingredient row is complete
    */
   const isIngredientComplete = (ingredient: RecipeIngredientFormData): boolean => {
-    return (
-      ingredient.productId !== null &&
-      ingredient.quantity > 0 &&
-      ingredient.unitId !== null
-    );
+    return ingredient.productId !== null && ingredient.quantity > 0 && ingredient.unitId !== null;
   };
 
   return (
@@ -129,7 +110,7 @@ export function RecipeIngredientsSection({
           Składniki <span className="text-red-500">*</span>
         </Label>
         <span className="text-xs text-neutral-500">
-          {ingredients.length} {ingredients.length === 1 ? 'składnik' : 'składników'}
+          {ingredients.length} {ingredients.length === 1 ? "składnik" : "składników"}
         </span>
       </div>
 
@@ -142,12 +123,9 @@ export function RecipeIngredientsSection({
                 name: ingredient.productName,
                 is_global: false, // Will be determined by API
                 user_id: null,
-                created_at: '',
+                created_at: "",
               } as ProductDTO)
             : null;
-
-          // Find selected unit
-          const selectedUnit = availableUnits.find(u => u.id === ingredient.unitId);
 
           return (
             <div
@@ -159,11 +137,7 @@ export function RecipeIngredientsSection({
                 <ProductAutocomplete
                   value={selectedProduct}
                   onChange={(product) => handleProductChange(index, product)}
-                  error={
-                    !ingredient.productId && ingredients.length > 1
-                      ? undefined
-                      : undefined
-                  }
+                  error={!ingredient.productId && ingredients.length > 1 ? undefined : undefined}
                 />
               </div>
 
@@ -173,35 +147,25 @@ export function RecipeIngredientsSection({
                   type="number"
                   min="0"
                   step="0.1"
-                  value={ingredient.quantity || ''}
+                  value={ingredient.quantity || ""}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value);
-                    updateIngredient(index, 'quantity', isNaN(value) ? 0 : value);
+                    updateIngredient(index, "quantity", isNaN(value) ? 0 : value);
                   }}
                   placeholder="Ilość"
-                  className={
-                    ingredient.quantity <= 0 && ingredients.length > 1
-                      ? 'border-red-500'
-                      : ''
-                  }
+                  className={ingredient.quantity <= 0 && ingredients.length > 1 ? "border-red-500" : ""}
                 />
               </div>
 
               {/* Unit Select */}
               <div className="w-full sm:w-32">
                 <Select
-                  value={ingredient.unitId?.toString() || ''}
+                  value={ingredient.unitId?.toString() || ""}
                   onValueChange={(value) => {
-                    updateIngredient(index, 'unitId', parseInt(value));
+                    updateIngredient(index, "unitId", parseInt(value));
                   }}
                 >
-                  <SelectTrigger
-                    className={
-                      !ingredient.unitId && ingredients.length > 1
-                        ? 'border-red-500'
-                        : ''
-                    }
-                  >
+                  <SelectTrigger className={!ingredient.unitId && ingredients.length > 1 ? "border-red-500" : ""}>
                     <SelectValue placeholder="Jednostka" />
                   </SelectTrigger>
                   <SelectContent>
@@ -232,26 +196,16 @@ export function RecipeIngredientsSection({
       </div>
 
       {/* Add Ingredient Button */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleAddIngredient}
-        className="w-full"
-      >
+      <Button type="button" variant="outline" size="sm" onClick={handleAddIngredient} className="w-full">
         <Plus className="h-4 w-4 mr-2" />
         Dodaj składnik
       </Button>
 
       {/* Validation Message */}
-      {ingredients.length === 0 && (
-        <p className="text-sm text-red-500">
-          Dodaj przynajmniej jeden składnik
-        </p>
-      )}
+      {ingredients.length === 0 && <p className="text-sm text-red-500">Dodaj przynajmniej jeden składnik</p>}
 
       {/* Incomplete Ingredients Warning */}
-      {ingredients.some(ing => !isIngredientComplete(ing)) && (
+      {ingredients.some((ing) => !isIngredientComplete(ing)) && (
         <p className="text-sm text-amber-600 dark:text-amber-400">
           Upewnij się, że wszystkie składniki mają wypełnione pola: produkt, ilość i jednostkę
         </p>
@@ -259,4 +213,3 @@ export function RecipeIngredientsSection({
     </div>
   );
 }
-

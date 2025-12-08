@@ -1,10 +1,10 @@
-import type { Locator, Page } from '@playwright/test';
-import { expect } from '@playwright/test';
-import { AddProductModal } from './AddProductModal.page';
+import type { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { AddProductModal } from "./AddProductModal.page";
 
 /**
  * FridgePage - POM for the Fridge page
- * 
+ *
  * Represents the main fridge view with:
  * - Navigation to fridge page
  * - Opening add product modal
@@ -32,14 +32,17 @@ export class FridgePage {
     this.page = page;
 
     // Initialize locators (use first() for buttons that appear twice - desktop/mobile)
-    this.addProductButton = page.getByTestId('fridge-add-product-button').first();
-    this.searchInput = page.getByPlaceholder('Szukaj produktów...');
-    this.sortDropdown = page.getByLabel('Wybierz pole sortowania');
-    this.fridgeItemsList = page.getByTestId('fridge-items-list');
-    this.emptyState = page.getByText('Twoja lodówka jest pusta');
-    this.loadingSpinner = page.getByText('Ładowanie produktów...');
-    this.statsSection = page.locator('div').filter({ hasText: /Wszystkie produkty/ }).first();
-    this.successToast = page.locator('[data-sonner-toast]');
+    this.addProductButton = page.getByTestId("fridge-add-product-button").first();
+    this.searchInput = page.getByPlaceholder("Szukaj produktów...");
+    this.sortDropdown = page.getByLabel("Wybierz pole sortowania");
+    this.fridgeItemsList = page.getByTestId("fridge-items-list");
+    this.emptyState = page.getByText("Twoja lodówka jest pusta");
+    this.loadingSpinner = page.getByText("Ładowanie produktów...");
+    this.statsSection = page
+      .locator("div")
+      .filter({ hasText: /Wszystkie produkty/ })
+      .first();
+    this.successToast = page.locator("[data-sonner-toast]");
 
     // Initialize modal
     this.addProductModal = new AddProductModal(page);
@@ -53,9 +56,9 @@ export class FridgePage {
    * Navigates to the fridge page
    */
   async goto(): Promise<void> {
-    await this.page.goto('/fridge', { waitUntil: 'domcontentloaded' });
+    await this.page.goto("/fridge", { waitUntil: "domcontentloaded" });
     // Wait for page to be interactive
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   /**
@@ -67,7 +70,7 @@ export class FridgePage {
    */
   async openAddProductModal(): Promise<void> {
     // Wait for button to be ready
-    await this.addProductButton.waitFor({ state: 'visible' });
+    await this.addProductButton.waitFor({ state: "visible" });
     await this.page.waitForTimeout(500); // Small delay for React to hydrate
     await this.addProductButton.click();
     await this.addProductModal.waitForModal();
@@ -105,7 +108,7 @@ export class FridgePage {
    * @param productName - Name of the product to edit
    */
   async editProduct(productName: string): Promise<void> {
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
     const editButton = productRow.getByLabel(/Edytuj/);
     await editButton.click();
   }
@@ -115,7 +118,7 @@ export class FridgePage {
    * @param productName - Name of the product to delete
    */
   async deleteProduct(productName: string): Promise<void> {
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
     const deleteButton = productRow.getByLabel(/Usuń/);
     await deleteButton.click();
   }
@@ -137,7 +140,7 @@ export class FridgePage {
    * Gets the count of displayed fridge items
    */
   async getFridgeItemsCount(): Promise<number> {
-    const items = this.fridgeItemsList.locator('li');
+    const items = this.fridgeItemsList.locator("li");
     return await items.count();
   }
 
@@ -155,7 +158,10 @@ export class FridgePage {
    */
   async getExpiredProductsCount(): Promise<number> {
     // Use more specific selector for stats section
-    const expiredSection = this.page.locator('div.bg-white.dark\\:bg-gray-800').filter({ hasText: /Przeterminowane/ }).first();
+    const expiredSection = this.page
+      .locator("div.bg-white.dark\\:bg-gray-800")
+      .filter({ hasText: /Przeterminowane/ })
+      .first();
     const statsText = await expiredSection.textContent();
     const match = statsText?.match(/(\d+)/);
     return match ? parseInt(match[1], 10) : 0;
@@ -166,7 +172,7 @@ export class FridgePage {
    * @param productName - Name of the product to check
    */
   async hasProduct(productName: string): Promise<boolean> {
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
     return await productRow.isVisible().catch(() => false);
   }
 
@@ -180,8 +186,8 @@ export class FridgePage {
     unit: string;
     expiryDate?: string;
   } | null> {
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
-    
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
+
     if (!(await productRow.isVisible())) {
       return null;
     }
@@ -192,8 +198,8 @@ export class FridgePage {
     // Parse the text to extract details
     return {
       name: productName,
-      quantity: '', // You can enhance this to parse actual quantity
-      unit: '',
+      quantity: "", // You can enhance this to parse actual quantity
+      unit: "",
       expiryDate: undefined,
     };
   }
@@ -208,7 +214,7 @@ export class FridgePage {
   async assertPageLoaded(): Promise<void> {
     await expect(this.page).toHaveURL(/\/fridge/, { timeout: 10000 });
     // Wait for main heading to be visible (use first() to avoid strict mode)
-    const heading = this.page.getByRole('heading', { name: /Twoja lodówka/i }).first();
+    const heading = this.page.getByRole("heading", { name: /Twoja lodówka/i }).first();
     await expect(heading).toBeVisible({ timeout: 10000 });
   }
 
@@ -242,11 +248,11 @@ export class FridgePage {
   async assertProductExists(productName: string): Promise<void> {
     // Wait for loading to finish first
     await this.waitForLoading();
-    
+
     // Wait a bit for React to re-render the list
     await this.page.waitForTimeout(500);
-    
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
+
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
     await expect(productRow.first()).toBeVisible({ timeout: 10000 });
   }
 
@@ -255,7 +261,7 @@ export class FridgePage {
    * @param productName - Name of the product
    */
   async assertProductNotExists(productName: string): Promise<void> {
-    const productRow = this.fridgeItemsList.locator('li').filter({ hasText: productName });
+    const productRow = this.fridgeItemsList.locator("li").filter({ hasText: productName });
     await expect(productRow).not.toBeVisible();
   }
 
@@ -281,7 +287,6 @@ export class FridgePage {
    * Waits for loading to complete
    */
   async waitForLoading(): Promise<void> {
-    await this.loadingSpinner.waitFor({ state: 'hidden' }).catch(() => {});
+    await this.loadingSpinner.waitFor({ state: "hidden" }).catch(() => {});
   }
 }
-

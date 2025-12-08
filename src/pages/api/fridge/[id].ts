@@ -1,28 +1,21 @@
 /**
  * Virtual Fridge API Endpoint - Single Item Operations
- * 
+ *
  * GET /api/fridge/:id - Get fridge item by ID
  * PATCH /api/fridge/:id - Update fridge item
  * DELETE /api/fridge/:id - Delete fridge item
- * 
+ *
  * Following auth implementation:
  * - Uses context.locals.user from middleware
  * - Creates supabase instance per request
  */
 
-import type { APIContext } from 'astro';
-import { FridgeService } from '../../../lib/services/fridge.service';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import {
-  fridgeItemIdSchema,
-  updateFridgeItemSchema,
-} from '../../../lib/validations/fridge.validation';
-import {
-  successResponse,
-  noContentResponse,
-  handleError,
-} from '../../../lib/utils/api-response';
-import { ValidationError, UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { FridgeService } from "../../../lib/services/fridge.service";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { fridgeItemIdSchema, updateFridgeItemSchema } from "../../../lib/validations/fridge.validation";
+import { successResponse, noContentResponse, handleError } from "../../../lib/utils/api-response";
+import { ValidationError, UnauthorizedError } from "../../../lib/errors";
 
 // Disable pre-rendering for API routes
 export const prerender = false;
@@ -33,9 +26,9 @@ export const prerender = false;
  */
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
-  
+
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
 
   return user.id;
@@ -47,14 +40,11 @@ function getAuthenticatedUser(context: APIContext): string {
  */
 function parseFridgeItemId(context: APIContext): number {
   const idParam = context.params.id;
-  
+
   const validationResult = fridgeItemIdSchema.safeParse(idParam);
 
   if (!validationResult.success) {
-    throw new ValidationError(
-      'Invalid item ID',
-      { id: validationResult.error.errors.map(e => e.message) }
-    );
+    throw new ValidationError("Invalid item ID", { id: validationResult.error.errors.map((e) => e.message) });
   }
 
   return validationResult.data;
@@ -113,25 +103,18 @@ export async function PATCH(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      throw new ValidationError('Invalid JSON in request body');
+      throw new ValidationError("Invalid JSON in request body");
     }
 
     const validationResult = updateFridgeItemSchema.safeParse(body);
 
     if (!validationResult.success) {
-      throw new ValidationError(
-        'Invalid request body',
-        validationResult.error.flatten().fieldErrors
-      );
+      throw new ValidationError("Invalid request body", validationResult.error.flatten().fieldErrors);
     }
 
     // Call service
     const fridgeService = new FridgeService(supabase);
-    const item = await fridgeService.updateFridgeItem(
-      userId,
-      itemId,
-      validationResult.data
-    );
+    const item = await fridgeService.updateFridgeItem(userId, itemId, validationResult.data);
 
     return successResponse(item, 200);
   } catch (error) {
@@ -168,4 +151,3 @@ export async function DELETE(context: APIContext): Promise<Response> {
     return handleError(error);
   }
 }
-

@@ -2,12 +2,12 @@
  * RecipeHeader - Recipe page header with navigation, title, badges and actions
  */
 
-import React from 'react';
-import BackButton from './BackButton';
-import SourceBadge from './SourceBadge';
-import MatchScoreBadge from './MatchScoreBadge';
-import RecipeActionsDropdown from './RecipeActionsDropdown';
-import type { SourceEnum } from '../../types';
+import React from "react";
+import BackButton from "./BackButton";
+import SourceBadge from "./SourceBadge";
+import MatchScoreBadge from "./MatchScoreBadge";
+import RecipeActionsDropdown from "./RecipeActionsDropdown";
+import type { SourceEnum } from "../../types";
 
 interface RecipeHeaderProps {
   title: string;
@@ -47,9 +47,7 @@ export default function RecipeHeader({
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-        {title}
-      </h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">{title}</h1>
 
       {/* Badges */}
       <div className="flex flex-wrap items-center gap-2">
@@ -59,4 +57,3 @@ export default function RecipeHeader({
     </header>
   );
 }
-

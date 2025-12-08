@@ -2,8 +2,8 @@
  * ErrorState - Reusable error display component
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface ErrorStateProps {
   error: string;
@@ -18,7 +18,7 @@ export default function ErrorState({
   onRetry,
   showBackButton = false,
   onBack,
-  className = '',
+  className = "",
 }: ErrorStateProps) {
   const handleBack = () => {
     if (onBack) {
@@ -54,14 +54,10 @@ export default function ErrorState({
       </div>
 
       {/* Heading */}
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        Wystąpił błąd
-      </h2>
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Wystąpił błąd</h2>
 
       {/* Error message */}
-      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-        {error}
-      </p>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">{error}</p>
 
       {/* Actions */}
       <div className="flex gap-3">
@@ -95,11 +91,7 @@ export default function ErrorState({
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Wróć
           </Button>
@@ -108,4 +100,3 @@ export default function ErrorState({
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
-import { History } from 'lucide-react';
-import type { HistoryStats } from './types';
+import { History } from "lucide-react";
+import type { HistoryStats } from "./types";
 
 interface HistoryHeaderProps {
   stats: HistoryStats;
@@ -11,10 +11,10 @@ interface HistoryHeaderProps {
 export function HistoryHeader({ stats }: HistoryHeaderProps) {
   const formatDate = (isoDate: string | null) => {
     if (!isoDate) return null;
-    return new Date(isoDate).toLocaleDateString('pl-PL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return new Date(isoDate).toLocaleDateString("pl-PL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
@@ -24,10 +24,8 @@ export function HistoryHeader({ stats }: HistoryHeaderProps) {
         <History className="w-8 h-8 text-primary" />
         <h1 className="text-3xl font-bold">Historia gotowania</h1>
       </div>
-      
-      <p className="text-muted-foreground">
-        Przeglądaj przepisy, które ugotowałeś
-      </p>
+
+      <p className="text-muted-foreground">Przeglądaj przepisy, które ugotowałeś</p>
 
       {stats.totalEntries > 0 && (
         <div className="flex flex-wrap gap-6 text-sm">
@@ -35,7 +33,7 @@ export function HistoryHeader({ stats }: HistoryHeaderProps) {
             <span className="text-muted-foreground">Liczba wpisów: </span>
             <span className="font-semibold">{stats.totalEntries}</span>
           </div>
-          
+
           {stats.newestDate && (
             <div>
               <span className="text-muted-foreground">Ostatnie gotowanie: </span>
@@ -54,4 +52,3 @@ export function HistoryHeader({ stats }: HistoryHeaderProps) {
     </header>
   );
 }
-

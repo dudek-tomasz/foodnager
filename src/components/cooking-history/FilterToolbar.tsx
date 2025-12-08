@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { X, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import type { HistoryFilters } from './types';
-import type { RecipeReferenceDTO } from '../../types';
+import { useState } from "react";
+import { X, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import type { HistoryFilters } from "./types";
+import type { RecipeReferenceDTO } from "../../types";
 
 interface FilterToolbarProps {
   filters: HistoryFilters;
@@ -17,14 +17,9 @@ interface FilterToolbarProps {
 /**
  * Toolbar z narzędziami do filtrowania historii gotowania
  */
-export function FilterToolbar({ 
-  filters, 
-  onFilterChange, 
-  onClearFilters,
-  availableRecipes = []
-}: FilterToolbarProps) {
-  const [fromDate, setFromDate] = useState(filters.fromDate || '');
-  const [toDate, setToDate] = useState(filters.toDate || '');
+export function FilterToolbar({ filters, onFilterChange, onClearFilters, availableRecipes = [] }: FilterToolbarProps) {
+  const [fromDate, setFromDate] = useState(filters.fromDate || "");
+  const [toDate, setToDate] = useState(filters.toDate || "");
   const [dateError, setDateError] = useState<string | null>(null);
 
   const hasActiveFilters = Object.keys(filters).length > 0;
@@ -34,20 +29,20 @@ export function FilterToolbar({
 
     // Sprawdź czy daty są w poprawnym formacie
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
+
     if (fromDate && !dateRegex.test(fromDate)) {
-      setDateError('Nieprawidłowy format daty początkowej (użyj YYYY-MM-DD)');
+      setDateError("Nieprawidłowy format daty początkowej (użyj YYYY-MM-DD)");
       return;
     }
 
     if (toDate && !dateRegex.test(toDate)) {
-      setDateError('Nieprawidłowy format daty końcowej (użyj YYYY-MM-DD)');
+      setDateError("Nieprawidłowy format daty końcowej (użyj YYYY-MM-DD)");
       return;
     }
 
     // Sprawdź czy from_date <= to_date
     if (fromDate && toDate && fromDate > toDate) {
-      setDateError('Data początkowa musi być wcześniejsza lub równa dacie końcowej');
+      setDateError("Data początkowa musi być wcześniejsza lub równa dacie końcowej");
       return;
     }
 
@@ -55,33 +50,35 @@ export function FilterToolbar({
     onFilterChange({
       ...filters,
       fromDate: fromDate || undefined,
-      toDate: toDate || undefined
+      toDate: toDate || undefined,
     });
   };
 
   const handleRecipeFilterChange = (recipeId: number | undefined) => {
     onFilterChange({
       ...filters,
-      recipeId
+      recipeId,
     });
   };
 
   const removeDateFilter = () => {
-    setFromDate('');
-    setToDate('');
+    setFromDate("");
+    setToDate("");
     setDateError(null);
-    const { fromDate: _, toDate: __, ...rest } = filters;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { fromDate: _fromDate, toDate: _toDate, ...rest } = filters;
     onFilterChange(rest);
   };
 
   const removeRecipeFilter = () => {
-    const { recipeId: _, ...rest } = filters;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { recipeId: _recipeId, ...rest } = filters;
     onFilterChange(rest);
   };
 
   const handleClearAll = () => {
-    setFromDate('');
-    setToDate('');
+    setFromDate("");
+    setToDate("");
     setDateError(null);
     onClearFilters();
   };
@@ -97,7 +94,7 @@ export function FilterToolbar({
           <select
             id="recipe-filter"
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            value={filters.recipeId || ''}
+            value={filters.recipeId || ""}
             onChange={(e) => handleRecipeFilterChange(e.target.value ? Number(e.target.value) : undefined)}
           >
             <option value="">Wszystkie przepisy</option>
@@ -139,11 +136,7 @@ export function FilterToolbar({
 
         {/* Przycisk zastosuj filtry daty */}
         {(fromDate || toDate) && (
-          <Button 
-            onClick={validateAndApplyDateFilter}
-            variant="secondary"
-            size="default"
-          >
+          <Button onClick={validateAndApplyDateFilter} variant="secondary" size="default">
             <Filter className="w-4 h-4 mr-2" />
             Zastosuj
           </Button>
@@ -151,20 +144,16 @@ export function FilterToolbar({
       </div>
 
       {/* Błąd walidacji */}
-      {dateError && (
-        <div className="text-sm text-destructive">
-          {dateError}
-        </div>
-      )}
+      {dateError && <div className="text-sm text-destructive">{dateError}</div>}
 
       {/* Aktywne filtry - badges */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Aktywne filtry:</span>
-          
+
           {filters.recipeId && (
             <Badge variant="secondary" className="gap-1">
-              Przepis: {availableRecipes.find(r => r.id === filters.recipeId)?.title || filters.recipeId}
+              Przepis: {availableRecipes.find((r) => r.id === filters.recipeId)?.title || filters.recipeId}
               <button
                 onClick={removeRecipeFilter}
                 className="ml-1 hover:bg-muted rounded-full p-0.5"
@@ -178,7 +167,7 @@ export function FilterToolbar({
           {(filters.fromDate || filters.toDate) && (
             <Badge variant="secondary" className="gap-1">
               {filters.fromDate && `Od ${filters.fromDate}`}
-              {filters.fromDate && filters.toDate && ' '}
+              {filters.fromDate && filters.toDate && " "}
               {filters.toDate && `Do ${filters.toDate}`}
               <button
                 onClick={removeDateFilter}
@@ -190,11 +179,7 @@ export function FilterToolbar({
             </Badge>
           )}
 
-          <Button
-            onClick={handleClearAll}
-            variant="ghost"
-            size="sm"
-          >
+          <Button onClick={handleClearAll} variant="ghost" size="sm">
             Wyczyść wszystkie
           </Button>
         </div>
@@ -202,4 +187,3 @@ export function FilterToolbar({
     </div>
   );
 }
-

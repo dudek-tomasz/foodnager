@@ -1,14 +1,14 @@
 /**
  * RecipeGrid Component
- * 
+ *
  * Displays recipes in a responsive grid layout.
  * Handles loading states with skeleton cards and empty states.
  */
 
-import { RecipeCard } from './RecipeCard';
-import { EmptyState } from './EmptyState';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import type { RecipeSummaryDTO } from '@/types';
+import { RecipeCard } from "./RecipeCard";
+import { EmptyState } from "./EmptyState";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import type { RecipeSummaryDTO } from "@/types";
 
 interface RecipeGridProps {
   recipes: RecipeSummaryDTO[];
@@ -88,13 +88,7 @@ export function RecipeGrid({
 
   // Empty state - no recipes
   if (recipes.length === 0) {
-    return (
-      <EmptyState 
-        onAddRecipe={onAddRecipe}
-        isSearchResult={!!searchQuery}
-        searchQuery={searchQuery}
-      />
-    );
+    return <EmptyState onAddRecipe={onAddRecipe} isSearchResult={!!searchQuery} searchQuery={searchQuery} />;
   }
 
   // Main grid with recipes
@@ -107,19 +101,10 @@ export function RecipeGrid({
           onRecipeClick={() => onRecipeClick(recipe.id)}
           onDetailsClick={() => onRecipeClick(recipe.id)}
           onCookClick={() => onCookRecipe(recipe.id)}
-          onEditClick={
-            recipe.source === 'user' 
-              ? () => onEditRecipe(recipe)
-              : undefined
-          }
-          onDeleteClick={
-            recipe.source === 'user'
-              ? () => onDeleteRecipe(recipe.id)
-              : undefined
-          }
+          onEditClick={recipe.source === "user" ? () => onEditRecipe(recipe) : undefined}
+          onDeleteClick={recipe.source === "user" ? () => onDeleteRecipe(recipe.id) : undefined}
         />
       ))}
     </div>
   );
 }
-

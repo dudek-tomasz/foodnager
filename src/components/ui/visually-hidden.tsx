@@ -1,16 +1,12 @@
 /**
  * VisuallyHidden - Hides content visually but keeps it accessible for screen readers
- * 
+ *
  * Uses CSS to hide content from sighted users while keeping it accessible to screen readers
  */
 
 import * as React from "react";
 
-function VisuallyHidden({
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) {
+function VisuallyHidden({ className, children, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
       className={className}
@@ -33,4 +29,3 @@ function VisuallyHidden({
 }
 
 export { VisuallyHidden };
-

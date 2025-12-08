@@ -1,16 +1,19 @@
 /**
  * ExternalAPIService - Integration with external recipe APIs
- * 
+ *
  * Currently supports Spoonacular API
- * 
+ *
  * This service is used in Tier 2 of recipe discovery
  */
 
-import type { SearchRecipePreferencesDTO } from '@/types';
-import { translateIngredients } from '../utils/ingredient-translator';
-import { htmlToText, extractSummary } from '../utils/html-to-text';
-import { translateRecipe } from '../utils/recipe-translator';
-import { translateTags } from '../utils/tag-translator';
+/* eslint-disable no-console */
+// Console logs are intentional for debugging external API integration
+
+import type { SearchRecipePreferencesDTO } from "@/types";
+import { translateIngredients } from "../utils/ingredient-translator";
+import { htmlToText, extractSummary } from "../utils/html-to-text";
+import { translateRecipe } from "../utils/recipe-translator";
+import { translateTags } from "../utils/tag-translator";
 
 /**
  * External recipe response from API
@@ -22,12 +25,12 @@ export interface ExternalRecipe {
   description?: string;
   instructions: string;
   cooking_time?: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: "easy" | "medium" | "hard";
   image_url?: string;
   ingredients: ExternalIngredient[];
   tags?: string[];
   source_url?: string;
-  sources?: Array<{ name: string; url: string }>;
+  sources?: { name: string; url: string }[];
 }
 
 /**
@@ -113,7 +116,7 @@ interface SpoonacularRecipeDetails {
   dishTypes: string[];
   extendedIngredients: SpoonacularExtendedIngredient[];
   summary: string;
-  winePairing?: any;
+  winePairing?: Record<string, unknown>;
 }
 
 interface SpoonacularExtendedIngredient {
@@ -154,78 +157,71 @@ export class ExternalAPIService {
   constructor(config?: Partial<ExternalAPIConfig>) {
     // Default configuration for Spoonacular
     this.config = {
-      url: import.meta.env.EXTERNAL_RECIPE_API_URL || 'https://api.spoonacular.com',
+      url: import.meta.env.EXTERNAL_RECIPE_API_URL || "https://api.spoonacular.com",
       apiKey: import.meta.env.EXTERNAL_RECIPE_API_KEY,
-      timeout: parseInt(import.meta.env.TIER2_TIMEOUT_MS || '10000', 10),
+      timeout: parseInt(import.meta.env.TIER2_TIMEOUT_MS || "10000", 10),
       ...config,
     };
   }
 
   /**
    * Search recipes by ingredients
-   * 
+   *
    * @param ingredients - Array of ingredient names to search for
    * @param preferences - Search preferences (optional)
    * @returns Array of external recipes
    */
-  async searchRecipes(
-    ingredients: string[],
-    preferences?: SearchRecipePreferencesDTO
-  ): Promise<ExternalRecipe[]> {
+  async searchRecipes(ingredients: string[], preferences?: SearchRecipePreferencesDTO): Promise<ExternalRecipe[]> {
     console.log(`🌐 [SPOONACULAR] Starting search with ingredients:`, ingredients);
-    
+
     try {
       if (!ingredients || ingredients.length === 0) {
-        console.log('🌐 [SPOONACULAR] ⚠️ No ingredients provided');
+        console.log("🌐 [SPOONACULAR] ⚠️ No ingredients provided");
         return [];
       }
 
       if (!this.config.apiKey) {
-        console.warn('🌐 [SPOONACULAR] ⚠️ API key not configured, skipping external API search');
+        console.warn("🌐 [SPOONACULAR] ⚠️ API key not configured, skipping external API search");
         return [];
       }
 
       // Translate Polish ingredient names to English
       const translatedIngredients = translateIngredients(ingredients);
       console.log(`🌐 [SPOONACULAR] ✅ API key configured, searching with translated ingredients...`);
-      
-      const recipes = await this.searchByIngredients(translatedIngredients, preferences);
+
+      // TODO: Use preferences for filtering/sorting in future implementation
+      const recipes = await this.searchByIngredients(translatedIngredients);
       console.log(`🌐 [SPOONACULAR] Found ${recipes.length} recipes before filtering`);
 
       // Apply preferences filtering
       const filtered = this.filterByPreferences(recipes, preferences);
       console.log(`🌐 [SPOONACULAR] Returning ${filtered.length} recipes after filtering`);
-      
+
       return filtered;
-      
     } catch (error) {
-      console.error('🌐 [SPOONACULAR] ❌ Error searching external recipes:', error);
-      throw new Error('External API search failed');
+      console.error("🌐 [SPOONACULAR] ❌ Error searching external recipes:", error);
+      throw new Error("External API search failed");
     }
   }
 
   /**
    * Search recipes by ingredients using Spoonacular API
-   * 
+   *
    * @param ingredients - Array of ingredient names
-   * @param preferences - Search preferences (optional)
    * @returns Array of external recipes
    */
-  private async searchByIngredients(
-    ingredients: string[],
-    preferences?: SearchRecipePreferencesDTO
-  ): Promise<ExternalRecipe[]> {
+  private async searchByIngredients(ingredients: string[]): Promise<ExternalRecipe[]> {
     // Spoonacular findByIngredients endpoint
     const params = new URLSearchParams({
-      apiKey: this.config.apiKey || '',
-      ingredients: ingredients.join(','),
-      number: '5', // Limit to 5 results
-      ranking: '1', // Maximize used ingredients
-      ignorePantry: 'true',
+      apiKey: this.config.apiKey || "",
+      ingredients: ingredients.join(","),
+      number: "5", // Limit to 5 results
+      ranking: "1", // Maximize used ingredients
+      ignorePantry: "true",
     });
 
     const url = `${this.config.url}/recipes/findByIngredients?${params.toString()}`;
-    console.log(`🌐 [SPOONACULAR] Request URL: ${url.replace(this.config.apiKey || '', 'HIDDEN')}`);
+    console.log(`🌐 [SPOONACULAR] Request URL: ${url.replace(this.config.apiKey || "", "HIDDEN")}`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
@@ -250,25 +246,22 @@ export class ExternalAPIService {
       console.log(`🌐 [SPOONACULAR] Found ${data?.length || 0} recipe summaries`);
 
       if (!data || data.length === 0) {
-        console.log(`🌐 [SPOONACULAR] No recipes found for ingredients: ${ingredients.join(', ')}`);
+        console.log(`🌐 [SPOONACULAR] No recipes found for ingredients: ${ingredients.join(", ")}`);
         return [];
       }
 
       // Get detailed information for each recipe
       console.log(`🌐 [SPOONACULAR] Fetching details for ${data.length} recipes...`);
-      const detailedRecipes = await Promise.all(
-        data.map((recipe) => this.getRecipeDetails(recipe.id))
-      );
+      const detailedRecipes = await Promise.all(data.map((recipe) => this.getRecipeDetails(recipe.id)));
 
       const validRecipes = detailedRecipes.filter((r): r is ExternalRecipe => r !== null);
       console.log(`🌐 [SPOONACULAR] Successfully fetched ${validRecipes.length} detailed recipes`);
 
       return validRecipes;
-      
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if ((error as Error).name === "AbortError") {
         console.error(`🌐 [SPOONACULAR] ❌ Request timed out after ${this.config.timeout}ms`);
-        throw new Error('External API request timed out');
+        throw new Error("External API request timed out");
       }
       console.error(`🌐 [SPOONACULAR] ❌ Request failed:`, error);
       throw error;
@@ -277,13 +270,13 @@ export class ExternalAPIService {
 
   /**
    * Get detailed recipe information by ID from Spoonacular
-   * 
+   *
    * @param recipeId - Recipe ID
    * @returns External recipe or null
    */
   private async getRecipeDetails(recipeId: number): Promise<ExternalRecipe | null> {
     const params = new URLSearchParams({
-      apiKey: this.config.apiKey || '',
+      apiKey: this.config.apiKey || "",
     });
 
     const url = `${this.config.url}/recipes/${recipeId}/information?${params.toString()}`;
@@ -305,13 +298,13 @@ export class ExternalAPIService {
 
       // Parse ingredients from Spoonacular format
       const ingredients: ExternalIngredient[] = [];
-      
+
       if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
         for (const ing of recipe.extendedIngredients) {
           ingredients.push({
-            name: ing.nameClean || ing.name || ing.originalName || 'unknown',
+            name: ing.nameClean || ing.name || ing.originalName || "unknown",
             quantity: ing.amount && ing.amount > 0 ? ing.amount : 1,
-            unit: ing.measures?.metric?.unitShort || ing.unit || 'piece',
+            unit: ing.measures?.metric?.unitShort || ing.unit || "piece",
           });
         }
         console.log(`🌐 [SPOONACULAR] Parsed ${ingredients.length} ingredients`);
@@ -320,40 +313,32 @@ export class ExternalAPIService {
       }
 
       // Build instructions - prefer analyzedInstructions, fallback to plain instructions
-      let instructions = '';
-      
+      let instructions = "";
+
       if (recipe.analyzedInstructions && recipe.analyzedInstructions.length > 0) {
         console.log(`🌐 [SPOONACULAR] Using analyzedInstructions (${recipe.analyzedInstructions.length} sections)`);
         instructions = recipe.analyzedInstructions
-          .map((instruction) =>
-            instruction.steps
-              .map((step) => `${step.number}. ${step.step}`)
-              .join('\n')
-          )
-          .join('\n\n');
+          .map((instruction) => instruction.steps.map((step) => `${step.number}. ${step.step}`).join("\n"))
+          .join("\n\n");
       } else if (recipe.instructions) {
         console.log(`🌐 [SPOONACULAR] Using plain instructions field (HTML format)`);
         instructions = htmlToText(recipe.instructions);
       } else {
         console.warn(`🌐 [SPOONACULAR] ⚠️ No instructions found for recipe ${recipeId}`);
-        instructions = 'Brak instrukcji przygotowania.';
+        instructions = "Brak instrukcji przygotowania.";
       }
 
       // Extract clean description (summary) - remove HTML and limit length
       const description = recipe.summary ? extractSummary(recipe.summary, 500) : undefined;
 
       // Collect tags from diets, cuisines, and dish types
-      const englishTags: string[] = [
-        ...recipe.diets,
-        ...recipe.cuisines,
-        ...recipe.dishTypes,
-      ];
+      const englishTags: string[] = [...recipe.diets, ...recipe.cuisines, ...recipe.dishTypes];
 
       // Add dietary tags
-      if (recipe.vegetarian) englishTags.push('vegetarian');
-      if (recipe.vegan) englishTags.push('vegan');
-      if (recipe.glutenFree) englishTags.push('gluten-free');
-      if (recipe.dairyFree) englishTags.push('dairy-free');
+      if (recipe.vegetarian) englishTags.push("vegetarian");
+      if (recipe.vegan) englishTags.push("vegan");
+      if (recipe.glutenFree) englishTags.push("gluten-free");
+      if (recipe.dairyFree) englishTags.push("dairy-free");
 
       // Translate tags to Polish
       const tags = translateTags(englishTags);
@@ -385,27 +370,25 @@ export class ExternalAPIService {
         externalRecipe.title = translated.title;
         externalRecipe.description = translated.description;
         externalRecipe.instructions = translated.instructions;
-        
+
         console.log(`🌍 [TRANSLATOR] ✅ Translated to: "${translated.title}"`);
       } catch (error) {
         console.warn(`🌍 [TRANSLATOR] ⚠️ Translation failed, using original English:`, error);
       }
 
       return externalRecipe;
-      
     } catch (error) {
       console.error(`Error fetching recipe details for ${recipeId}:`, error);
       return null;
     }
   }
 
-
   /**
    * Build HTTP headers for API request
    */
   private buildHeaders(): HeadersInit {
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     // Spoonacular uses API key in query params, not headers
@@ -417,10 +400,7 @@ export class ExternalAPIService {
    * Infer difficulty based on number of ingredients and cooking time
    * Heuristic: considers both ingredient count and time
    */
-  private inferDifficulty(
-    ingredientCount: number,
-    cookingTime?: number
-  ): 'easy' | 'medium' | 'hard' {
+  private inferDifficulty(ingredientCount: number, cookingTime?: number): "easy" | "medium" | "hard" {
     // Base score on ingredients
     let difficultyScore = 0;
 
@@ -436,18 +416,15 @@ export class ExternalAPIService {
     }
 
     // Determine final difficulty
-    if (difficultyScore <= 3) return 'easy';
-    if (difficultyScore <= 5) return 'medium';
-    return 'hard';
+    if (difficultyScore <= 3) return "easy";
+    if (difficultyScore <= 5) return "medium";
+    return "hard";
   }
 
   /**
    * Filter external recipes by preferences
    */
-  private filterByPreferences(
-    recipes: ExternalRecipe[],
-    preferences?: SearchRecipePreferencesDTO
-  ): ExternalRecipe[] {
+  private filterByPreferences(recipes: ExternalRecipe[], preferences?: SearchRecipePreferencesDTO): ExternalRecipe[] {
     if (!preferences) {
       return recipes;
     }
@@ -469,8 +446,8 @@ export class ExternalAPIService {
 
       // Filter by dietary restrictions (check tags)
       if (preferences.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
-        const recipeTags = (recipe.tags || []).map(t => t.toLowerCase());
-        const hasAllRestrictions = preferences.dietary_restrictions.every(restriction =>
+        const recipeTags = (recipe.tags || []).map((t) => t.toLowerCase());
+        const hasAllRestrictions = preferences.dietary_restrictions.every((restriction) =>
           recipeTags.includes(restriction.toLowerCase())
         );
         if (!hasAllRestrictions) {
@@ -482,4 +459,3 @@ export class ExternalAPIService {
     });
   }
 }
-

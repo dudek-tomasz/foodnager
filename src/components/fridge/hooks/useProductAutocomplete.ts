@@ -2,19 +2,19 @@
  * Custom hook for product autocomplete functionality
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import type { ProductDTO, ProductsListResponseDTO } from '@/types';
+import { useState, useEffect, useCallback } from "react";
+import type { ProductDTO, ProductsListResponseDTO } from "@/types";
 
 /**
  * Hook do obsługi autocomplete produktów
- * 
+ *
  * @returns Query, setQuery, results, isLoading
  */
 export function useProductAutocomplete() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProductDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   // Debounce query changes
   useEffect(() => {
@@ -37,20 +37,24 @@ export function useProductAutocomplete() {
       try {
         const params = new URLSearchParams({
           search: debouncedQuery,
-          scope: 'all',
-          limit: '10',
+          scope: "all",
+          limit: "10",
         });
 
         const response = await fetch(`/api/products?${params}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch products');
+          throw new Error("Failed to fetch products");
         }
 
         const data: ProductsListResponseDTO = await response.json();
         setResults(data.data);
       } catch (error) {
-        console.error('Failed to fetch products:', error);
+        // Error fetching products - log to monitoring service in production
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.error("Failed to fetch products:", error);
+        }
         setResults([]);
       } finally {
         setIsLoading(false);
@@ -61,16 +65,15 @@ export function useProductAutocomplete() {
   }, [debouncedQuery]);
 
   const clearResults = useCallback(() => {
-    setQuery('');
+    setQuery("");
     setResults([]);
   }, []);
 
-  return { 
-    query, 
-    setQuery, 
-    results, 
+  return {
+    query,
+    setQuery,
+    results,
     isLoading,
     clearResults,
   };
 }
-

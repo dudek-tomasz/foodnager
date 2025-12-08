@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import type { PaginationMetaDTO } from '../../types';
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { PaginationMetaDTO } from "../../types";
 
 interface PaginationControlsProps {
   pagination: PaginationMetaDTO;
@@ -24,7 +24,7 @@ export function PaginationControls({ pagination, onPageChange }: PaginationContr
   const getPageNumbers = () => {
     const pages: number[] = [];
     const maxVisible = 5;
-    
+
     if (total_pages <= maxVisible) {
       for (let i = 1; i <= total_pages; i++) {
         pages.push(i);
@@ -38,7 +38,7 @@ export function PaginationControls({ pagination, onPageChange }: PaginationContr
         pages.push(1, page - 1, page, page + 1, total_pages);
       }
     }
-    
+
     return pages;
   };
 
@@ -60,14 +60,12 @@ export function PaginationControls({ pagination, onPageChange }: PaginationContr
       <div className="flex items-center gap-1">
         {pageNumbers.map((pageNum, index) => {
           const showEllipsis = index > 0 && pageNum - pageNumbers[index - 1] > 1;
-          
+
           return (
             <div key={pageNum} className="flex items-center gap-1">
-              {showEllipsis && (
-                <span className="px-2 text-muted-foreground">...</span>
-              )}
+              {showEllipsis && <span className="px-2 text-muted-foreground">...</span>}
               <Button
-                variant={pageNum === page ? 'default' : 'outline'}
+                variant={pageNum === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNum)}
                 className="min-w-[40px]"
@@ -96,4 +94,3 @@ export function PaginationControls({ pagination, onPageChange }: PaginationContr
     </div>
   );
 }
-

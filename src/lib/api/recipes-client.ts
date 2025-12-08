@@ -3,14 +3,14 @@
  * Client-side functions for recipe-related API calls
  */
 
-import { apiClient } from '../api-client';
+import { apiClient } from "../api-client";
 import type {
   RecipeDTO,
   CreateRecipeDTO,
   UpdateRecipeDTO,
   RecipesListResponseDTO,
   ListRecipesQueryDTO,
-} from '../../types';
+} from "../../types";
 
 /**
  * Pobiera szczegóły pojedynczego przepisu
@@ -27,10 +27,8 @@ export async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
  * @param query - Parametry filtrowania i paginacji
  * @returns Lista przepisów z paginacją
  */
-export async function fetchRecipes(
-  query?: ListRecipesQueryDTO
-): Promise<RecipesListResponseDTO> {
-  return apiClient.get<RecipesListResponseDTO>('/api/recipes', query);
+export async function fetchRecipes(query?: ListRecipesQueryDTO): Promise<RecipesListResponseDTO> {
+  return apiClient.get<RecipesListResponseDTO>("/api/recipes", query);
 }
 
 /**
@@ -39,10 +37,8 @@ export async function fetchRecipes(
  * @returns Utworzony przepis
  * @throws ApiError jeśli dane są nieprawidłowe (400)
  */
-export async function createRecipe(
-  recipe: CreateRecipeDTO
-): Promise<RecipeDTO> {
-  return apiClient.post<RecipeDTO>('/api/recipes', recipe);
+export async function createRecipe(recipe: CreateRecipeDTO): Promise<RecipeDTO> {
+  return apiClient.post<RecipeDTO>("/api/recipes", recipe);
 }
 
 /**
@@ -52,10 +48,7 @@ export async function createRecipe(
  * @returns Zaktualizowany przepis
  * @throws ApiError jeśli przepis nie istnieje (404) lub brak uprawnień
  */
-export async function updateRecipe(
-  recipeId: number,
-  updateDto: UpdateRecipeDTO
-): Promise<RecipeDTO> {
+export async function updateRecipe(recipeId: number, updateDto: UpdateRecipeDTO): Promise<RecipeDTO> {
   return apiClient.patch<RecipeDTO>(`/api/recipes/${recipeId}`, updateDto);
 }
 
@@ -65,7 +58,7 @@ export async function updateRecipe(
  * @throws ApiError jeśli przepis nie istnieje (404) lub brak uprawnień
  */
 export async function deleteRecipe(recipeId: number): Promise<void> {
-  return apiClient.delete<void>(`/api/recipes/${recipeId}`);
+  await apiClient.delete(`/api/recipes/${recipeId}`);
 }
 
 /**
@@ -74,9 +67,7 @@ export async function deleteRecipe(recipeId: number): Promise<void> {
  * @param recipe - Przepis do skopiowania
  * @returns Nowy przepis użytkownika
  */
-export async function saveRecipeAsCopy(
-  recipe: RecipeDTO
-): Promise<RecipeDTO> {
+export async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
   // Transform RecipeDTO to CreateRecipeDTO
   const createDto: CreateRecipeDTO = {
     title: recipe.title,
@@ -94,4 +85,3 @@ export async function saveRecipeAsCopy(
 
   return createRecipe(createDto);
 }
-

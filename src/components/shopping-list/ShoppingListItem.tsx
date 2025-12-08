@@ -1,27 +1,22 @@
 /**
  * ShoppingListItem - Pojedynczy wiersz brakującego składnika
- * 
+ *
  * Komponent zawiera checkbox, nazwę produktu, edytowalną ilość, jednostkę
  * oraz przycisk usunięcia. Obsługuje walidację ilości inline.
  */
 
-import { useState, useEffect } from 'react';
-import { Checkbox } from '../ui/checkbox';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { X } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import type { ShoppingListItemProps } from './types';
+import { useState, useEffect } from "react";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { X } from "lucide-react";
+import { cn } from "../../lib/utils";
+import type { ShoppingListItemProps } from "./types";
 
 /**
  * Pojedyncza pozycja na liście zakupów
  */
-export function ShoppingListItem({
-  item,
-  onCheckedChange,
-  onQuantityChange,
-  onRemove,
-}: ShoppingListItemProps) {
+export function ShoppingListItem({ item, onCheckedChange, onQuantityChange, onRemove }: ShoppingListItemProps) {
   // Local state dla wartości input (do debouncing)
   const [inputValue, setInputValue] = useState(item.editedQuantity.toString());
   const [quantityError, setQuantityError] = useState<string | null>(null);
@@ -37,18 +32,18 @@ export function ShoppingListItem({
   const validateQuantity = (value: string): boolean => {
     const numValue = parseFloat(value);
 
-    if (value.trim() === '' || isNaN(numValue)) {
-      setQuantityError('Wprowadź liczbę');
+    if (value.trim() === "" || isNaN(numValue)) {
+      setQuantityError("Wprowadź liczbę");
       return false;
     }
 
     if (numValue <= 0) {
-      setQuantityError('Ilość > 0');
+      setQuantityError("Ilość > 0");
       return false;
     }
 
     if (numValue > 9999) {
-      setQuantityError('Max 9999');
+      setQuantityError("Max 9999");
       return false;
     }
 
@@ -85,7 +80,7 @@ export function ShoppingListItem({
    * Obsługuje Enter key - zapisz i usuń focus
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.currentTarget.blur();
     }
   };
@@ -93,9 +88,9 @@ export function ShoppingListItem({
   return (
     <div
       className={cn(
-        'shopping-list-item flex items-center gap-3 p-3 rounded-lg border bg-card transition-all duration-200',
-        !item.checked && 'opacity-50 scale-[0.98]',
-        item.checked && 'hover:shadow-sm'
+        "shopping-list-item flex items-center gap-3 p-3 rounded-lg border bg-card transition-all duration-200",
+        !item.checked && "opacity-50 scale-[0.98]",
+        item.checked && "hover:shadow-sm"
       )}
       role="listitem"
     >
@@ -110,12 +105,7 @@ export function ShoppingListItem({
 
       {/* Nazwa produktu */}
       <div className="flex-1 min-w-0">
-        <p
-          className={cn(
-            'font-medium truncate',
-            !item.checked && 'line-through text-muted-foreground'
-          )}
-        >
+        <p className={cn("font-medium truncate", !item.checked && "line-through text-muted-foreground")}>
           {item.product.name}
         </p>
         {item.available_quantity > 0 && (
@@ -134,10 +124,7 @@ export function ShoppingListItem({
             onChange={handleInputChange}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            className={cn(
-              'w-20 text-center',
-              quantityError && 'border-destructive focus:ring-destructive'
-            )}
+            className={cn("w-20 text-center", quantityError && "border-destructive focus:ring-destructive")}
             min={0.01}
             max={9999}
             step={0.1}
@@ -157,9 +144,7 @@ export function ShoppingListItem({
         </div>
 
         {/* Jednostka */}
-        <span className="text-sm text-muted-foreground min-w-[3ch] text-center">
-          {item.unit.abbreviation}
-        </span>
+        <span className="text-sm text-muted-foreground min-w-[3ch] text-center">{item.unit.abbreviation}</span>
       </div>
 
       {/* Przycisk usunięcia */}
@@ -177,4 +162,3 @@ export function ShoppingListItem({
     </div>
   );
 }
-

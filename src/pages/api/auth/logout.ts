@@ -1,6 +1,6 @@
 /**
  * POST /api/auth/logout
- * 
+ *
  * Endpoint for user logout.
  * Following auth-spec.md specifications:
  * - Uses authService for business logic
@@ -9,9 +9,9 @@
  * - Returns 200 on success (no user data in response)
  */
 
-import type { APIRoute } from 'astro';
-import { authService } from '@/lib/services/auth.service';
-import { isAuthError } from '@/lib/errors/auth.error';
+import type { APIRoute } from "astro";
+import { authService } from "@/lib/services/auth.service";
+import { isAuthError } from "@/lib/errors/auth.error";
 
 export const prerender = false;
 
@@ -31,13 +31,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       JSON.stringify({
         success: true,
         data: {
-          message: 'Wylogowano pomyślnie',
+          message: "Wylogowano pomyślnie",
         },
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -55,29 +55,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         {
           status: error.statusCode,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
     }
 
     // Handle unexpected errors
-    console.error('Logout error:', error);
+    console.error("Logout error:", error);
     return new Response(
       JSON.stringify({
         success: false,
         error: {
-          message: 'Wystąpił błąd podczas wylogowania',
-          code: 'INTERNAL_ERROR',
+          message: "Wystąpił błąd podczas wylogowania",
+          code: "INTERNAL_ERROR",
         },
       }),
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       }
     );
   }
 };
-

@@ -1,13 +1,13 @@
 /**
  * SearchBar Component
- * 
+ *
  * Search input with icon, loading state, and clear button.
  * Implements debouncing on the parent component level.
  */
 
-import { Input } from '@/components/ui/input';
-import { Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Input } from "@/components/ui/input";
+import { Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SearchBarProps {
   value: string;
@@ -16,12 +16,7 @@ interface SearchBarProps {
   loading?: boolean;
 }
 
-export function SearchBar({
-  value,
-  onChange,
-  placeholder = 'Szukaj przepisów...',
-  loading = false,
-}: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Szukaj przepisów...", loading = false }: SearchBarProps) {
   return (
     <div className="relative flex-1 min-w-0">
       <div className="relative">
@@ -43,7 +38,7 @@ export function SearchBar({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onChange('')}
+            onClick={() => onChange("")}
             className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
             aria-label="Wyczyść wyszukiwanie"
           >
@@ -54,4 +49,3 @@ export function SearchBar({
     </div>
   );
 }
-

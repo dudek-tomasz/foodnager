@@ -13,7 +13,7 @@ export interface HistoryStats {
 export interface HistoryFilters {
   recipeId?: number;
   fromDate?: string; // YYYY-MM-DD
-  toDate?: string;   // YYYY-MM-DD
+  toDate?: string; // YYYY-MM-DD
 }
 
 /**
@@ -36,20 +36,20 @@ export interface HistoryEntryViewModel {
   };
   cooked_at: string;
   fridge_state_before: {
-    items: Array<{
+    items: {
       product_id: number;
       product_name: string;
       quantity: number;
       unit: string;
-    }>;
+    }[];
   };
   fridge_state_after: {
-    items: Array<{
+    items: {
       product_id: number;
       product_name: string;
       quantity: number;
       unit: string;
-    }>;
+    }[];
   };
   formattedDate: string; // Relative lub absolute date
   usedIngredientsCount: number;
@@ -73,6 +73,5 @@ export interface FridgeChanges {
  * Props dla głównego widoku (z SSR)
  */
 export interface CookingHistoryPageProps {
-  initialData?: import('../../types').CookingHistoryListResponseDTO;
+  initialData?: import("../../types").CookingHistoryListResponseDTO;
 }
-

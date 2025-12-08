@@ -1,6 +1,6 @@
 /**
  * Unit tests for date utility functions
- * 
+ *
  * Tests cover:
  * - Expiry date validation (isExpired)
  * - Expiring soon detection (isExpiringSoon)
@@ -11,16 +11,10 @@
  * - Business rules (products without expiry date don't expire)
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  isExpired,
-  isExpiringSoon,
-  formatDate,
-  isValidISODate,
-  getCurrentDate,
-} from './date.utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { isExpired, isExpiringSoon, formatDate, isValidISODate, getCurrentDate } from "./date.utils";
 
-describe('date.utils', () => {
+describe("date.utils", () => {
   // ==========================================================================
   // SETUP & TEARDOWN
   // ==========================================================================
@@ -43,10 +37,11 @@ describe('date.utils', () => {
    * Creates an ISO date string for a date relative to today
    * @param daysOffset - Number of days to offset from today (negative for past, positive for future)
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createDateOffset = (daysOffset: number): string => {
     const date = new Date();
     date.setDate(date.getDate() + daysOffset);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   /**
@@ -62,13 +57,13 @@ describe('date.utils', () => {
   // isExpired() - Core Functionality
   // ==========================================================================
 
-  describe('isExpired()', () => {
+  describe("isExpired()", () => {
     beforeEach(() => {
       // Set a consistent date for testing: 2024-06-15
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
     });
 
-    it('should return false for null expiry date (business rule: no expiry = never expires)', () => {
+    it("should return false for null expiry date (business rule: no expiry = never expires)", () => {
       // Arrange & Act
       const result = isExpired(null);
 
@@ -76,9 +71,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for today\'s date (not yet expired)', () => {
+    it("should return false for today's date (not yet expired)", () => {
       // Arrange
-      const today = '2024-06-15';
+      const today = "2024-06-15";
 
       // Act
       const result = isExpired(today);
@@ -87,9 +82,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for future date (not expired)', () => {
+    it("should return false for future date (not expired)", () => {
       // Arrange
-      const futureDate = '2024-06-20';
+      const futureDate = "2024-06-20";
 
       // Act
       const result = isExpired(futureDate);
@@ -98,9 +93,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true for yesterday (expired)', () => {
+    it("should return true for yesterday (expired)", () => {
       // Arrange
-      const yesterday = '2024-06-14';
+      const yesterday = "2024-06-14";
 
       // Act
       const result = isExpired(yesterday);
@@ -109,9 +104,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for date in the past (expired)', () => {
+    it("should return true for date in the past (expired)", () => {
       // Arrange
-      const pastDate = '2024-01-01';
+      const pastDate = "2024-01-01";
 
       // Act
       const result = isExpired(pastDate);
@@ -120,9 +115,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle date with time component correctly (ignore time)', () => {
+    it("should handle date with time component correctly (ignore time)", () => {
       // Arrange - ISO string with time component
-      const todayWithTime = '2024-06-15T23:59:59.999Z';
+      const todayWithTime = "2024-06-15T23:59:59.999Z";
 
       // Act
       const result = isExpired(todayWithTime);
@@ -131,10 +126,10 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should handle edge case: year boundary (New Year\'s Eve)', () => {
+    it("should handle edge case: year boundary (New Year's Eve)", () => {
       // Arrange
-      setSystemDate('2024-01-01');
-      const lastYearDate = '2023-12-31';
+      setSystemDate("2024-01-01");
+      const lastYearDate = "2023-12-31";
 
       // Act
       const result = isExpired(lastYearDate);
@@ -143,10 +138,10 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle edge case: leap year date', () => {
+    it("should handle edge case: leap year date", () => {
       // Arrange
-      setSystemDate('2024-03-01'); // 2024 is a leap year
-      const leapDayDate = '2024-02-29';
+      setSystemDate("2024-03-01"); // 2024 is a leap year
+      const leapDayDate = "2024-02-29";
 
       // Act
       const result = isExpired(leapDayDate);
@@ -160,13 +155,13 @@ describe('date.utils', () => {
   // isExpiringSoon() - Core Functionality
   // ==========================================================================
 
-  describe('isExpiringSoon()', () => {
+  describe("isExpiringSoon()", () => {
     beforeEach(() => {
       // Set a consistent date for testing: 2024-06-15
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
     });
 
-    it('should return false for null expiry date (business rule: no expiry = never expires)', () => {
+    it("should return false for null expiry date (business rule: no expiry = never expires)", () => {
       // Arrange & Act
       const result = isExpiringSoon(null, 7);
 
@@ -174,7 +169,7 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true for date expiring today (within 0 days threshold)', () => {
+    it("should return true for date expiring today (within 0 days threshold)", () => {
       // Arrange
       const today = getCurrentDate();
 
@@ -185,9 +180,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for date expiring tomorrow (within 7 days threshold)', () => {
+    it("should return true for date expiring tomorrow (within 7 days threshold)", () => {
       // Arrange
-      const tomorrow = '2024-06-16';
+      const tomorrow = "2024-06-16";
 
       // Act
       const result = isExpiringSoon(tomorrow, 7);
@@ -196,7 +191,7 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for date exactly at threshold boundary', () => {
+    it("should return true for date exactly at threshold boundary", () => {
       // Arrange
       const currentDate = new Date();
       const exactlyInSevenDays = new Date(currentDate);
@@ -210,7 +205,7 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for date beyond threshold', () => {
+    it("should return false for date beyond threshold", () => {
       // Arrange
       const currentDate = new Date();
       const eightDaysFromNow = new Date(currentDate);
@@ -224,9 +219,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for date in the past (already expired)', () => {
+    it("should return false for date in the past (already expired)", () => {
       // Arrange
-      const yesterday = '2024-06-14';
+      const yesterday = "2024-06-14";
 
       // Act
       const result = isExpiringSoon(yesterday, 7);
@@ -235,7 +230,7 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should handle threshold of 1 day correctly', () => {
+    it("should handle threshold of 1 day correctly", () => {
       // Arrange
       const currentDate = new Date();
       const tomorrow = new Date(currentDate);
@@ -248,7 +243,7 @@ describe('date.utils', () => {
       expect(isExpiringSoon(formatDate(dayAfterTomorrow), 1)).toBe(false);
     });
 
-    it('should handle large threshold values (30 days)', () => {
+    it("should handle large threshold values (30 days)", () => {
       // Arrange
       const currentDate = new Date();
       const in29Days = new Date(currentDate);
@@ -264,9 +259,9 @@ describe('date.utils', () => {
       expect(isExpiringSoon(formatDate(in31Days), 30)).toBe(false);
     });
 
-    it('should handle edge case: date with time component', () => {
+    it("should handle edge case: date with time component", () => {
       // Arrange
-      const tomorrowWithTime = '2024-06-16T23:59:59.999Z';
+      const tomorrowWithTime = "2024-06-16T23:59:59.999Z";
 
       // Act
       const result = isExpiringSoon(tomorrowWithTime, 7);
@@ -275,10 +270,10 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle edge case: month boundary', () => {
+    it("should handle edge case: month boundary", () => {
       // Arrange
-      setSystemDate('2024-06-30'); // Last day of June
-      const nextMonthDate = '2024-07-05'; // 5 days into next month
+      setSystemDate("2024-06-30"); // Last day of June
+      const nextMonthDate = "2024-07-05"; // 5 days into next month
 
       // Act
       const result = isExpiringSoon(nextMonthDate, 7);
@@ -287,10 +282,10 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle edge case: year boundary', () => {
+    it("should handle edge case: year boundary", () => {
       // Arrange
-      setSystemDate('2024-12-28');
-      const nextYearDate = '2025-01-02'; // 5 days into next year
+      setSystemDate("2024-12-28");
+      const nextYearDate = "2025-01-02"; // 5 days into next year
 
       // Act
       const result = isExpiringSoon(nextYearDate, 7);
@@ -304,56 +299,56 @@ describe('date.utils', () => {
   // formatDate() - Core Functionality
   // ==========================================================================
 
-  describe('formatDate()', () => {
-    it('should format a date to ISO string (YYYY-MM-DD)', () => {
+  describe("formatDate()", () => {
+    it("should format a date to ISO string (YYYY-MM-DD)", () => {
       // Arrange
-      const date = new Date('2024-06-15T12:30:45.123Z');
+      const date = new Date("2024-06-15T12:30:45.123Z");
 
       // Act
       const result = formatDate(date);
 
       // Assert
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(result).toBe('2024-06-15');
+      expect(result).toBe("2024-06-15");
     });
 
-    it('should format date with single-digit day and month correctly', () => {
+    it("should format date with single-digit day and month correctly", () => {
       // Arrange
-      const date = new Date('2024-01-05T00:00:00.000Z');
+      const date = new Date("2024-01-05T00:00:00.000Z");
 
       // Act
       const result = formatDate(date);
 
       // Assert
-      expect(result).toBe('2024-01-05');
+      expect(result).toBe("2024-01-05");
     });
 
-    it('should format date at year boundary', () => {
+    it("should format date at year boundary", () => {
       // Arrange
-      const date = new Date('2024-12-31T23:59:59.999Z');
+      const date = new Date("2024-12-31T23:59:59.999Z");
 
       // Act
       const result = formatDate(date);
 
       // Assert
-      expect(result).toBe('2024-12-31');
+      expect(result).toBe("2024-12-31");
     });
 
-    it('should format leap year date correctly', () => {
+    it("should format leap year date correctly", () => {
       // Arrange
-      const date = new Date('2024-02-29T12:00:00.000Z');
+      const date = new Date("2024-02-29T12:00:00.000Z");
 
       // Act
       const result = formatDate(date);
 
       // Assert
-      expect(result).toBe('2024-02-29');
+      expect(result).toBe("2024-02-29");
     });
 
-    it('should strip time component from date', () => {
+    it("should strip time component from date", () => {
       // Arrange
-      const morningDate = new Date('2024-06-15T08:30:00.000Z');
-      const eveningDate = new Date('2024-06-15T20:45:00.000Z');
+      const morningDate = new Date("2024-06-15T08:30:00.000Z");
+      const eveningDate = new Date("2024-06-15T20:45:00.000Z");
 
       // Act
       const morningResult = formatDate(morningDate);
@@ -361,18 +356,18 @@ describe('date.utils', () => {
 
       // Assert
       expect(morningResult).toBe(eveningResult);
-      expect(morningResult).toBe('2024-06-15');
+      expect(morningResult).toBe("2024-06-15");
     });
 
-    it('should handle Date object at Unix epoch', () => {
+    it("should handle Date object at Unix epoch", () => {
       // Arrange
-      const epochDate = new Date('1970-01-01T00:00:00.000Z');
+      const epochDate = new Date("1970-01-01T00:00:00.000Z");
 
       // Act
       const result = formatDate(epochDate);
 
       // Assert
-      expect(result).toBe('1970-01-01');
+      expect(result).toBe("1970-01-01");
     });
   });
 
@@ -380,10 +375,10 @@ describe('date.utils', () => {
   // isValidISODate() - Core Functionality
   // ==========================================================================
 
-  describe('isValidISODate()', () => {
-    it('should return true for valid ISO date string (YYYY-MM-DD)', () => {
+  describe("isValidISODate()", () => {
+    it("should return true for valid ISO date string (YYYY-MM-DD)", () => {
       // Arrange
-      const validDate = '2024-06-15';
+      const validDate = "2024-06-15";
 
       // Act
       const result = isValidISODate(validDate);
@@ -392,9 +387,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for valid date with single-digit month and day', () => {
+    it("should return true for valid date with single-digit month and day", () => {
       // Arrange
-      const validDate = '2024-01-05';
+      const validDate = "2024-01-05";
 
       // Act
       const result = isValidISODate(validDate);
@@ -403,9 +398,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for leap year date (Feb 29)', () => {
+    it("should return true for leap year date (Feb 29)", () => {
       // Arrange
-      const leapYearDate = '2024-02-29';
+      const leapYearDate = "2024-02-29";
 
       // Act
       const result = isValidISODate(leapYearDate);
@@ -414,9 +409,9 @@ describe('date.utils', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for invalid leap year date (non-leap year)', () => {
+    it("should return false for invalid leap year date (non-leap year)", () => {
       // Arrange
-      const invalidLeapDate = '2023-02-29';
+      const invalidLeapDate = "2023-02-29";
 
       // Act
       const result = isValidISODate(invalidLeapDate);
@@ -425,9 +420,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for invalid month (13)', () => {
+    it("should return false for invalid month (13)", () => {
       // Arrange
-      const invalidMonth = '2024-13-15';
+      const invalidMonth = "2024-13-15";
 
       // Act
       const result = isValidISODate(invalidMonth);
@@ -436,9 +431,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for invalid day (32)', () => {
+    it("should return false for invalid day (32)", () => {
       // Arrange
-      const invalidDay = '2024-06-32';
+      const invalidDay = "2024-06-32";
 
       // Act
       const result = isValidISODate(invalidDay);
@@ -447,9 +442,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for invalid day in month (April has 30 days)', () => {
+    it("should return false for invalid day in month (April has 30 days)", () => {
       // Arrange
-      const invalidDay = '2024-04-31';
+      const invalidDay = "2024-04-31";
 
       // Act
       const result = isValidISODate(invalidDay);
@@ -458,9 +453,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for wrong format (DD-MM-YYYY)', () => {
+    it("should return false for wrong format (DD-MM-YYYY)", () => {
       // Arrange
-      const wrongFormat = '15-06-2024';
+      const wrongFormat = "15-06-2024";
 
       // Act
       const result = isValidISODate(wrongFormat);
@@ -469,9 +464,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for wrong format (MM/DD/YYYY)', () => {
+    it("should return false for wrong format (MM/DD/YYYY)", () => {
       // Arrange
-      const wrongFormat = '06/15/2024';
+      const wrongFormat = "06/15/2024";
 
       // Act
       const result = isValidISODate(wrongFormat);
@@ -480,9 +475,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for ISO datetime string', () => {
+    it("should return false for ISO datetime string", () => {
       // Arrange
-      const dateTimeString = '2024-06-15T12:30:45.123Z';
+      const dateTimeString = "2024-06-15T12:30:45.123Z";
 
       // Act
       const result = isValidISODate(dateTimeString);
@@ -491,9 +486,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for empty string', () => {
+    it("should return false for empty string", () => {
       // Arrange
-      const emptyString = '';
+      const emptyString = "";
 
       // Act
       const result = isValidISODate(emptyString);
@@ -502,9 +497,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for random text', () => {
+    it("should return false for random text", () => {
       // Arrange
-      const randomText = 'not a date';
+      const randomText = "not a date";
 
       // Act
       const result = isValidISODate(randomText);
@@ -513,9 +508,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for partial date (year only)', () => {
+    it("should return false for partial date (year only)", () => {
       // Arrange
-      const partialDate = '2024';
+      const partialDate = "2024";
 
       // Act
       const result = isValidISODate(partialDate);
@@ -524,9 +519,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for partial date (year-month only)', () => {
+    it("should return false for partial date (year-month only)", () => {
       // Arrange
-      const partialDate = '2024-06';
+      const partialDate = "2024-06";
 
       // Act
       const result = isValidISODate(partialDate);
@@ -535,9 +530,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for date with extra characters', () => {
+    it("should return false for date with extra characters", () => {
       // Arrange
-      const dateWithExtra = '2024-06-15 extra';
+      const dateWithExtra = "2024-06-15 extra";
 
       // Act
       const result = isValidISODate(dateWithExtra);
@@ -546,9 +541,9 @@ describe('date.utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for date with single-digit year', () => {
+    it("should return false for date with single-digit year", () => {
       // Arrange
-      const invalidYear = '24-06-15';
+      const invalidYear = "24-06-15";
 
       // Act
       const result = isValidISODate(invalidYear);
@@ -562,47 +557,47 @@ describe('date.utils', () => {
   // getCurrentDate() - Core Functionality
   // ==========================================================================
 
-  describe('getCurrentDate()', () => {
-    it('should return current date in ISO format (YYYY-MM-DD)', () => {
+  describe("getCurrentDate()", () => {
+    it("should return current date in ISO format (YYYY-MM-DD)", () => {
       // Arrange
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
 
       // Act
       const result = getCurrentDate();
 
       // Assert
-      expect(result).toBe('2024-06-15');
+      expect(result).toBe("2024-06-15");
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
-    it('should return correct date when mocked to different dates', () => {
+    it("should return correct date when mocked to different dates", () => {
       // Arrange & Act & Assert
-      setSystemDate('2024-01-01');
-      expect(getCurrentDate()).toBe('2024-01-01');
+      setSystemDate("2024-01-01");
+      expect(getCurrentDate()).toBe("2024-01-01");
 
-      setSystemDate('2024-12-31');
-      expect(getCurrentDate()).toBe('2024-12-31');
+      setSystemDate("2024-12-31");
+      expect(getCurrentDate()).toBe("2024-12-31");
 
-      setSystemDate('2024-02-29');
-      expect(getCurrentDate()).toBe('2024-02-29');
+      setSystemDate("2024-02-29");
+      expect(getCurrentDate()).toBe("2024-02-29");
     });
 
-    it('should return date without time component', () => {
+    it("should return date without time component", () => {
       // Arrange
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
 
       // Act
       const result = getCurrentDate();
 
       // Assert
-      expect(result).not.toContain('T');
-      expect(result).not.toContain(':');
+      expect(result).not.toContain("T");
+      expect(result).not.toContain(":");
       expect(result.length).toBe(10);
     });
 
-    it('should be consistent across multiple calls in same moment', () => {
+    it("should be consistent across multiple calls in same moment", () => {
       // Arrange
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
 
       // Act
       const result1 = getCurrentDate();
@@ -612,7 +607,7 @@ describe('date.utils', () => {
       // Assert
       expect(result1).toBe(result2);
       expect(result2).toBe(result3);
-      expect(result1).toBe('2024-06-15');
+      expect(result1).toBe("2024-06-15");
     });
   });
 
@@ -620,12 +615,12 @@ describe('date.utils', () => {
   // INTEGRATION TESTS - Combined Functionality
   // ==========================================================================
 
-  describe('Integration - Combined functionality', () => {
+  describe("Integration - Combined functionality", () => {
     beforeEach(() => {
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
     });
 
-    it('should work together: getCurrentDate + isExpired', () => {
+    it("should work together: getCurrentDate + isExpired", () => {
       // Arrange
       const currentDate = getCurrentDate();
 
@@ -633,9 +628,9 @@ describe('date.utils', () => {
       expect(isExpired(currentDate)).toBe(false);
     });
 
-    it('should work together: formatDate + isValidISODate', () => {
+    it("should work together: formatDate + isValidISODate", () => {
       // Arrange
-      const date = new Date('2024-06-15T12:00:00.000Z');
+      const date = new Date("2024-06-15T12:00:00.000Z");
 
       // Act
       const formatted = formatDate(date);
@@ -644,7 +639,7 @@ describe('date.utils', () => {
       expect(isValidISODate(formatted)).toBe(true);
     });
 
-    it('should work together: getCurrentDate + isExpiringSoon', () => {
+    it("should work together: getCurrentDate + isExpiringSoon", () => {
       // Arrange
       const currentDate = getCurrentDate();
 
@@ -653,9 +648,9 @@ describe('date.utils', () => {
       expect(isExpiringSoon(currentDate, 7)).toBe(true);
     });
 
-    it('should handle workflow: create date, format, validate, check expiry', () => {
+    it("should handle workflow: create date, format, validate, check expiry", () => {
       // Arrange
-      const futureDate = new Date('2024-06-20T00:00:00.000Z');
+      const futureDate = new Date("2024-06-20T00:00:00.000Z");
 
       // Act
       const formatted = formatDate(futureDate);
@@ -664,7 +659,7 @@ describe('date.utils', () => {
       const expiringSoon = isExpiringSoon(formatted, 7);
 
       // Assert
-      expect(formatted).toBe('2024-06-20');
+      expect(formatted).toBe("2024-06-20");
       expect(isValid).toBe(true);
       expect(expired).toBe(false);
       expect(expiringSoon).toBe(true); // 5 days from now
@@ -675,12 +670,12 @@ describe('date.utils', () => {
   // EDGE CASES - Business Rules
   // ==========================================================================
 
-  describe('Edge Cases - Business Rules', () => {
+  describe("Edge Cases - Business Rules", () => {
     beforeEach(() => {
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
     });
 
-    it('should treat products without expiry date as never expiring', () => {
+    it("should treat products without expiry date as never expiring", () => {
       // Arrange & Act & Assert
       expect(isExpired(null)).toBe(false);
       expect(isExpiringSoon(null, 7)).toBe(false);
@@ -688,7 +683,7 @@ describe('date.utils', () => {
       expect(isExpiringSoon(null, 365)).toBe(false);
     });
 
-    it('should consider product expiring today as not expired but expiring soon', () => {
+    it("should consider product expiring today as not expired but expiring soon", () => {
       // Arrange
       const today = getCurrentDate();
 
@@ -698,19 +693,19 @@ describe('date.utils', () => {
       expect(isExpiringSoon(today, 7)).toBe(true);
     });
 
-    it('should consider yesterday as expired and not expiring soon', () => {
+    it("should consider yesterday as expired and not expiring soon", () => {
       // Arrange
-      const yesterday = '2024-06-14';
+      const yesterday = "2024-06-14";
 
       // Act & Assert
       expect(isExpired(yesterday)).toBe(true);
       expect(isExpiringSoon(yesterday, 7)).toBe(false);
     });
 
-    it('should handle timezone-independent date comparison', () => {
+    it("should handle timezone-independent date comparison", () => {
       // Arrange - dates with different timezone indicators
-      const dateUTC = '2024-06-20T00:00:00.000Z';
-      const datePST = '2024-06-20T08:00:00.000-08:00';
+      const dateUTC = "2024-06-20T00:00:00.000Z";
+      const datePST = "2024-06-20T08:00:00.000-08:00";
 
       // Act & Assert - both should be treated as same date (2024-06-20)
       expect(isExpired(dateUTC)).toBe(isExpired(datePST));
@@ -722,30 +717,30 @@ describe('date.utils', () => {
   // EDGE CASES - Boundary Conditions
   // ==========================================================================
 
-  describe('Edge Cases - Boundary Conditions', () => {
-    it('should handle very old dates (year 1000)', () => {
+  describe("Edge Cases - Boundary Conditions", () => {
+    it("should handle very old dates (year 1000)", () => {
       // Arrange
-      setSystemDate('2024-06-15');
-      const ancientDate = '1000-01-01';
+      setSystemDate("2024-06-15");
+      const ancientDate = "1000-01-01";
 
       // Act & Assert
       expect(isExpired(ancientDate)).toBe(true);
       expect(isExpiringSoon(ancientDate, 7)).toBe(false);
     });
 
-    it('should handle far future dates (year 9999)', () => {
+    it("should handle far future dates (year 9999)", () => {
       // Arrange
-      setSystemDate('2024-06-15');
-      const futureDate = '9999-12-31';
+      setSystemDate("2024-06-15");
+      const futureDate = "9999-12-31";
 
       // Act & Assert
       expect(isExpired(futureDate)).toBe(false);
       expect(isExpiringSoon(futureDate, 7)).toBe(false);
     });
 
-    it('should handle zero days threshold in isExpiringSoon', () => {
+    it("should handle zero days threshold in isExpiringSoon", () => {
       // Arrange
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
       const today = getCurrentDate();
       const currentDate = new Date();
       const tomorrow = new Date(currentDate);
@@ -756,9 +751,9 @@ describe('date.utils', () => {
       expect(isExpiringSoon(formatDate(tomorrow), 0)).toBe(false);
     });
 
-    it('should handle large threshold in isExpiringSoon (365 days)', () => {
+    it("should handle large threshold in isExpiringSoon (365 days)", () => {
       // Arrange
-      setSystemDate('2024-06-15');
+      setSystemDate("2024-06-15");
       const currentDate = new Date();
       const in364Days = new Date(currentDate);
       in364Days.setDate(currentDate.getDate() + 364);
@@ -774,4 +769,3 @@ describe('date.utils', () => {
     });
   });
 });
-

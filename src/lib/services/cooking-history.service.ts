@@ -1,6 +1,6 @@
 /**
  * Service for Cooking History Management
- * 
+ *
  * Handles:
  * - Listing cooking history with filtering and pagination
  * - Creating cooking history entries with automatic fridge updates
@@ -8,19 +8,18 @@
  * - Parsing PostgreSQL function errors
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../../db/database.types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../db/database.types";
 import type {
   ListCookingHistoryQueryDTO,
   CookingHistoryListResponseDTO,
   CookingHistoryDTO,
   CreateCookingHistoryResponseDTO,
   FridgeStateDTO,
-  RecipeReferenceDTO,
-  UpdatedFridgeItemDTO
-} from '../../types';
-import { NotFoundError, InsufficientIngredientsError } from '../errors';
-import { calculatePaginationMeta } from '../utils/pagination';
+  UpdatedFridgeItemDTO,
+} from "../../types";
+import { NotFoundError, InsufficientIngredientsError } from "../errors";
+import { calculatePaginationMeta } from "../utils/pagination";
 
 /**
  * Interface for the result from record_cooking_event PostgreSQL function
@@ -43,44 +42,44 @@ export class CookingHistoryService {
 
   /**
    * Lists cooking history with optional filters and pagination
-   * 
+   *
    * @param userId - The authenticated user's ID
    * @param query - Query parameters for filtering and pagination
    * @returns Paginated list of cooking history entries
    */
-  async listCookingHistory(
-    userId: string,
-    query: ListCookingHistoryQueryDTO
-  ): Promise<CookingHistoryListResponseDTO> {
+  async listCookingHistory(userId: string, query: ListCookingHistoryQueryDTO): Promise<CookingHistoryListResponseDTO> {
     const { recipe_id, from_date, to_date, page = 1, limit = 20 } = query;
     const offset = (page - 1) * limit;
 
     // Build query with filters
     let queryBuilder = this.supabase
-      .from('cooking_history')
-      .select(`
+      .from("cooking_history")
+      .select(
+        `
         id,
         recipe_id,
         cooked_at,
         fridge_state_before,
         fridge_state_after,
         recipes!inner(id, title)
-      `, { count: 'exact' })
-      .eq('user_id', userId)
-      .order('cooked_at', { ascending: false })
+      `,
+        { count: "exact" }
+      )
+      .eq("user_id", userId)
+      .order("cooked_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     // Apply optional filters
     if (recipe_id) {
-      queryBuilder = queryBuilder.eq('recipe_id', recipe_id);
+      queryBuilder = queryBuilder.eq("recipe_id", recipe_id);
     }
 
     if (from_date) {
-      queryBuilder = queryBuilder.gte('cooked_at', `${from_date}T00:00:00Z`);
+      queryBuilder = queryBuilder.gte("cooked_at", `${from_date}T00:00:00Z`);
     }
 
     if (to_date) {
-      queryBuilder = queryBuilder.lte('cooked_at', `${to_date}T23:59:59Z`);
+      queryBuilder = queryBuilder.lte("cooked_at", `${to_date}T23:59:59Z`);
     }
 
     const { data, count, error } = await queryBuilder;
@@ -94,28 +93,28 @@ export class CookingHistoryService {
       id: row.id,
       recipe: {
         id: row.recipe_id,
-        title: Array.isArray(row.recipes) ? row.recipes[0].title : row.recipes.title
+        title: Array.isArray(row.recipes) ? row.recipes[0].title : row.recipes.title,
       },
       cooked_at: row.cooked_at,
       fridge_state_before: row.fridge_state_before as unknown as FridgeStateDTO,
-      fridge_state_after: row.fridge_state_after as unknown as FridgeStateDTO
+      fridge_state_after: row.fridge_state_after as unknown as FridgeStateDTO,
     }));
 
     return {
       data: historyDTOs,
-      pagination: calculatePaginationMeta(page, limit, count || 0)
+      pagination: calculatePaginationMeta(page, limit, count || 0),
     };
   }
 
   /**
    * Creates a cooking history entry and automatically updates fridge
-   * 
+   *
    * This method:
    * 1. Validates recipe exists and belongs to user
    * 2. Calls PostgreSQL function to handle atomic transaction
    * 3. Transforms result to DTO
    * 4. Parses and throws appropriate errors
-   * 
+   *
    * @param userId - The authenticated user's ID
    * @param recipeId - The recipe that was cooked
    * @param manualConversions - Optional manual conversions for ingredients with incompatible units
@@ -131,10 +130,15 @@ export class CookingHistoryService {
     try {
       // Call PostgreSQL function to handle the complex transaction
       // Note: Type assertion needed because function not yet in database.types.ts
-      const { data, error } = await (this.supabase.rpc as any)('record_cooking_event', {
+      const { data, error } = await (
+        this.supabase.rpc as (
+          name: string,
+          params: Record<string, unknown>
+        ) => Promise<{ data: unknown; error: unknown }>
+      )("record_cooking_event", {
         p_user_id: userId,
         p_recipe_id: recipeId,
-        p_manual_conversions: manualConversions || {}
+        p_manual_conversions: manualConversions || {},
       });
 
       if (error) {
@@ -142,7 +146,7 @@ export class CookingHistoryService {
       }
 
       if (!data || (Array.isArray(data) && data.length === 0)) {
-        throw new Error('Failed to record cooking event - no data returned');
+        throw new Error("Failed to record cooking event - no data returned");
       }
 
       // Handle both array and single object responses
@@ -153,32 +157,28 @@ export class CookingHistoryService {
         id: result.history_id,
         recipe: {
           id: result.recipe_id,
-          title: result.recipe_title
+          title: result.recipe_title,
         },
         cooked_at: result.cooked_at,
         fridge_state_before: result.fridge_before,
         fridge_state_after: result.fridge_after,
-        updated_fridge_items: Array.isArray(result.updated_items) 
-          ? result.updated_items 
-          : []
+        updated_fridge_items: Array.isArray(result.updated_items) ? result.updated_items : [],
       };
-
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Parse PostgreSQL exceptions and throw appropriate API errors
-      const errorMessage = error?.message || String(error);
+      const errorMessage = (error as Error)?.message || String(error);
 
       // Recipe not found or doesn't belong to user
-      if (errorMessage.includes('Recipe not found')) {
-        throw new NotFoundError('Recipe not found or does not belong to you');
+      if (errorMessage.includes("Recipe not found")) {
+        throw new NotFoundError("Recipe not found or does not belong to you");
       }
 
       // Insufficient ingredients
-      if (errorMessage.includes('Insufficient ingredient')) {
+      if (errorMessage.includes("Insufficient ingredient")) {
         const details = this.parseInsufficientIngredientsError(errorMessage);
-        throw new InsufficientIngredientsError(
-          'Not enough ingredients in fridge to cook this recipe',
-          { missing: [details] }
-        );
+        throw new InsufficientIngredientsError("Not enough ingredients in fridge to cook this recipe", {
+          missing: [details],
+        });
       }
 
       // Re-throw other errors
@@ -188,9 +188,9 @@ export class CookingHistoryService {
 
   /**
    * Parses PostgreSQL error message for insufficient ingredients
-   * 
+   *
    * Expected format: "Insufficient ingredient: product_id=10, product_name=Tomato, required=5, available=3"
-   * 
+   *
    * @param errorMessage - The PostgreSQL error message
    * @returns Parsed ingredient details
    */
@@ -200,26 +200,23 @@ export class CookingHistoryService {
     required: number;
     available: number;
   } {
-    const match = errorMessage.match(
-      /product_id=(\d+), product_name=([^,]+), required=([\d.]+), available=([\d.]+)/
-    );
+    const match = errorMessage.match(/product_id=(\d+), product_name=([^,]+), required=([\d.]+), available=([\d.]+)/);
 
     if (match) {
       return {
         product_id: parseInt(match[1]),
         product_name: match[2],
         required: parseFloat(match[3]),
-        available: parseFloat(match[4])
+        available: parseFloat(match[4]),
       };
     }
 
     // Fallback if parsing fails
     return {
       product_id: 0,
-      product_name: 'Unknown',
+      product_name: "Unknown",
       required: 0,
-      available: 0
+      available: 0,
     };
   }
 }
-

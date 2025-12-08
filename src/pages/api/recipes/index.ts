@@ -1,19 +1,16 @@
 /**
  * API Endpoint: /api/recipes
- * 
+ *
  * GET - List recipes with filtering and pagination
  * POST - Create new recipe
  */
 
-import type { APIContext } from 'astro';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { RecipeService } from '../../../lib/services/recipe.service';
-import {
-  listRecipesQuerySchema,
-  createRecipeSchema,
-} from '../../../lib/validations/recipe.validation';
-import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { NotFoundError, UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { RecipeService } from "../../../lib/services/recipe.service";
+import { listRecipesQuerySchema, createRecipeSchema } from "../../../lib/validations/recipe.validation";
+import { successResponse, errorResponse } from "../../../lib/utils/api-response";
+import { NotFoundError, UnauthorizedError } from "../../../lib/errors";
 
 export const prerender = false;
 
@@ -24,7 +21,7 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
@@ -52,8 +49,8 @@ export async function GET(context: APIContext): Promise<Response> {
 
     if (!validationResult.success) {
       return errorResponse(
-        'VALIDATION_ERROR',
-        'Invalid query parameters',
+        "VALIDATION_ERROR",
+        "Invalid query parameters",
         validationResult.error.flatten().fieldErrors,
         422
       );
@@ -67,8 +64,8 @@ export async function GET(context: APIContext): Promise<Response> {
 
     return successResponse(result, 200);
   } catch (error) {
-    console.error('Error in GET /api/recipes:', error);
-    return errorResponse('INTERNAL_ERROR', 'Failed to fetch recipes', undefined, 500);
+    console.error("Error in GET /api/recipes:", error);
+    return errorResponse("INTERNAL_ERROR", "Failed to fetch recipes", undefined, 500);
   }
 }
 
@@ -92,15 +89,15 @@ export async function POST(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      return errorResponse('VALIDATION_ERROR', 'Invalid JSON body', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid JSON body", undefined, 400);
     }
 
     const validationResult = createRecipeSchema.safeParse(body);
 
     if (!validationResult.success) {
       return errorResponse(
-        'VALIDATION_ERROR',
-        'Invalid request body',
+        "VALIDATION_ERROR",
+        "Invalid request body",
         validationResult.error.flatten().fieldErrors,
         400
       );
@@ -113,21 +110,16 @@ export async function POST(context: APIContext): Promise<Response> {
     const recipe = await recipeService.createRecipe(userId, createDto);
 
     // Return 201 Created with Location header
-    return successResponse(
-      recipe,
-      201,
-      {
-        Location: `/api/recipes/${recipe.id}`,
-      }
-    );
+    return successResponse(recipe, 201, {
+      Location: `/api/recipes/${recipe.id}`,
+    });
   } catch (error) {
-    console.error('Error in POST /api/recipes:', error);
+    console.error("Error in POST /api/recipes:", error);
 
     if (error instanceof NotFoundError) {
-      return errorResponse('NOT_FOUND', error.message, undefined, 404);
+      return errorResponse("NOT_FOUND", error.message, undefined, 404);
     }
 
-    return errorResponse('INTERNAL_ERROR', 'Failed to create recipe', undefined, 500);
+    return errorResponse("INTERNAL_ERROR", "Failed to create recipe", undefined, 500);
   }
 }
-

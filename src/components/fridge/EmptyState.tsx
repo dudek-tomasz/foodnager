@@ -1,11 +1,11 @@
 /**
  * EmptyState - Component displayed when fridge is empty
- * 
+ *
  * Shows a helpful message and CTA button to add first product
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   onAddFirst: () => void;
@@ -35,22 +35,16 @@ export default function EmptyState({ onAddFirst }: EmptyStateProps) {
       </div>
 
       {/* Heading */}
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        Twoja lodówka jest pusta
-      </h2>
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Twoja lodówka jest pusta</h2>
 
       {/* Description */}
       <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-        Zacznij dodawać produkty do swojej wirtualnej lodówki, aby śledzić ich 
-        ilości i daty ważności. To pomoże Ci znaleźć idealne przepisy!
+        Zacznij dodawać produkty do swojej wirtualnej lodówki, aby śledzić ich ilości i daty ważności. To pomoże Ci
+        znaleźć idealne przepisy!
       </p>
 
       {/* CTA Button */}
-      <Button
-        onClick={onAddFirst}
-        size="lg"
-        className="mt-2"
-      >
+      <Button onClick={onAddFirst} size="lg" className="mt-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-5 w-5 mr-2"
@@ -59,11 +53,7 @@ export default function EmptyState({ onAddFirst }: EmptyStateProps) {
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 4v16m8-8H4"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         Dodaj pierwszy produkt
       </Button>
@@ -75,4 +65,3 @@ export default function EmptyState({ onAddFirst }: EmptyStateProps) {
     </div>
   );
 }
-

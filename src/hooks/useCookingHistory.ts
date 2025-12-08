@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../lib/api-client';
-import type { 
-  CookingHistoryDTO, 
+import { useState, useEffect, useCallback } from "react";
+import { apiClient } from "../lib/api-client";
+import type {
+  CookingHistoryDTO,
   CookingHistoryListResponseDTO,
   PaginationMetaDTO,
-  ListCookingHistoryQueryDTO
-} from '../types';
-import type { HistoryFilters } from '../components/cooking-history/types';
+  ListCookingHistoryQueryDTO,
+} from "../types";
+import type { HistoryFilters } from "../components/cooking-history/types";
 
 interface UseCookingHistoryOptions {
   initialData?: CookingHistoryListResponseDTO;
@@ -20,7 +20,7 @@ interface UseCookingHistoryReturn {
   error: string | null;
   filters: HistoryFilters;
   expandedCards: Set<number>;
-  
+
   // Akcje
   fetchHistory: () => Promise<void>;
   setFilters: (filters: HistoryFilters) => void;
@@ -33,18 +33,14 @@ interface UseCookingHistoryReturn {
 /**
  * Custom hook do zarządzania stanem widoku Historia Gotowania
  */
-export function useCookingHistory(
-  options: UseCookingHistoryOptions = {}
-): UseCookingHistoryReturn {
-  const [historyEntries, setHistoryEntries] = useState<CookingHistoryDTO[]>(
-    options.initialData?.data || []
-  );
+export function useCookingHistory(options: UseCookingHistoryOptions = {}): UseCookingHistoryReturn {
+  const [historyEntries, setHistoryEntries] = useState<CookingHistoryDTO[]>(options.initialData?.data || []);
   const [pagination, setPagination] = useState<PaginationMetaDTO>(
-    options.initialData?.pagination || { 
-      page: 1, 
-      limit: 20, 
-      total: 0, 
-      total_pages: 0 
+    options.initialData?.pagination || {
+      page: 1,
+      limit: 20,
+      total: 0,
+      total_pages: 0,
     }
   );
   const [loading, setLoading] = useState(false);
@@ -55,26 +51,26 @@ export function useCookingHistory(
   const fetchHistory = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params: ListCookingHistoryQueryDTO = {
         page: pagination.page,
         limit: pagination.limit,
         recipe_id: filters.recipeId,
         from_date: filters.fromDate,
-        to_date: filters.toDate
+        to_date: filters.toDate,
       };
 
-      const response = await apiClient.get<CookingHistoryListResponseDTO>(
-        '/api/cooking-history',
-        params
-      );
+      const response = await apiClient.get<CookingHistoryListResponseDTO>("/api/cooking-history", params);
 
       setHistoryEntries(response.data);
       setPagination(response.pagination);
     } catch (err) {
-      setError('Nie udało się pobrać historii gotowania. Spróbuj ponownie.');
-      console.error('Fetch cooking history error:', err);
+      setError("Nie udało się pobrać historii gotowania. Spróbuj ponownie.");
+      // Error fetching cooking history - log to monitoring service in production
+      if (import.meta.env.DEV) {
+        console.error("Fetch cooking history error:", err);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,20 +83,20 @@ export function useCookingHistory(
 
   const setFilters = (newFilters: HistoryFilters) => {
     setFiltersState(newFilters);
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset do strony 1
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset do strony 1
   };
 
   const clearFilters = () => {
     setFiltersState({});
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const setPage = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   const toggleCardExpansion = (cardId: number) => {
-    setExpandedCards(prev => {
+    setExpandedCards((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(cardId)) {
         newSet.delete(cardId);
@@ -127,7 +123,6 @@ export function useCookingHistory(
     clearFilters,
     setPage,
     toggleCardExpansion,
-    refreshList
+    refreshList,
   };
 }
-

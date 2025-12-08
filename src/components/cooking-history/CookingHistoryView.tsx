@@ -1,13 +1,13 @@
-import { useEffect, useMemo } from 'react';
-import { useCookingHistory } from '../../hooks/useCookingHistory';
-import { HistoryHeader } from './HistoryHeader';
-import { FilterToolbar } from './FilterToolbar';
-import { HistoryTimeline } from './HistoryTimeline';
-import { PaginationControls } from './PaginationControls';
-import { calculateHistoryStats } from '../../lib/mappers/cooking-history-view.mapper';
-import type { CookingHistoryPageProps } from './types';
-import { AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useMemo } from "react";
+import { useCookingHistory } from "../../hooks/useCookingHistory";
+import { HistoryHeader } from "./HistoryHeader";
+import { FilterToolbar } from "./FilterToolbar";
+import { HistoryTimeline } from "./HistoryTimeline";
+import { PaginationControls } from "./PaginationControls";
+import { calculateHistoryStats } from "../../lib/mappers/cooking-history-view.mapper";
+import type { CookingHistoryPageProps } from "./types";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * Główny komponent widoku Historia Gotowania
@@ -25,7 +25,7 @@ export function CookingHistoryView({ initialData }: CookingHistoryPageProps) {
     clearFilters,
     setPage,
     toggleCardExpansion,
-    refreshList
+    refreshList,
   } = useCookingHistory({ initialData });
 
   // Obliczanie statystyk historii
@@ -45,7 +45,7 @@ export function CookingHistoryView({ initialData }: CookingHistoryPageProps) {
 
   // Scroll do góry przy zmianie strony
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pagination.page]);
 
   // Error state
@@ -85,10 +85,7 @@ export function CookingHistoryView({ initialData }: CookingHistoryPageProps) {
         />
       </div>
 
-      {pagination.total_pages > 1 && (
-        <PaginationControls pagination={pagination} onPageChange={setPage} />
-      )}
+      {pagination.total_pages > 1 && <PaginationControls pagination={pagination} onPageChange={setPage} />}
     </main>
   );
 }
-

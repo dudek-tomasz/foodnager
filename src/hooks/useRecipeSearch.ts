@@ -1,6 +1,6 @@
 /**
  * useRecipeSearch - Custom hook for managing recipe search state
- * 
+ *
  * This hook manages the complete recipe search flow including:
  * - Source selection
  * - Search execution with AbortController support
@@ -9,29 +9,25 @@
  * - Helper functions for formatting and labeling
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import type {
   RecipeSearchViewState,
   UseRecipeSearchReturn,
   RecipeSource,
   FormattedMatchScore,
-  SearchError,
-} from '@/types/recipe-search.types';
-import type { RecipeSummaryDTO, FridgeItemDTO, RecipeIngredientDTO } from '@/types';
-import { SEARCH_TIMEOUTS } from '@/types/recipe-search.types';
+} from "@/types/recipe-search.types";
+import type { FridgeItemDTO, RecipeIngredientDTO } from "@/types";
+import { SEARCH_TIMEOUTS } from "@/types/recipe-search.types";
 
 /**
  * Calculate match score between recipe ingredients and available fridge items
  * Frontend version of MatchScoreCalculator logic
- * 
+ *
  * @param recipeIngredients - Recipe ingredients
  * @param fridgeItems - Available fridge items
  * @returns Match score (0.0 - 1.0)
  */
-function calculateMatchScore(
-  recipeIngredients: RecipeIngredientDTO[],
-  fridgeItems: FridgeItemDTO[]
-): number {
+function calculateMatchScore(recipeIngredients: RecipeIngredientDTO[], fridgeItems: FridgeItemDTO[]): number {
   if (recipeIngredients.length === 0) {
     return 0;
   }
@@ -72,21 +68,20 @@ function calculateMatchScore(
   }
 
   // Formula: (fully_available + 0.5 * partially_available) / total
-  const score = (fullyAvailableCount + (partiallyAvailableCount * 0.5)) / recipeIngredients.length;
+  const score = (fullyAvailableCount + partiallyAvailableCount * 0.5) / recipeIngredients.length;
 
   return Math.max(0, Math.min(1, score)); // Clamp between 0 and 1
 }
 
 /**
  * Custom hook for recipe search functionality
- * 
- * @param initialFridgeItemCount - Optional initial count of items in fridge
+ *
  * @returns State, actions, and helper functions for recipe search
  */
-export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearchReturn {
+export function useRecipeSearch(): UseRecipeSearchReturn {
   // Initial state
   const [state, setState] = useState<RecipeSearchViewState>({
-    step: 'source_selection',
+    step: "source_selection",
     source: null,
     isLoading: false,
     searchStartTime: null,
@@ -118,7 +113,7 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
 
     setState((prev) => ({
       ...prev,
-      step: 'loading',
+      step: "loading",
       source,
       isLoading: true,
       searchStartTime: Date.now(),
@@ -135,23 +130,23 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         source: source, // Pass the selected source to the API
       };
 
-      const { searchRecipesByFridge } = await import('@/lib/api/recipe-search.api');
+      const { searchRecipesByFridge } = await import("@/lib/api/recipe-search.api");
       const data = await searchRecipesByFridge(searchDto, controller.signal);
 
       setState((prev) => ({
         ...prev,
-        step: 'results',
+        step: "results",
         isLoading: false,
         results: data.results,
         searchMetadata: data.search_metadata,
         abortController: null,
       }));
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
         // User cancelled - return to source selection
         setState((prev) => ({
           ...prev,
-          step: 'source_selection',
+          step: "source_selection",
           source: null,
           isLoading: false,
           searchStartTime: null,
@@ -161,11 +156,11 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         // API error - show error state
         setState((prev) => ({
           ...prev,
-          step: 'results',
+          step: "results",
           isLoading: false,
           error: {
-            code: 'SEARCH_ERROR',
-            message: error.message || 'Nie udało się wyszukać przepisów',
+            code: "SEARCH_ERROR",
+            message: error instanceof Error ? error.message : "Nie udało się wyszukać przepisów",
           },
           results: [],
           searchMetadata: null,
@@ -193,8 +188,8 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
 
     setState((prev) => ({
       ...prev,
-      step: 'loading',
-      source: 'ai',
+      step: "loading",
+      source: "ai",
       isLoading: true,
       searchStartTime: Date.now(),
       searchDuration: 0,
@@ -210,9 +205,9 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         save_to_recipes: false, // Don't auto-save, let user decide
       };
 
-      const { generateRecipeWithAI } = await import('@/lib/api/recipe-search.api');
-      const { fetchAllFridgeItems } = await import('@/lib/api/fridge-client');
-      
+      const { generateRecipeWithAI } = await import("@/lib/api/recipe-search.api");
+      const { fetchAllFridgeItems } = await import("@/lib/api/fridge-client");
+
       // Fetch fridge items to calculate real match score
       const fridgeItems = await fetchAllFridgeItems();
       const data = await generateRecipeWithAI(generateDto, controller.signal);
@@ -223,7 +218,7 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       // Convert generated recipe to search result format
       setState((prev) => ({
         ...prev,
-        step: 'results',
+        step: "results",
         isLoading: false,
         results: [
           {
@@ -234,18 +229,18 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
           },
         ],
         searchMetadata: {
-          source: 'ai_generated',
+          source: "ai_generated",
           total_results: 1,
           search_duration_ms: Date.now() - (prev.searchStartTime || Date.now()),
         },
         abortController: null,
       }));
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
         // User cancelled
         setState((prev) => ({
           ...prev,
-          step: 'source_selection',
+          step: "source_selection",
           source: null,
           isLoading: false,
           searchStartTime: null,
@@ -255,11 +250,11 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         // API error
         setState((prev) => ({
           ...prev,
-          step: 'results',
+          step: "results",
           isLoading: false,
           error: {
-            code: 'AI_GENERATION_ERROR',
-            message: error.message || 'Nie udało się wygenerować przepisu',
+            code: "AI_GENERATION_ERROR",
+            message: error instanceof Error ? error.message : "Nie udało się wygenerować przepisu",
           },
           results: [],
           searchMetadata: null,
@@ -272,7 +267,7 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
   const goBack = () => {
     setState((prev) => ({
       ...prev,
-      step: 'source_selection',
+      step: "source_selection",
       source: null,
       isLoading: false,
       results: null,
@@ -284,15 +279,15 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
   // Helper functions
   const formatMatchScore = (score: number): FormattedMatchScore => {
     const percentage = Math.round(score * 100);
-    let colorClass = 'text-red-600';
-    let borderClass = 'border-red-500';
+    let colorClass = "text-red-600";
+    let borderClass = "border-red-500";
 
     if (percentage >= 90) {
-      colorClass = 'text-green-600';
-      borderClass = 'border-green-500';
+      colorClass = "text-green-600";
+      borderClass = "border-green-500";
     } else if (percentage >= 70) {
-      colorClass = 'text-yellow-600';
-      borderClass = 'border-yellow-500';
+      colorClass = "text-yellow-600";
+      borderClass = "border-yellow-500";
     }
 
     return {
@@ -305,10 +300,10 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
 
   const getSourceLabel = (source: RecipeSource): string => {
     const labels: Record<RecipeSource, string> = {
-      user: 'Moje przepisy',
-      api: 'API przepisów',
-      ai: 'AI',
-      all: 'Wszystkie źródła',
+      user: "Moje przepisy",
+      api: "API przepisów",
+      ai: "AI",
+      all: "Wszystkie źródła",
     };
     return labels[source];
   };
@@ -333,4 +328,3 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
     },
   };
 }
-

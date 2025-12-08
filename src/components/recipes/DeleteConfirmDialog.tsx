@@ -1,11 +1,11 @@
 /**
  * DeleteConfirmDialog Component
- * 
+ *
  * Confirmation dialog for deleting a recipe.
  * Displays recipe name and warning about permanent deletion.
  */
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertTriangle } from "lucide-react";
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -24,12 +24,7 @@ interface DeleteConfirmDialogProps {
   onCancel: () => void;
 }
 
-export function DeleteConfirmDialog({
-  isOpen,
-  recipeName,
-  onConfirm,
-  onCancel,
-}: DeleteConfirmDialogProps) {
+export function DeleteConfirmDialog({ isOpen, recipeName, onConfirm, onCancel }: DeleteConfirmDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirm = async () => {
@@ -50,25 +45,16 @@ export function DeleteConfirmDialog({
             <DialogTitle>Czy na pewno usunąć przepis?</DialogTitle>
           </div>
           <DialogDescription className="pt-3">
-            Przepis <span className="font-semibold text-neutral-900 dark:text-neutral-100">"{recipeName}"</span> zostanie trwale usunięty. 
-            Tej operacji nie można cofnąć.
+            Przepis{" "}
+            <span className="font-semibold text-neutral-900 dark:text-neutral-100">&quot;{recipeName}&quot;</span>{" "}
+            zostanie trwale usunięty. Tej operacji nie można cofnąć.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isDeleting}
-          >
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isDeleting}>
             Anuluj
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={isDeleting}
-          >
+          <Button type="button" variant="destructive" onClick={handleConfirm} disabled={isDeleting}>
             {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Usuń
           </Button>
@@ -77,4 +63,3 @@ export function DeleteConfirmDialog({
     </Dialog>
   );
 }
-

@@ -1,6 +1,6 @@
 /**
  * Unit tests for Recipe View Mappers
- * 
+ *
  * Tests cover:
  * - mapRecipeFormDataToCreateDTO - transformation to create DTO
  * - mapRecipeFormDataToUpdateDTO - transformation to update DTO
@@ -8,7 +8,7 @@
  * - calculateRecipeStats - statistics calculation
  * - createEmptyRecipeFormData - factory for empty form
  * - createEmptyIngredientFormData - factory for empty ingredient
- * 
+ *
  * Business rules tested:
  * - String trimming for title, description, instructions
  * - Empty description converts to null
@@ -19,7 +19,7 @@
  * - Unique ID generation for ingredients
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   mapRecipeFormDataToCreateDTO,
   mapRecipeFormDataToUpdateDTO,
@@ -27,18 +27,16 @@ import {
   calculateRecipeStats,
   createEmptyRecipeFormData,
   createEmptyIngredientFormData,
-} from './recipe-view.mapper';
-import type { RecipeFormData } from '@/components/recipes/types';
+} from "./recipe-view.mapper";
+import type { RecipeFormData } from "@/components/recipes/types";
 import type {
-  CreateRecipeDTO,
-  UpdateRecipeDTO,
   RecipeSummaryDTO,
   RecipeDTO,
   RecipeIngredientDTO,
   ProductReferenceDTO,
   UnitReferenceDTO,
   TagDTO,
-} from '@/types';
+} from "@/types";
 
 // =============================================================================
 // HELPER FACTORIES
@@ -49,11 +47,7 @@ const createProduct = (id: number, name: string): ProductReferenceDTO => ({
   name,
 });
 
-const createUnit = (
-  id: number,
-  name: string,
-  abbreviation: string
-): UnitReferenceDTO => ({
+const createUnit = (id: number, name: string, abbreviation: string): UnitReferenceDTO => ({
   id,
   name,
   abbreviation,
@@ -77,20 +71,18 @@ const createRecipeIngredient = (
   unit: createUnit(unitId, unitName, unitAbbr),
 });
 
-const createRecipeSummaryDTO = (
-  overrides?: Partial<RecipeSummaryDTO>
-): RecipeSummaryDTO => ({
+const createRecipeSummaryDTO = (overrides?: Partial<RecipeSummaryDTO>): RecipeSummaryDTO => ({
   id: 1,
-  title: 'Test Recipe',
-  description: 'Test description',
-  instructions: 'Test instructions',
+  title: "Test Recipe",
+  description: "Test description",
+  instructions: "Test instructions",
   cooking_time: 30,
-  difficulty: 'easy',
-  source: 'user',
+  difficulty: "easy",
+  source: "user",
   tags: [],
   ingredients: [],
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
   ...overrides,
 });
 
@@ -100,14 +92,12 @@ const createRecipeDTO = (overrides?: Partial<RecipeDTO>): RecipeDTO => ({
   ...overrides,
 });
 
-const createRecipeFormData = (
-  overrides?: Partial<RecipeFormData>
-): RecipeFormData => ({
-  title: 'Test Recipe',
-  description: 'Test description',
-  instructions: 'Test instructions',
+const createRecipeFormData = (overrides?: Partial<RecipeFormData>): RecipeFormData => ({
+  title: "Test Recipe",
+  description: "Test description",
+  instructions: "Test instructions",
   cookingTime: 30,
-  difficulty: 'easy',
+  difficulty: "easy",
   ingredients: [],
   tagIds: [],
   ...overrides,
@@ -117,28 +107,28 @@ const createRecipeFormData = (
 // mapRecipeFormDataToCreateDTO
 // =============================================================================
 
-describe('mapRecipeFormDataToCreateDTO', () => {
-  describe('happy path', () => {
-    it('should map complete form data to create DTO', () => {
+describe("mapRecipeFormDataToCreateDTO", () => {
+  describe("happy path", () => {
+    it("should map complete form data to create DTO", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: 'Pasta Carbonara',
-        description: 'Delicious Italian pasta',
-        instructions: 'Cook pasta, add sauce',
+        title: "Pasta Carbonara",
+        description: "Delicious Italian pasta",
+        instructions: "Cook pasta, add sauce",
         cookingTime: 20,
-        difficulty: 'medium',
+        difficulty: "medium",
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 1,
-            productName: 'Pasta',
+            productName: "Pasta",
             quantity: 200,
             unitId: 1,
           },
           {
-            id: 'ing-2',
+            id: "ing-2",
             productId: 2,
-            productName: 'Eggs',
+            productName: "Eggs",
             quantity: 2,
             unitId: 2,
           },
@@ -151,11 +141,11 @@ describe('mapRecipeFormDataToCreateDTO', () => {
 
       // Assert
       expect(result).toEqual({
-        title: 'Pasta Carbonara',
-        description: 'Delicious Italian pasta',
-        instructions: 'Cook pasta, add sauce',
+        title: "Pasta Carbonara",
+        description: "Delicious Italian pasta",
+        instructions: "Cook pasta, add sauce",
         cooking_time: 20,
-        difficulty: 'medium',
+        difficulty: "medium",
         ingredients: [
           { product_id: 1, quantity: 200, unit_id: 1 },
           { product_id: 2, quantity: 2, unit_id: 2 },
@@ -164,40 +154,27 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       });
     });
 
-    it('should trim whitespace from title, description, and instructions', () => {
+    it("should trim whitespace from title, description, and instructions", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: '  Pasta Carbonara  ',
-        description: '  Delicious Italian pasta  ',
-        instructions: '  Cook pasta, add sauce  ',
+        title: "  Pasta Carbonara  ",
+        description: "  Delicious Italian pasta  ",
+        instructions: "  Cook pasta, add sauce  ",
       });
 
       // Act
       const result = mapRecipeFormDataToCreateDTO(formData);
 
       // Assert
-      expect(result.title).toBe('Pasta Carbonara');
-      expect(result.description).toBe('Delicious Italian pasta');
-      expect(result.instructions).toBe('Cook pasta, add sauce');
+      expect(result.title).toBe("Pasta Carbonara");
+      expect(result.description).toBe("Delicious Italian pasta");
+      expect(result.instructions).toBe("Cook pasta, add sauce");
     });
 
-    it('should convert empty description to null', () => {
+    it("should convert empty description to null", () => {
       // Arrange
       const formData = createRecipeFormData({
-        description: '',
-      });
-
-      // Act
-      const result = mapRecipeFormDataToCreateDTO(formData);
-
-      // Assert
-      expect(result.description).toBeNull();
-    });
-
-    it('should convert whitespace-only description to null', () => {
-      // Arrange
-      const formData = createRecipeFormData({
-        description: '   ',
+        description: "",
       });
 
       // Act
@@ -207,7 +184,20 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.description).toBeNull();
     });
 
-    it('should map null cookingTime and difficulty correctly', () => {
+    it("should convert whitespace-only description to null", () => {
+      // Arrange
+      const formData = createRecipeFormData({
+        description: "   ",
+      });
+
+      // Act
+      const result = mapRecipeFormDataToCreateDTO(formData);
+
+      // Assert
+      expect(result.description).toBeNull();
+    });
+
+    it("should map null cookingTime and difficulty correctly", () => {
       // Arrange
       const formData = createRecipeFormData({
         cookingTime: null,
@@ -222,7 +212,7 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.difficulty).toBeNull();
     });
 
-    it('should not include tag_ids when array is empty', () => {
+    it("should not include tag_ids when array is empty", () => {
       // Arrange
       const formData = createRecipeFormData({
         tagIds: [],
@@ -235,14 +225,14 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.tag_ids).toBeUndefined();
     });
 
-    it('should map ingredients with correct field name transformations', () => {
+    it("should map ingredients with correct field name transformations", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 10,
-            productName: 'Flour',
+            productName: "Flour",
             quantity: 500,
             unitId: 5,
           },
@@ -253,14 +243,12 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       const result = mapRecipeFormDataToCreateDTO(formData);
 
       // Assert
-      expect(result.ingredients).toEqual([
-        { product_id: 10, quantity: 500, unit_id: 5 },
-      ]);
+      expect(result.ingredients).toEqual([{ product_id: 10, quantity: 500, unit_id: 5 }]);
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle empty ingredients array', () => {
+  describe("edge cases", () => {
+    it("should handle empty ingredients array", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [],
@@ -273,28 +261,28 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.ingredients).toEqual([]);
     });
 
-    it('should handle multiple ingredients', () => {
+    it("should handle multiple ingredients", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 1,
-            productName: 'Product 1',
+            productName: "Product 1",
             quantity: 100,
             unitId: 1,
           },
           {
-            id: 'ing-2',
+            id: "ing-2",
             productId: 2,
-            productName: 'Product 2',
+            productName: "Product 2",
             quantity: 200,
             unitId: 2,
           },
           {
-            id: 'ing-3',
+            id: "ing-3",
             productId: 3,
-            productName: 'Product 3',
+            productName: "Product 3",
             quantity: 300,
             unitId: 3,
           },
@@ -318,7 +306,7 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       });
     });
 
-    it('should handle zero cooking time', () => {
+    it("should handle zero cooking time", () => {
       // Arrange
       const formData = createRecipeFormData({
         cookingTime: 0,
@@ -331,14 +319,14 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.cooking_time).toBe(0);
     });
 
-    it('should preserve productId and unitId even though they use non-null assertion', () => {
+    it("should preserve productId and unitId even though they use non-null assertion", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 5,
-            productName: 'Test Product',
+            productName: "Test Product",
             quantity: 150,
             unitId: 7,
           },
@@ -353,9 +341,9 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.ingredients[0].unit_id).toBe(7);
     });
 
-    it('should handle very long strings in title, description, instructions', () => {
+    it("should handle very long strings in title, description, instructions", () => {
       // Arrange
-      const longString = 'a'.repeat(1000);
+      const longString = "a".repeat(1000);
       const formData = createRecipeFormData({
         title: longString,
         description: longString,
@@ -371,12 +359,12 @@ describe('mapRecipeFormDataToCreateDTO', () => {
       expect(result.instructions).toBe(longString);
     });
 
-    it('should handle special characters in strings', () => {
+    it("should handle special characters in strings", () => {
       // Arrange
       const formData = createRecipeFormData({
         title: 'Recipe with "quotes" & <symbols>',
-        description: 'Contains newlines\n\nand tabs\t\there',
-        instructions: 'Step 1:\nBoil water\nStep 2:\nAdd pasta',
+        description: "Contains newlines\n\nand tabs\t\there",
+        instructions: "Step 1:\nBoil water\nStep 2:\nAdd pasta",
       });
 
       // Act
@@ -384,8 +372,8 @@ describe('mapRecipeFormDataToCreateDTO', () => {
 
       // Assert
       expect(result.title).toBe('Recipe with "quotes" & <symbols>');
-      expect(result.description).toBe('Contains newlines\n\nand tabs\t\there');
-      expect(result.instructions).toBe('Step 1:\nBoil water\nStep 2:\nAdd pasta');
+      expect(result.description).toBe("Contains newlines\n\nand tabs\t\there");
+      expect(result.instructions).toBe("Step 1:\nBoil water\nStep 2:\nAdd pasta");
     });
   });
 });
@@ -394,21 +382,21 @@ describe('mapRecipeFormDataToCreateDTO', () => {
 // mapRecipeFormDataToUpdateDTO
 // =============================================================================
 
-describe('mapRecipeFormDataToUpdateDTO', () => {
-  describe('happy path', () => {
-    it('should map complete form data to update DTO', () => {
+describe("mapRecipeFormDataToUpdateDTO", () => {
+  describe("happy path", () => {
+    it("should map complete form data to update DTO", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: 'Updated Recipe',
-        description: 'Updated description',
-        instructions: 'Updated instructions',
+        title: "Updated Recipe",
+        description: "Updated description",
+        instructions: "Updated instructions",
         cookingTime: 45,
-        difficulty: 'hard',
+        difficulty: "hard",
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 10,
-            productName: 'Ingredient',
+            productName: "Ingredient",
             quantity: 100,
             unitId: 5,
           },
@@ -421,22 +409,22 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
 
       // Assert
       expect(result).toEqual({
-        title: 'Updated Recipe',
-        description: 'Updated description',
-        instructions: 'Updated instructions',
+        title: "Updated Recipe",
+        description: "Updated description",
+        instructions: "Updated instructions",
         cooking_time: 45,
-        difficulty: 'hard',
+        difficulty: "hard",
         ingredients: [{ product_id: 10, quantity: 100, unit_id: 5 }],
         tag_ids: [5, 6],
       });
     });
 
-    it('should only include fields that are present', () => {
+    it("should only include fields that are present", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: 'Only title',
-        description: '',
-        instructions: '',
+        title: "Only title",
+        description: "",
+        instructions: "",
         cookingTime: null,
         difficulty: null,
         ingredients: [],
@@ -447,7 +435,7 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result.title).toBe('Only title');
+      expect(result.title).toBe("Only title");
       // description !== undefined, so it should be included and converted to null
       expect(result.description).toBeNull();
       // instructions is empty string (falsy), so it won't be included
@@ -461,40 +449,27 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       expect(result.tag_ids).toBeUndefined();
     });
 
-    it('should trim whitespace from title, description, and instructions', () => {
+    it("should trim whitespace from title, description, and instructions", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: '  Trimmed Title  ',
-        description: '  Trimmed Description  ',
-        instructions: '  Trimmed Instructions  ',
+        title: "  Trimmed Title  ",
+        description: "  Trimmed Description  ",
+        instructions: "  Trimmed Instructions  ",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result.title).toBe('Trimmed Title');
-      expect(result.description).toBe('Trimmed Description');
-      expect(result.instructions).toBe('Trimmed Instructions');
+      expect(result.title).toBe("Trimmed Title");
+      expect(result.description).toBe("Trimmed Description");
+      expect(result.instructions).toBe("Trimmed Instructions");
     });
 
-    it('should convert empty description to null', () => {
+    it("should convert empty description to null", () => {
       // Arrange
       const formData = createRecipeFormData({
-        description: '',
-      });
-
-      // Act
-      const result = mapRecipeFormDataToUpdateDTO(formData);
-
-      // Assert
-      expect(result.description).toBeNull();
-    });
-
-    it('should convert whitespace-only description to null', () => {
-      // Arrange
-      const formData = createRecipeFormData({
-        description: '   ',
+        description: "",
       });
 
       // Act
@@ -504,7 +479,20 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       expect(result.description).toBeNull();
     });
 
-    it('should include cooking_time when it is 0', () => {
+    it("should convert whitespace-only description to null", () => {
+      // Arrange
+      const formData = createRecipeFormData({
+        description: "   ",
+      });
+
+      // Act
+      const result = mapRecipeFormDataToUpdateDTO(formData);
+
+      // Assert
+      expect(result.description).toBeNull();
+    });
+
+    it("should include cooking_time when it is 0", () => {
       // Arrange
       const formData = createRecipeFormData({
         cookingTime: 0,
@@ -517,7 +505,7 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       expect(result.cooking_time).toBe(0);
     });
 
-    it('should not include ingredients when array is empty', () => {
+    it("should not include ingredients when array is empty", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [],
@@ -530,7 +518,7 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       expect(result.ingredients).toBeUndefined();
     });
 
-    it('should not include tag_ids when array is empty', () => {
+    it("should not include tag_ids when array is empty", () => {
       // Arrange
       const formData = createRecipeFormData({
         tagIds: [],
@@ -544,13 +532,13 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle partial updates with only title', () => {
+  describe("edge cases", () => {
+    it("should handle partial updates with only title", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: 'New Title',
-        description: '',
-        instructions: '',
+        title: "New Title",
+        description: "",
+        instructions: "",
         cookingTime: null,
         difficulty: null,
         ingredients: [],
@@ -561,16 +549,16 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('title');
-      expect(Object.keys(result)).toContain('title');
+      expect(result).toHaveProperty("title");
+      expect(Object.keys(result)).toContain("title");
     });
 
-    it('should handle all fields being empty/null', () => {
+    it("should handle all fields being empty/null", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: '',
-        description: '',
-        instructions: '',
+        title: "",
+        description: "",
+        instructions: "",
         cookingTime: null,
         difficulty: null,
         ingredients: [],
@@ -592,21 +580,21 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       expect(result.difficulty).toBeUndefined();
     });
 
-    it('should map ingredients with proper field transformations', () => {
+    it("should map ingredients with proper field transformations", () => {
       // Arrange
       const formData = createRecipeFormData({
         ingredients: [
           {
-            id: 'ing-1',
+            id: "ing-1",
             productId: 20,
-            productName: 'Sugar',
+            productName: "Sugar",
             quantity: 50,
             unitId: 3,
           },
           {
-            id: 'ing-2',
+            id: "ing-2",
             productId: 21,
-            productName: 'Salt',
+            productName: "Salt",
             quantity: 10,
             unitId: 3,
           },
@@ -623,20 +611,20 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       ]);
     });
 
-    it('should include difficulty when set to a valid value', () => {
+    it("should include difficulty when set to a valid value", () => {
       // Arrange
       const formData = createRecipeFormData({
-        difficulty: 'easy',
+        difficulty: "easy",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result.difficulty).toBe('easy');
+      expect(result.difficulty).toBe("easy");
     });
 
-    it('should not include cooking_time when set to null explicitly', () => {
+    it("should not include cooking_time when set to null explicitly", () => {
       // Arrange
       const formData = createRecipeFormData({
         cookingTime: null,
@@ -651,48 +639,48 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
     });
   });
 
-  describe('conditional field inclusion logic', () => {
-    it('should include title when truthy', () => {
+  describe("conditional field inclusion logic", () => {
+    it("should include title when truthy", () => {
       // Arrange
       const formData = createRecipeFormData({
-        title: 'Title',
+        title: "Title",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('title');
+      expect(result).toHaveProperty("title");
     });
 
-    it('should include description when defined (even if empty)', () => {
+    it("should include description when defined (even if empty)", () => {
       // Arrange
       const formData = createRecipeFormData({
-        description: '',
+        description: "",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('description');
+      expect(result).toHaveProperty("description");
       expect(result.description).toBeNull();
     });
 
-    it('should include instructions when truthy', () => {
+    it("should include instructions when truthy", () => {
       // Arrange
       const formData = createRecipeFormData({
-        instructions: 'Some instructions',
+        instructions: "Some instructions",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('instructions');
+      expect(result).toHaveProperty("instructions");
     });
 
-    it('should include cookingTime when not null', () => {
+    it("should include cookingTime when not null", () => {
       // Arrange
       const formData = createRecipeFormData({
         cookingTime: 15,
@@ -702,20 +690,20 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('cooking_time');
+      expect(result).toHaveProperty("cooking_time");
     });
 
-    it('should include difficulty when not null', () => {
+    it("should include difficulty when not null", () => {
       // Arrange
       const formData = createRecipeFormData({
-        difficulty: 'medium',
+        difficulty: "medium",
       });
 
       // Act
       const result = mapRecipeFormDataToUpdateDTO(formData);
 
       // Assert
-      expect(result).toHaveProperty('difficulty');
+      expect(result).toHaveProperty("difficulty");
     });
   });
 });
@@ -724,21 +712,21 @@ describe('mapRecipeFormDataToUpdateDTO', () => {
 // mapRecipeDTOToFormData
 // =============================================================================
 
-describe('mapRecipeDTOToFormData', () => {
-  describe('happy path', () => {
-    it('should map RecipeSummaryDTO to RecipeFormData', () => {
+describe("mapRecipeDTOToFormData", () => {
+  describe("happy path", () => {
+    it("should map RecipeSummaryDTO to RecipeFormData", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
-        title: 'Pizza Margherita',
-        description: 'Classic Italian pizza',
-        instructions: 'Make dough, add sauce, bake',
+        title: "Pizza Margherita",
+        description: "Classic Italian pizza",
+        instructions: "Make dough, add sauce, bake",
         cooking_time: 30,
-        difficulty: 'easy',
+        difficulty: "easy",
         ingredients: [
-          createRecipeIngredient(1, 'Flour', 500, 1, 'gram', 'g'),
-          createRecipeIngredient(2, 'Tomato', 3, 2, 'piece', 'pc'),
+          createRecipeIngredient(1, "Flour", 500, 1, "gram", "g"),
+          createRecipeIngredient(2, "Tomato", 3, 2, "piece", "pc"),
         ],
-        tags: [createTag(1, 'Italian'), createTag(2, 'Vegetarian')],
+        tags: [createTag(1, "Italian"), createTag(2, "Vegetarian")],
       });
 
       // Act
@@ -746,23 +734,23 @@ describe('mapRecipeDTOToFormData', () => {
 
       // Assert
       expect(result).toEqual({
-        title: 'Pizza Margherita',
-        description: 'Classic Italian pizza',
-        instructions: 'Make dough, add sauce, bake',
+        title: "Pizza Margherita",
+        description: "Classic Italian pizza",
+        instructions: "Make dough, add sauce, bake",
         cookingTime: 30,
-        difficulty: 'easy',
+        difficulty: "easy",
         ingredients: [
           {
-            id: 'ingredient-0',
+            id: "ingredient-0",
             productId: 1,
-            productName: 'Flour',
+            productName: "Flour",
             quantity: 500,
             unitId: 1,
           },
           {
-            id: 'ingredient-1',
+            id: "ingredient-1",
             productId: 2,
-            productName: 'Tomato',
+            productName: "Tomato",
             quantity: 3,
             unitId: 2,
           },
@@ -771,15 +759,15 @@ describe('mapRecipeDTOToFormData', () => {
       });
     });
 
-    it('should map RecipeDTO with metadata to RecipeFormData', () => {
+    it("should map RecipeDTO with metadata to RecipeFormData", () => {
       // Arrange
       const recipeDTO = createRecipeDTO({
-        title: 'Recipe with Metadata',
-        description: 'Has metadata',
-        instructions: 'Follow steps',
+        title: "Recipe with Metadata",
+        description: "Has metadata",
+        instructions: "Follow steps",
         cooking_time: 20,
-        difficulty: 'medium',
-        metadata: { source_url: 'https://example.com' },
+        difficulty: "medium",
+        metadata: { source_url: "https://example.com" },
         ingredients: [],
         tags: [],
       });
@@ -788,11 +776,11 @@ describe('mapRecipeDTOToFormData', () => {
       const result = mapRecipeDTOToFormData(recipeDTO);
 
       // Assert
-      expect(result.title).toBe('Recipe with Metadata');
-      expect(result.description).toBe('Has metadata');
+      expect(result.title).toBe("Recipe with Metadata");
+      expect(result.description).toBe("Has metadata");
     });
 
-    it('should convert null description to empty string', () => {
+    it("should convert null description to empty string", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         description: null,
@@ -802,16 +790,16 @@ describe('mapRecipeDTOToFormData', () => {
       const result = mapRecipeDTOToFormData(recipeDTO);
 
       // Assert
-      expect(result.description).toBe('');
+      expect(result.description).toBe("");
     });
 
-    it('should generate unique ingredient IDs based on index', () => {
+    it("should generate unique ingredient IDs based on index", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         ingredients: [
-          createRecipeIngredient(1, 'Ingredient 1', 100, 1, 'gram', 'g'),
-          createRecipeIngredient(2, 'Ingredient 2', 200, 2, 'liter', 'l'),
-          createRecipeIngredient(3, 'Ingredient 3', 300, 3, 'piece', 'pc'),
+          createRecipeIngredient(1, "Ingredient 1", 100, 1, "gram", "g"),
+          createRecipeIngredient(2, "Ingredient 2", 200, 2, "liter", "l"),
+          createRecipeIngredient(3, "Ingredient 3", 300, 3, "piece", "pc"),
         ],
       });
 
@@ -819,19 +807,15 @@ describe('mapRecipeDTOToFormData', () => {
       const result = mapRecipeDTOToFormData(recipeDTO);
 
       // Assert
-      expect(result.ingredients[0].id).toBe('ingredient-0');
-      expect(result.ingredients[1].id).toBe('ingredient-1');
-      expect(result.ingredients[2].id).toBe('ingredient-2');
+      expect(result.ingredients[0].id).toBe("ingredient-0");
+      expect(result.ingredients[1].id).toBe("ingredient-1");
+      expect(result.ingredients[2].id).toBe("ingredient-2");
     });
 
-    it('should extract tag IDs correctly', () => {
+    it("should extract tag IDs correctly", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
-        tags: [
-          createTag(10, 'Tag 1'),
-          createTag(20, 'Tag 2'),
-          createTag(30, 'Tag 3'),
-        ],
+        tags: [createTag(10, "Tag 1"), createTag(20, "Tag 2"), createTag(30, "Tag 3")],
       });
 
       // Act
@@ -842,8 +826,8 @@ describe('mapRecipeDTOToFormData', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle recipe with no ingredients', () => {
+  describe("edge cases", () => {
+    it("should handle recipe with no ingredients", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         ingredients: [],
@@ -856,7 +840,7 @@ describe('mapRecipeDTOToFormData', () => {
       expect(result.ingredients).toEqual([]);
     });
 
-    it('should handle recipe with no tags', () => {
+    it("should handle recipe with no tags", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         tags: [],
@@ -869,7 +853,7 @@ describe('mapRecipeDTOToFormData', () => {
       expect(result.tagIds).toEqual([]);
     });
 
-    it('should handle null cooking_time', () => {
+    it("should handle null cooking_time", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         cooking_time: null,
@@ -882,7 +866,7 @@ describe('mapRecipeDTOToFormData', () => {
       expect(result.cookingTime).toBeNull();
     });
 
-    it('should handle null difficulty', () => {
+    it("should handle null difficulty", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         difficulty: null,
@@ -895,12 +879,10 @@ describe('mapRecipeDTOToFormData', () => {
       expect(result.difficulty).toBeNull();
     });
 
-    it('should preserve all ingredient fields including productName', () => {
+    it("should preserve all ingredient fields including productName", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
-        ingredients: [
-          createRecipeIngredient(5, 'Special Ingredient', 250, 3, 'ml', 'ml'),
-        ],
+        ingredients: [createRecipeIngredient(5, "Special Ingredient", 250, 3, "ml", "ml")],
       });
 
       // Act
@@ -909,17 +891,17 @@ describe('mapRecipeDTOToFormData', () => {
       // Assert
       expect(result.ingredients[0]).toMatchObject({
         productId: 5,
-        productName: 'Special Ingredient',
+        productName: "Special Ingredient",
         quantity: 250,
         unitId: 3,
       });
     });
 
-    it('should handle recipes with all difficulty levels', () => {
+    it("should handle recipes with all difficulty levels", () => {
       // Arrange
-      const easyRecipe = createRecipeSummaryDTO({ difficulty: 'easy' });
-      const mediumRecipe = createRecipeSummaryDTO({ difficulty: 'medium' });
-      const hardRecipe = createRecipeSummaryDTO({ difficulty: 'hard' });
+      const easyRecipe = createRecipeSummaryDTO({ difficulty: "easy" });
+      const mediumRecipe = createRecipeSummaryDTO({ difficulty: "medium" });
+      const hardRecipe = createRecipeSummaryDTO({ difficulty: "hard" });
 
       // Act
       const easyResult = mapRecipeDTOToFormData(easyRecipe);
@@ -927,12 +909,12 @@ describe('mapRecipeDTOToFormData', () => {
       const hardResult = mapRecipeDTOToFormData(hardRecipe);
 
       // Assert
-      expect(easyResult.difficulty).toBe('easy');
-      expect(mediumResult.difficulty).toBe('medium');
-      expect(hardResult.difficulty).toBe('hard');
+      expect(easyResult.difficulty).toBe("easy");
+      expect(mediumResult.difficulty).toBe("medium");
+      expect(hardResult.difficulty).toBe("hard");
     });
 
-    it('should handle zero cooking time', () => {
+    it("should handle zero cooking time", () => {
       // Arrange
       const recipeDTO = createRecipeSummaryDTO({
         cooking_time: 0,
@@ -945,10 +927,10 @@ describe('mapRecipeDTOToFormData', () => {
       expect(result.cookingTime).toBe(0);
     });
 
-    it('should handle large number of ingredients', () => {
+    it("should handle large number of ingredients", () => {
       // Arrange
       const ingredients = Array.from({ length: 20 }, (_, i) =>
-        createRecipeIngredient(i + 1, `Ingredient ${i + 1}`, i * 10, 1, 'gram', 'g')
+        createRecipeIngredient(i + 1, `Ingredient ${i + 1}`, i * 10, 1, "gram", "g")
       );
       const recipeDTO = createRecipeSummaryDTO({ ingredients });
 
@@ -957,15 +939,13 @@ describe('mapRecipeDTOToFormData', () => {
 
       // Assert
       expect(result.ingredients).toHaveLength(20);
-      expect(result.ingredients[0].id).toBe('ingredient-0');
-      expect(result.ingredients[19].id).toBe('ingredient-19');
+      expect(result.ingredients[0].id).toBe("ingredient-0");
+      expect(result.ingredients[19].id).toBe("ingredient-19");
     });
 
-    it('should handle large number of tags', () => {
+    it("should handle large number of tags", () => {
       // Arrange
-      const tags = Array.from({ length: 15 }, (_, i) =>
-        createTag(i + 1, `Tag ${i + 1}`)
-      );
+      const tags = Array.from({ length: 15 }, (_, i) => createTag(i + 1, `Tag ${i + 1}`));
       const recipeDTO = createRecipeSummaryDTO({ tags });
 
       // Act
@@ -983,17 +963,17 @@ describe('mapRecipeDTOToFormData', () => {
 // calculateRecipeStats
 // =============================================================================
 
-describe('calculateRecipeStats', () => {
-  describe('happy path', () => {
-    it('should calculate statistics for mixed recipe sources', () => {
+describe("calculateRecipeStats", () => {
+  describe("happy path", () => {
+    it("should calculate statistics for mixed recipe sources", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [
-        createRecipeSummaryDTO({ source: 'user' }),
-        createRecipeSummaryDTO({ source: 'user' }),
-        createRecipeSummaryDTO({ source: 'api' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
+        createRecipeSummaryDTO({ source: "user" }),
+        createRecipeSummaryDTO({ source: "user" }),
+        createRecipeSummaryDTO({ source: "api" }),
+        createRecipeSummaryDTO({ source: "ai" }),
+        createRecipeSummaryDTO({ source: "ai" }),
+        createRecipeSummaryDTO({ source: "ai" }),
       ];
 
       // Act
@@ -1008,12 +988,12 @@ describe('calculateRecipeStats', () => {
       });
     });
 
-    it('should calculate statistics for all user recipes', () => {
+    it("should calculate statistics for all user recipes", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [
-        createRecipeSummaryDTO({ source: 'user' }),
-        createRecipeSummaryDTO({ source: 'user' }),
-        createRecipeSummaryDTO({ source: 'user' }),
+        createRecipeSummaryDTO({ source: "user" }),
+        createRecipeSummaryDTO({ source: "user" }),
+        createRecipeSummaryDTO({ source: "user" }),
       ];
 
       // Act
@@ -1028,11 +1008,11 @@ describe('calculateRecipeStats', () => {
       });
     });
 
-    it('should calculate statistics for all API recipes', () => {
+    it("should calculate statistics for all API recipes", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [
-        createRecipeSummaryDTO({ source: 'api' }),
-        createRecipeSummaryDTO({ source: 'api' }),
+        createRecipeSummaryDTO({ source: "api" }),
+        createRecipeSummaryDTO({ source: "api" }),
       ];
 
       // Act
@@ -1047,13 +1027,13 @@ describe('calculateRecipeStats', () => {
       });
     });
 
-    it('should calculate statistics for all AI recipes', () => {
+    it("should calculate statistics for all AI recipes", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [
-        createRecipeSummaryDTO({ source: 'ai' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
-        createRecipeSummaryDTO({ source: 'ai' }),
+        createRecipeSummaryDTO({ source: "ai" }),
+        createRecipeSummaryDTO({ source: "ai" }),
+        createRecipeSummaryDTO({ source: "ai" }),
+        createRecipeSummaryDTO({ source: "ai" }),
       ];
 
       // Act
@@ -1069,8 +1049,8 @@ describe('calculateRecipeStats', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should return zero statistics for empty array', () => {
+  describe("edge cases", () => {
+    it("should return zero statistics for empty array", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [];
 
@@ -1086,11 +1066,9 @@ describe('calculateRecipeStats', () => {
       });
     });
 
-    it('should handle single recipe', () => {
+    it("should handle single recipe", () => {
       // Arrange
-      const recipes: RecipeSummaryDTO[] = [
-        createRecipeSummaryDTO({ source: 'user' }),
-      ];
+      const recipes: RecipeSummaryDTO[] = [createRecipeSummaryDTO({ source: "user" })];
 
       // Act
       const result = calculateRecipeStats(recipes);
@@ -1104,18 +1082,12 @@ describe('calculateRecipeStats', () => {
       });
     });
 
-    it('should handle large number of recipes', () => {
+    it("should handle large number of recipes", () => {
       // Arrange
       const recipes: RecipeSummaryDTO[] = [
-        ...Array.from({ length: 100 }, () =>
-          createRecipeSummaryDTO({ source: 'user' })
-        ),
-        ...Array.from({ length: 50 }, () =>
-          createRecipeSummaryDTO({ source: 'api' })
-        ),
-        ...Array.from({ length: 75 }, () =>
-          createRecipeSummaryDTO({ source: 'ai' })
-        ),
+        ...Array.from({ length: 100 }, () => createRecipeSummaryDTO({ source: "user" })),
+        ...Array.from({ length: 50 }, () => createRecipeSummaryDTO({ source: "api" })),
+        ...Array.from({ length: 75 }, () => createRecipeSummaryDTO({ source: "ai" })),
       ];
 
       // Act
@@ -1136,16 +1108,16 @@ describe('calculateRecipeStats', () => {
 // createEmptyRecipeFormData
 // =============================================================================
 
-describe('createEmptyRecipeFormData', () => {
-  it('should create empty form data with default values', () => {
+describe("createEmptyRecipeFormData", () => {
+  it("should create empty form data with default values", () => {
     // Act
     const result = createEmptyRecipeFormData();
 
     // Assert
     expect(result).toEqual({
-      title: '',
-      description: '',
-      instructions: '',
+      title: "",
+      description: "",
+      instructions: "",
       cookingTime: null,
       difficulty: null,
       ingredients: [],
@@ -1153,7 +1125,7 @@ describe('createEmptyRecipeFormData', () => {
     });
   });
 
-  it('should create new instance each time', () => {
+  it("should create new instance each time", () => {
     // Act
     const result1 = createEmptyRecipeFormData();
     const result2 = createEmptyRecipeFormData();
@@ -1163,7 +1135,7 @@ describe('createEmptyRecipeFormData', () => {
     expect(result1).toEqual(result2);
   });
 
-  it('should have empty arrays that can be mutated independently', () => {
+  it("should have empty arrays that can be mutated independently", () => {
     // Act
     const result1 = createEmptyRecipeFormData();
     const result2 = createEmptyRecipeFormData();
@@ -1174,18 +1146,18 @@ describe('createEmptyRecipeFormData', () => {
     expect(result2.tagIds).toEqual([]);
   });
 
-  it('should have all required fields', () => {
+  it("should have all required fields", () => {
     // Act
     const result = createEmptyRecipeFormData();
 
     // Assert
-    expect(result).toHaveProperty('title');
-    expect(result).toHaveProperty('description');
-    expect(result).toHaveProperty('instructions');
-    expect(result).toHaveProperty('cookingTime');
-    expect(result).toHaveProperty('difficulty');
-    expect(result).toHaveProperty('ingredients');
-    expect(result).toHaveProperty('tagIds');
+    expect(result).toHaveProperty("title");
+    expect(result).toHaveProperty("description");
+    expect(result).toHaveProperty("instructions");
+    expect(result).toHaveProperty("cookingTime");
+    expect(result).toHaveProperty("difficulty");
+    expect(result).toHaveProperty("ingredients");
+    expect(result).toHaveProperty("tagIds");
   });
 });
 
@@ -1193,30 +1165,30 @@ describe('createEmptyRecipeFormData', () => {
 // createEmptyIngredientFormData
 // =============================================================================
 
-describe('createEmptyIngredientFormData', () => {
+describe("createEmptyIngredientFormData", () => {
   beforeEach(() => {
     // Reset Date.now and Math.random mocks before each test
     vi.restoreAllMocks();
   });
 
-  it('should create empty ingredient with default values', () => {
+  it("should create empty ingredient with default values", () => {
     // Act
     const result = createEmptyIngredientFormData();
 
     // Assert
     expect(result.productId).toBeNull();
-    expect(result.productName).toBe('');
+    expect(result.productName).toBe("");
     expect(result.quantity).toBe(0);
     expect(result.unitId).toBeNull();
     expect(result.id).toBeDefined();
   });
 
-  it('should generate unique ID based on timestamp and random', () => {
+  it("should generate unique ID based on timestamp and random", () => {
     // Arrange
     const mockTimestamp = 1234567890;
     const mockRandom = 0.123456789;
-    vi.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
-    vi.spyOn(Math, 'random').mockReturnValue(mockRandom);
+    vi.spyOn(Date, "now").mockReturnValue(mockTimestamp);
+    vi.spyOn(Math, "random").mockReturnValue(mockRandom);
 
     // Act
     const result = createEmptyIngredientFormData();
@@ -1225,7 +1197,7 @@ describe('createEmptyIngredientFormData', () => {
     expect(result.id).toBe(`ingredient-${mockTimestamp}-${mockRandom}`);
   });
 
-  it('should create different IDs for each call', () => {
+  it("should create different IDs for each call", () => {
     // Act
     const result1 = createEmptyIngredientFormData();
     const result2 = createEmptyIngredientFormData();
@@ -1234,7 +1206,7 @@ describe('createEmptyIngredientFormData', () => {
     expect(result1.id).not.toBe(result2.id);
   });
 
-  it('should create new instance each time', () => {
+  it("should create new instance each time", () => {
     // Act
     const result1 = createEmptyIngredientFormData();
     const result2 = createEmptyIngredientFormData();
@@ -1243,25 +1215,24 @@ describe('createEmptyIngredientFormData', () => {
     expect(result1).not.toBe(result2);
   });
 
-  it('should have all required fields', () => {
+  it("should have all required fields", () => {
     // Act
     const result = createEmptyIngredientFormData();
 
     // Assert
-    expect(result).toHaveProperty('id');
-    expect(result).toHaveProperty('productId');
-    expect(result).toHaveProperty('productName');
-    expect(result).toHaveProperty('quantity');
-    expect(result).toHaveProperty('unitId');
+    expect(result).toHaveProperty("id");
+    expect(result).toHaveProperty("productId");
+    expect(result).toHaveProperty("productName");
+    expect(result).toHaveProperty("quantity");
+    expect(result).toHaveProperty("unitId");
   });
 
-  it('should have ID property even though optional in type definition', () => {
+  it("should have ID property even though optional in type definition", () => {
     // Act
     const result = createEmptyIngredientFormData();
 
     // Assert
     expect(result.id).toBeDefined();
-    expect(typeof result.id).toBe('string');
+    expect(typeof result.id).toBe("string");
   });
 });
-

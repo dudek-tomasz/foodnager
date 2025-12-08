@@ -1,12 +1,12 @@
-import type { Locator, Page } from '@playwright/test';
-import { expect } from '@playwright/test';
-import { ProductAutocompleteComponent } from './components/ProductAutocompleteComponent';
-import { UnitSelectComponent } from './components/UnitSelectComponent';
-import { DatePickerComponent } from './components/DatePickerComponent';
+import type { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { ProductAutocompleteComponent } from "./components/ProductAutocompleteComponent";
+import { UnitSelectComponent } from "./components/UnitSelectComponent";
+import { DatePickerComponent } from "./components/DatePickerComponent";
 
 /**
  * AddProductModal - POM for the Add Product to Fridge modal
- * 
+ *
  * Handles the complete flow of adding a new product to the fridge:
  * - Opening/closing modal
  * - Filling product form
@@ -33,31 +33,31 @@ export class AddProductModal {
     this.page = page;
 
     // Initialize locators
-    this.modal = page.getByTestId('add-product-modal');
-    this.form = page.getByTestId('add-product-form');
-    this.quantityInput = page.getByTestId('quantity-input');
-    this.addAnotherCheckbox = page.getByTestId('add-another-checkbox');
-    this.submitButton = page.getByTestId('submit-button');
-    this.cancelButton = page.getByTestId('cancel-button');
+    this.modal = page.getByTestId("add-product-modal");
+    this.form = page.getByTestId("add-product-form");
+    this.quantityInput = page.getByTestId("quantity-input");
+    this.addAnotherCheckbox = page.getByTestId("add-another-checkbox");
+    this.submitButton = page.getByTestId("submit-button");
+    this.cancelButton = page.getByTestId("cancel-button");
 
     // Initialize components
-    this.productAutocomplete = new ProductAutocompleteComponent(page, 'product-autocomplete');
-    this.unitSelect = new UnitSelectComponent(page, 'unit-select');
-    this.expiryDatePicker = new DatePickerComponent(page, 'expiry-date-picker');
+    this.productAutocomplete = new ProductAutocompleteComponent(page, "product-autocomplete");
+    this.unitSelect = new UnitSelectComponent(page, "unit-select");
+    this.expiryDatePicker = new DatePickerComponent(page, "expiry-date-picker");
   }
 
   /**
    * Waits for the modal to be visible
    */
   async waitForModal(): Promise<void> {
-    await this.modal.waitFor({ state: 'visible' });
+    await this.modal.waitFor({ state: "visible" });
   }
 
   /**
    * Waits for the modal to be hidden
    */
   async waitForModalClose(): Promise<void> {
-    await this.modal.waitFor({ state: 'hidden' });
+    await this.modal.waitFor({ state: "hidden" });
   }
 
   /**
@@ -196,7 +196,7 @@ export class AddProductModal {
    */
   async assertValidationError(errorText: string): Promise<void> {
     // Look specifically for error messages (small red text)
-    const errorMessage = this.modal.locator('p.text-xs.text-red-600', { hasText: errorText });
+    const errorMessage = this.modal.locator("p.text-xs.text-red-600", { hasText: errorText });
     await expect(errorMessage).toBeVisible();
   }
 
@@ -212,7 +212,6 @@ export class AddProductModal {
    */
   async isSubmitting(): Promise<boolean> {
     const buttonText = await this.submitButton.textContent();
-    return buttonText?.includes('Dodawanie...') || false;
+    return buttonText?.includes("Dodawanie...") || false;
   }
 }
-

@@ -1,6 +1,6 @@
 /**
  * UnitSelect - Dropdown for selecting measurement unit
- * 
+ *
  * Features:
  * - Display unit name with abbreviation
  * - Loading state
@@ -8,16 +8,10 @@
  * - Integration with useUnits hook
  */
 
-import React from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useUnits } from './hooks/useUnits';
-import type { UnitDTO } from '@/types';
+import React from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUnits } from "./hooks/useUnits";
+import type { UnitDTO } from "@/types";
 
 interface UnitSelectProps {
   value: number | null;
@@ -32,7 +26,7 @@ export default function UnitSelect({
   onChange,
   error,
   disabled = false,
-  testId = 'unit-select',
+  testId = "unit-select",
 }: UnitSelectProps) {
   const { units, isLoading, error: fetchError } = useUnits();
 
@@ -78,24 +72,19 @@ export default function UnitSelect({
 
   return (
     <div className="space-y-2">
-      <Select
-        value={value?.toString()}
-        onValueChange={handleValueChange}
-        disabled={disabled}
-      >
-        <SelectTrigger 
-          className={`w-full ${error ? 'border-red-500' : ''}`}
+      <Select value={value?.toString()} onValueChange={handleValueChange} disabled={disabled}>
+        <SelectTrigger
+          className={`w-full ${error ? "border-red-500" : ""}`}
           aria-label="Wybierz jednostkę"
           data-testid={`${testId}-trigger`}
         >
           <SelectValue placeholder="Wybierz jednostkę...">
             {value && units.find((u) => u.id === value) ? (
               <span>
-                {units.find((u) => u.id === value)?.name} (
-                {units.find((u) => u.id === value)?.abbreviation})
+                {units.find((u) => u.id === value)?.name} ({units.find((u) => u.id === value)?.abbreviation})
               </span>
             ) : (
-              'Wybierz jednostkę...'
+              "Wybierz jednostkę..."
             )}
           </SelectValue>
         </SelectTrigger>
@@ -116,4 +105,3 @@ export default function UnitSelect({
     </div>
   );
 }
-

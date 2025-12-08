@@ -1,24 +1,17 @@
 /**
  * Products API Endpoint - Single Product Operations
- * 
+ *
  * GET /api/products/:id - Get product by ID
  * PATCH /api/products/:id - Update product (or fork if global)
  * DELETE /api/products/:id - Delete product
  */
 
-import type { APIContext } from 'astro';
-import { ProductService } from '../../../lib/services/products.service';
-import {
-  productIdParamSchema,
-  updateProductSchema,
-} from '../../../lib/validations/products.validation';
-import {
-  successResponse,
-  noContentResponse,
-  handleError,
-} from '../../../lib/utils/api-response';
-import { ValidationError, UnauthorizedError } from '../../../lib/errors';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
+import type { APIContext } from "astro";
+import { ProductService } from "../../../lib/services/products.service";
+import { productIdParamSchema, updateProductSchema } from "../../../lib/validations/products.validation";
+import { successResponse, noContentResponse, handleError } from "../../../lib/utils/api-response";
+import { ValidationError, UnauthorizedError } from "../../../lib/errors";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
 
 // Disable pre-rendering for API routes
 export const prerender = false;
@@ -30,7 +23,7 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
@@ -41,14 +34,11 @@ function getAuthenticatedUser(context: APIContext): string {
  */
 function parseProductId(context: APIContext): number {
   const idParam = context.params.id;
-  
+
   const validationResult = productIdParamSchema.safeParse(idParam);
 
   if (!validationResult.success) {
-    throw new ValidationError(
-      'Invalid product ID',
-      { id: validationResult.error.errors.map(e => e.message) }
-    );
+    throw new ValidationError("Invalid product ID", { id: validationResult.error.errors.map((e) => e.message) });
   }
 
   return validationResult.data;
@@ -86,7 +76,7 @@ export async function GET(context: APIContext): Promise<Response> {
 /**
  * PATCH /api/products/:id
  * Updates a product or creates a fork if it's a global product
- * 
+ *
  * Behavior:
  * - Own private product: returns 200 OK with updated product
  * - Global product: returns 201 Created with new forked product + Location header
@@ -111,25 +101,18 @@ export async function PATCH(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      throw new ValidationError('Invalid JSON in request body');
+      throw new ValidationError("Invalid JSON in request body");
     }
 
     const validationResult = updateProductSchema.safeParse(body);
 
     if (!validationResult.success) {
-      throw new ValidationError(
-        'Invalid request body',
-        validationResult.error.flatten().fieldErrors
-      );
+      throw new ValidationError("Invalid request body", validationResult.error.flatten().fieldErrors);
     }
 
     // Call service
     const productService = new ProductService(supabase);
-    const result = await productService.updateProduct(
-      userId,
-      productId,
-      validationResult.data
-    );
+    const result = await productService.updateProduct(userId, productId, validationResult.data);
 
     // Return different status based on whether it's a fork or update
     if (result.isNewProduct) {
@@ -174,4 +157,3 @@ export async function DELETE(context: APIContext): Promise<Response> {
     return handleError(error);
   }
 }
-

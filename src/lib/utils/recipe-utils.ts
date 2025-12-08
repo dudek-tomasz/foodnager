@@ -10,7 +10,7 @@ import type {
   DifficultyEnum,
   CreateRecipeDTO,
   CreateRecipeIngredientDTO,
-} from '../../types';
+} from "../../types";
 
 import type {
   IngredientAvailabilityCheckResult,
@@ -19,9 +19,9 @@ import type {
   RecipeViewModel,
   ParsedInstructions,
   CookingValidationResult,
-} from '../types/recipe-view-models';
+} from "../types/recipe-view-models";
 
-import { checkAvailabilityWithConversion } from './unit-conversion.utils';
+import { checkAvailabilityWithConversion } from "./unit-conversion.utils";
 
 // =============================================================================
 // AVAILABILITY CHECKING
@@ -39,16 +39,14 @@ export function checkIngredientAvailability(
 ): IngredientAvailabilityCheckResult & { fridgeUnit?: string; requiresManualConversion?: boolean } {
   const requiredQuantity = ingredient.quantity;
   const requiredUnit = ingredient.unit.abbreviation;
-  
+
   // Znajdź matching product w lodówce (tylko po ID produktu, nie po jednostce!)
-  const fridgeItem = fridgeItems.find(
-    (item) => item.product.id === ingredient.product.id
-  );
+  const fridgeItem = fridgeItems.find((item) => item.product.id === ingredient.product.id);
 
   // Jeśli nie ma produktu w lodówce
   if (!fridgeItem) {
     return {
-      status: 'none',
+      status: "none",
       availableQuantity: 0,
       missingQuantity: requiredQuantity,
     };
@@ -68,7 +66,7 @@ export function checkIngredientAvailability(
   // Jeśli wymaga ręcznej konwersji
   if (conversionResult.requiresManual) {
     return {
-      status: 'unknown',
+      status: "unknown",
       availableQuantity: availableQuantity,
       missingQuantity: 0, // Nieznana wartość
       fridgeUnit: availableUnit,
@@ -81,13 +79,13 @@ export function checkIngredientAvailability(
     const convertedAvailable = conversionResult.availableInRequiredUnit;
     const missingQuantity = Math.max(0, requiredQuantity - convertedAvailable);
 
-    let status: 'full' | 'partial' | 'none';
+    let status: "full" | "partial" | "none";
     if (convertedAvailable >= requiredQuantity) {
-      status = 'full';
+      status = "full";
     } else if (convertedAvailable > 0) {
-      status = 'partial';
+      status = "partial";
     } else {
-      status = 'none';
+      status = "none";
     }
 
     return {
@@ -100,7 +98,7 @@ export function checkIngredientAvailability(
 
   // Fallback - jednostki niekompatybilne
   return {
-    status: 'unknown',
+    status: "unknown",
     availableQuantity: availableQuantity,
     missingQuantity: 0,
     fridgeUnit: availableUnit,
@@ -114,38 +112,27 @@ export function checkIngredientAvailability(
  * @param fridgeItems - lista produktów w lodówce
  * @returns rezultat z wzbogaconymi składnikami i flagami
  */
-export function calculateRecipeAvailability(
-  recipe: RecipeDTO,
-  fridgeItems: FridgeItemDTO[]
-): RecipeAvailabilityResult {
+export function calculateRecipeAvailability(recipe: RecipeDTO, fridgeItems: FridgeItemDTO[]): RecipeAvailabilityResult {
   // Wzbogać każdy składnik o informacje o dostępności
-  const enrichedIngredients: IngredientWithAvailability[] =
-    recipe.ingredients.map((ingredient) => {
-      const availabilityCheck = checkIngredientAvailability(
-        ingredient,
-        fridgeItems
-      );
+  const enrichedIngredients: IngredientWithAvailability[] = recipe.ingredients.map((ingredient) => {
+    const availabilityCheck = checkIngredientAvailability(ingredient, fridgeItems);
 
-      return {
-        ...ingredient,
-        availabilityStatus: availabilityCheck.status,
-        availableQuantity: availabilityCheck.availableQuantity,
-        requiredQuantity: ingredient.quantity,
-        missingQuantity: availabilityCheck.missingQuantity,
-        fridgeUnit: availabilityCheck.fridgeUnit,
-        requiresManualConversion: availabilityCheck.requiresManualConversion,
-      };
-    });
+    return {
+      ...ingredient,
+      availabilityStatus: availabilityCheck.status,
+      availableQuantity: availabilityCheck.availableQuantity,
+      requiredQuantity: ingredient.quantity,
+      missingQuantity: availabilityCheck.missingQuantity,
+      fridgeUnit: availabilityCheck.fridgeUnit,
+      requiresManualConversion: availabilityCheck.requiresManualConversion,
+    };
+  });
 
   // Sprawdź czy wszystkie składniki są w pełni dostępne
-  const hasAllIngredients = enrichedIngredients.every(
-    (ing) => ing.availabilityStatus === 'full'
-  );
+  const hasAllIngredients = enrichedIngredients.every((ing) => ing.availabilityStatus === "full");
 
   // Sprawdź czy są jakieś brakujące składniki (none lub unknown)
-  const hasMissingIngredients = enrichedIngredients.some(
-    (ing) => ing.availabilityStatus !== 'full'
-  );
+  const hasMissingIngredients = enrichedIngredients.some((ing) => ing.availabilityStatus !== "full");
 
   return {
     enrichedIngredients,
@@ -186,12 +173,8 @@ export function createRecipeViewModel(
  * @param ingredients - składniki z informacją o dostępności
  * @returns rezultat walidacji
  */
-export function validateIngredientsAvailability(
-  ingredients: IngredientWithAvailability[]
-): CookingValidationResult {
-  const missingIngredients = ingredients.filter(
-    (ing) => ing.availabilityStatus !== 'full'
-  );
+export function validateIngredientsAvailability(ingredients: IngredientWithAvailability[]): CookingValidationResult {
+  const missingIngredients = ingredients.filter((ing) => ing.availabilityStatus !== "full");
 
   const canCook = missingIngredients.length === 0;
 
@@ -223,7 +206,7 @@ export function parseInstructions(instructions: string): ParsedInstructions {
   }
 
   // Sprawdź czy instrukcje są numerowane (np. "1.", "1)", "1 -")
-  const numberedPattern = /^\s*\d+[\.\)\-\:]\s+/m;
+  const numberedPattern = /^\s*\d+[.)\-:]\s+/m;
   const isNumbered = numberedPattern.test(instructions);
 
   let steps: string[];
@@ -232,7 +215,7 @@ export function parseInstructions(instructions: string): ParsedInstructions {
     // Split po numerach i wyczyść
     steps = instructions
       .split(/\n/)
-      .map((line) => line.replace(/^\s*\d+[\.\)\-\:]\s+/, '').trim())
+      .map((line) => line.replace(/^\s*\d+[.)\-:]\s+/, "").trim())
       .filter((line) => line.length > 0);
   } else {
     // Split po znakach nowej linii
@@ -262,9 +245,9 @@ export function parseInstructions(instructions: string): ParsedInstructions {
  */
 export function getDifficultyLabel(difficulty: DifficultyEnum): string {
   const labels: Record<DifficultyEnum, string> = {
-    easy: 'Łatwy',
-    medium: 'Średni',
-    hard: 'Trudny',
+    easy: "Łatwy",
+    medium: "Średni",
+    hard: "Trudny",
   };
 
   return labels[difficulty] || difficulty;
@@ -277,12 +260,12 @@ export function getDifficultyLabel(difficulty: DifficultyEnum): string {
  */
 export function getDifficultyColor(difficulty: DifficultyEnum): string {
   const colors: Record<DifficultyEnum, string> = {
-    easy: 'text-green-600',
-    medium: 'text-yellow-600',
-    hard: 'text-red-600',
+    easy: "text-green-600",
+    medium: "text-yellow-600",
+    hard: "text-red-600",
   };
 
-  return colors[difficulty] || 'text-gray-600';
+  return colors[difficulty] || "text-gray-600";
 }
 
 // =============================================================================
@@ -295,9 +278,9 @@ export function getDifficultyColor(difficulty: DifficultyEnum): string {
  * @returns klasa Tailwind dla koloru
  */
 export function getMatchScoreColor(score: number): string {
-  if (score >= 80) return 'bg-green-100 text-green-800 border-green-200';
-  if (score >= 50) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-  return 'bg-red-100 text-red-800 border-red-200';
+  if (score >= 80) return "bg-green-100 text-green-800 border-green-200";
+  if (score >= 50) return "bg-yellow-100 text-yellow-800 border-yellow-200";
+  return "bg-red-100 text-red-800 border-red-200";
 }
 
 // =============================================================================
@@ -309,31 +292,31 @@ export function getMatchScoreColor(score: number): string {
  * @param status - status dostępności
  * @returns obiekt z klasami dla różnych elementów
  */
-export function getAvailabilityColors(status: 'full' | 'partial' | 'none' | 'unknown'): {
+export function getAvailabilityColors(status: "full" | "partial" | "none" | "unknown"): {
   text: string;
   bg: string;
   icon: string;
 } {
   const colorMap = {
     full: {
-      text: 'text-green-700',
-      bg: 'bg-green-50',
-      icon: 'text-green-600',
+      text: "text-green-700",
+      bg: "bg-green-50",
+      icon: "text-green-600",
     },
     partial: {
-      text: 'text-yellow-700',
-      bg: 'bg-yellow-50',
-      icon: 'text-yellow-600',
+      text: "text-yellow-700",
+      bg: "bg-yellow-50",
+      icon: "text-yellow-600",
     },
     none: {
-      text: 'text-red-700',
-      bg: 'bg-red-50',
-      icon: 'text-red-600',
+      text: "text-red-700",
+      bg: "bg-red-50",
+      icon: "text-red-600",
     },
     unknown: {
-      text: 'text-yellow-700',
-      bg: 'bg-yellow-50',
-      icon: 'text-yellow-600',
+      text: "text-yellow-700",
+      bg: "bg-yellow-50",
+      icon: "text-yellow-600",
     },
   };
 
@@ -351,13 +334,11 @@ export function getAvailabilityColors(status: 'full' | 'partial' | 'none' | 'unk
  * @returns DTO do utworzenia nowego przepisu
  */
 export function recipeToCreateDto(recipe: RecipeDTO): CreateRecipeDTO {
-  const ingredients: CreateRecipeIngredientDTO[] = recipe.ingredients.map(
-    (ing) => ({
-      product_id: ing.product.id,
-      quantity: ing.quantity,
-      unit_id: ing.unit.id,
-    })
-  );
+  const ingredients: CreateRecipeIngredientDTO[] = recipe.ingredients.map((ing) => ({
+    product_id: ing.product.id,
+    quantity: ing.quantity,
+    unit_id: ing.unit.id,
+  }));
 
   const tag_ids = recipe.tags.map((tag) => tag.id);
 
@@ -403,12 +384,7 @@ export function formatCookingTime(minutes: number): string {
  * @param unitAbbreviation - skrót jednostki
  * @returns sformatowany string
  */
-export function formatQuantity(
-  quantity: number,
-  unitName: string,
-  unitAbbreviation: string
-): string {
+export function formatQuantity(quantity: number, unitName: string, unitAbbreviation: string): string {
   // Użyj skrótu dla krótszej formy
   return `${quantity} ${unitAbbreviation}`;
 }
-

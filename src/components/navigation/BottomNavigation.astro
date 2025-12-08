@@ -13,8 +13,8 @@ const { currentPath } = Astro.props;
 
 // Funkcja pomocnicza do określenia czy link jest aktywny
 const isActive = (path: string) => {
-  if (path === '/fridge') {
-    return currentPath === '/' || currentPath === '/fridge';
+  if (path === "/fridge") {
+    return currentPath === "/" || currentPath === "/fridge";
   }
   return currentPath.startsWith(path);
 };
@@ -22,38 +22,38 @@ const isActive = (path: string) => {
 // Navigation items
 const navItems = [
   {
-    href: '/fridge',
-    label: 'Lodówka',
-    icon: '🧊',
-    isActive: isActive('/fridge'),
+    href: "/fridge",
+    label: "Lodówka",
+    icon: "🧊",
+    isActive: isActive("/fridge"),
     isCTA: false,
   },
   {
-    href: '/recipes',
-    label: 'Przepisy',
-    icon: '📖',
-    isActive: isActive('/recipes'),
+    href: "/recipes",
+    label: "Przepisy",
+    icon: "📖",
+    isActive: isActive("/recipes"),
     isCTA: false,
   },
   {
-    href: '/recipes/search',
-    label: 'Znajdź',
-    icon: '🔍',
-    isActive: isActive('/recipes/search'),
+    href: "/recipes/search",
+    label: "Znajdź",
+    icon: "🔍",
+    isActive: isActive("/recipes/search"),
     isCTA: true, // This is the center, enlarged button
   },
   {
-    href: '/history',
-    label: 'Historia',
-    icon: '📜',
-    isActive: isActive('/history'),
+    href: "/history",
+    label: "Historia",
+    icon: "📜",
+    isActive: isActive("/history"),
     isCTA: false,
   },
   {
-    href: '/profile',
-    label: 'Profil',
-    icon: '👤',
-    isActive: isActive('/profile'),
+    href: "/profile",
+    label: "Profil",
+    icon: "👤",
+    isActive: isActive("/profile"),
     isCTA: false,
   },
 ];
@@ -61,23 +61,27 @@ const navItems = [
 
 <nav class="bottom-navigation" aria-label="Główna nawigacja">
   <ul class="nav-list">
-    {navItems.map((item) => (
-      <li class:list={['nav-item', { 'nav-item-cta': item.isCTA }]}>
-        <a
-          href={item.href}
-          class:list={[
-            'nav-link',
-            { active: item.isActive && !item.isCTA },
-            { 'nav-link-cta': item.isCTA },
-            { 'nav-link-cta-active': item.isCTA && item.isActive },
-          ]}
-          aria-current={item.isActive ? 'page' : undefined}
-        >
-          <span class="nav-icon" aria-hidden="true">{item.icon}</span>
-          <span class="nav-label">{item.label}</span>
-        </a>
-      </li>
-    ))}
+    {
+      navItems.map((item) => (
+        <li class:list={["nav-item", { "nav-item-cta": item.isCTA }]}>
+          <a
+            href={item.href}
+            class:list={[
+              "nav-link",
+              { active: item.isActive && !item.isCTA },
+              { "nav-link-cta": item.isCTA },
+              { "nav-link-cta-active": item.isCTA && item.isActive },
+            ]}
+            aria-current={item.isActive ? "page" : undefined}
+          >
+            <span class="nav-icon" aria-hidden="true">
+              {item.icon}
+            </span>
+            <span class="nav-label">{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
   </ul>
 </nav>
 
@@ -226,4 +230,3 @@ const navItems = [
     }
   }
 </style>
-

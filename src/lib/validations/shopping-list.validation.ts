@@ -2,7 +2,7 @@
  * Zod validation schemas for Shopping List endpoints
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // =============================================================================
 // REQUEST BODY SCHEMAS
@@ -13,9 +13,8 @@ import { z } from 'zod';
  */
 export const generateShoppingListSchema = z.object({
   recipe_id: z.number().int().positive({
-    message: 'recipe_id must be a positive integer',
+    message: "recipe_id must be a positive integer",
   }),
 });
 
 export type GenerateShoppingListSchema = z.infer<typeof generateShoppingListSchema>;
-

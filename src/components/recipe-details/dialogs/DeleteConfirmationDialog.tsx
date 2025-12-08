@@ -2,7 +2,7 @@
  * DeleteConfirmationDialog - Confirmation dialog before deleting a recipe
  */
 
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -33,9 +33,7 @@ export default function DeleteConfirmationDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Usuń przepis</DialogTitle>
-          <DialogDescription>
-            Czy na pewno chcesz usunąć przepis "{recipeTitle}"?
-          </DialogDescription>
+          <DialogDescription>Czy na pewno chcesz usunąć przepis &quot;{recipeTitle}&quot;?</DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
@@ -55,9 +53,7 @@ export default function DeleteConfirmationDialog({
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
-                Ta akcja jest nieodwracalna
-              </p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">Ta akcja jest nieodwracalna</p>
               <p className="text-sm text-red-700 dark:text-red-300">
                 Przepis zostanie trwale usunięty i nie będzie można go przywrócić.
               </p>
@@ -66,23 +62,14 @@ export default function DeleteConfirmationDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Anuluj
           </Button>
-          <Button
-            variant="destructive"
-            onClick={onConfirm}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Usuwanie...' : 'Usuń przepis'}
+          <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? "Usuwanie..." : "Usuń przepis"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

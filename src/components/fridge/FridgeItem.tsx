@@ -1,6 +1,6 @@
 /**
  * FridgeItem - Single fridge item display component
- * 
+ *
  * Displays product information with:
  * - Product name
  * - Quantity and unit
@@ -8,10 +8,10 @@
  * - Quick actions (edit, delete)
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import ExpiryDateBadge from './ExpiryDateBadge';
-import type { FridgeItemDTO } from '@/types';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import ExpiryDateBadge from "./ExpiryDateBadge";
+import type { FridgeItemDTO } from "@/types";
 
 interface FridgeItemProps {
   item: FridgeItemDTO;
@@ -48,18 +48,14 @@ export default function FridgeItem({ item, onEdit, onDelete }: FridgeItemProps) 
 
           {/* Product Details */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {item.product.name}
-            </h3>
-            
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{item.product.name}</h3>
+
             <div className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <span className="font-medium">
                 {item.quantity} {item.unit.abbreviation}
               </span>
               <span className="text-gray-400 dark:text-gray-600">•</span>
-              <span className="text-xs">
-                {item.unit.name}
-              </span>
+              <span className="text-xs">{item.unit.name}</span>
             </div>
 
             {/* Expiry Date Badge */}
@@ -125,4 +121,3 @@ export default function FridgeItem({ item, onEdit, onDelete }: FridgeItemProps) 
     </li>
   );
 }
-

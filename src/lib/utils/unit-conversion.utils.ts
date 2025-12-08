@@ -21,26 +21,26 @@ interface UnitConversion {
  */
 const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
   // Waga - baza: gram (g)
-  'mg': { baseUnit: 'g', multiplier: 0.001 },
-  'miligram': { baseUnit: 'g', multiplier: 0.001 },
-  'g': { baseUnit: 'g', multiplier: 1 },
-  'gram': { baseUnit: 'g', multiplier: 1 },
-  'kg': { baseUnit: 'g', multiplier: 1000 },
-  'kilogram': { baseUnit: 'g', multiplier: 1000 },
-  
+  mg: { baseUnit: "g", multiplier: 0.001 },
+  miligram: { baseUnit: "g", multiplier: 0.001 },
+  g: { baseUnit: "g", multiplier: 1 },
+  gram: { baseUnit: "g", multiplier: 1 },
+  kg: { baseUnit: "g", multiplier: 1000 },
+  kilogram: { baseUnit: "g", multiplier: 1000 },
+
   // Objętość - baza: mililitr (ml)
-  'ml': { baseUnit: 'ml', multiplier: 1 },
-  'mililitr': { baseUnit: 'ml', multiplier: 1 },
-  'l': { baseUnit: 'ml', multiplier: 1000 },
-  'litr': { baseUnit: 'ml', multiplier: 1000 },
-  
+  ml: { baseUnit: "ml", multiplier: 1 },
+  mililitr: { baseUnit: "ml", multiplier: 1 },
+  l: { baseUnit: "ml", multiplier: 1000 },
+  litr: { baseUnit: "ml", multiplier: 1000 },
+
   // Długość - baza: centymetr (cm)
-  'cm': { baseUnit: 'cm', multiplier: 1 },
-  'centymetr': { baseUnit: 'cm', multiplier: 1 },
-  'm': { baseUnit: 'cm', multiplier: 100 },
-  'metr': { baseUnit: 'cm', multiplier: 100 },
-  'mm': { baseUnit: 'cm', multiplier: 0.1 },
-  'milimetr': { baseUnit: 'cm', multiplier: 0.1 },
+  cm: { baseUnit: "cm", multiplier: 1 },
+  centymetr: { baseUnit: "cm", multiplier: 1 },
+  m: { baseUnit: "cm", multiplier: 100 },
+  metr: { baseUnit: "cm", multiplier: 100 },
+  mm: { baseUnit: "cm", multiplier: 0.1 },
+  milimetr: { baseUnit: "cm", multiplier: 0.1 },
 };
 
 /**
@@ -48,18 +48,29 @@ const UNIT_CONVERSIONS: Record<string, UnitConversion> = {
  * Te jednostki nie mają precyzyjnych konwersji metrycznych
  */
 const MANUAL_CONVERSION_UNITS = new Set([
-  'łyżka', 'łyż',
-  'łyżeczka', 'łyżecz',
-  'szklanka', 'szkl',
-  'garść',
-  'szczypta', 'szcz',
-  'do smaku', 'd.s.',
-  'sztuka', 'szt',
-  'opakowanie', 'opak',
-  'pęczek', 'pęcz',
-  'plaster', 'plast',
-  'ząbek', 'ząb',
-  'główka', 'głów',
+  "łyżka",
+  "łyż",
+  "łyżeczka",
+  "łyżecz",
+  "szklanka",
+  "szkl",
+  "garść",
+  "szczypta",
+  "szcz",
+  "do smaku",
+  "d.s.",
+  "sztuka",
+  "szt",
+  "opakowanie",
+  "opak",
+  "pęczek",
+  "pęcz",
+  "plaster",
+  "plast",
+  "ząbek",
+  "ząb",
+  "główka",
+  "głów",
 ]);
 
 // =============================================================================
@@ -84,35 +95,31 @@ export function requiresManualConversion(unitNameOrAbbr: string): boolean {
  * Konwertuje ilość z jednej jednostki do drugiej (jeśli możliwe)
  * @returns null jeśli konwersja niemożliwa, liczbę jeśli konwersja udana
  */
-export function convertQuantity(
-  quantity: number,
-  fromUnit: string,
-  toUnit: string
-): number | null {
+export function convertQuantity(quantity: number, fromUnit: string, toUnit: string): number | null {
   const fromLower = fromUnit.toLowerCase();
   const toLower = toUnit.toLowerCase();
-  
+
   // Jeśli jednostki są takie same, zwróć quantity
   if (fromLower === toLower) {
     return quantity;
   }
-  
+
   // Sprawdź czy obie jednostki są konwertowalne
   const fromConversion = UNIT_CONVERSIONS[fromLower];
   const toConversion = UNIT_CONVERSIONS[toLower];
-  
+
   if (!fromConversion || !toConversion) {
     return null; // Jedna z jednostek nie jest konwertowalna
   }
-  
+
   // Sprawdź czy jednostki mają tę samą jednostkę bazową (są kompatybilne)
   if (fromConversion.baseUnit !== toConversion.baseUnit) {
     return null; // Różne typy jednostek (np. waga vs objętość)
   }
-  
+
   // Konwertuj: quantity * mnożnik_from / mnożnik_to
   const result = (quantity * fromConversion.multiplier) / toConversion.multiplier;
-  
+
   return result;
 }
 
@@ -148,7 +155,7 @@ export function checkAvailabilityWithConversion(
 ): ConversionResult {
   const reqLower = requiredUnit.toLowerCase();
   const availLower = availableUnit.toLowerCase();
-  
+
   // Przypadek 1: Dokładnie ta sama jednostka
   if (reqLower === availLower) {
     return {
@@ -161,7 +168,7 @@ export function checkAvailabilityWithConversion(
       requiredUnit,
     };
   }
-  
+
   // Przypadek 2: Jedna lub obie jednostki wymagają ręcznej konwersji
   if (requiresManualConversion(reqLower) || requiresManualConversion(availLower)) {
     return {
@@ -174,10 +181,10 @@ export function checkAvailabilityWithConversion(
       requiredUnit,
     };
   }
-  
+
   // Przypadek 3: Próba automatycznej konwersji
   const converted = convertQuantity(availableQuantity, availableUnit, requiredUnit);
-  
+
   if (converted === null) {
     // Konwersja niemożliwa (różne typy jednostek lub nieznane jednostki)
     return {
@@ -190,7 +197,7 @@ export function checkAvailabilityWithConversion(
       requiredUnit,
     };
   }
-  
+
   // Konwersja udana
   return {
     compatible: true,
@@ -202,4 +209,3 @@ export function checkAvailabilityWithConversion(
     requiredUnit,
   };
 }
-

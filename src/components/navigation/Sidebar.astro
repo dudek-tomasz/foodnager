@@ -5,7 +5,7 @@
  * Following auth-spec.md US-001.6: User info + logout in desktop sidebar
  */
 
-import UserInfoDisplay from '@/components/auth/UserInfoDisplay';
+import UserInfoDisplay from "@/components/auth/UserInfoDisplay";
 
 interface Props {
   currentPath: string;
@@ -18,8 +18,8 @@ const { currentPath, user } = Astro.props;
 
 // Funkcja pomocnicza do określenia czy link jest aktywny
 const isActive = (path: string) => {
-  if (path === '/fridge') {
-    return currentPath === '/' || currentPath === '/fridge';
+  if (path === "/fridge") {
+    return currentPath === "/" || currentPath === "/fridge";
   }
   return currentPath.startsWith(path);
 };
@@ -27,22 +27,22 @@ const isActive = (path: string) => {
 // Główne linki nawigacyjne
 const navLinks = [
   {
-    href: '/fridge',
-    label: 'Lodówka',
-    icon: '🧊',
-    isActive: isActive('/fridge'),
+    href: "/fridge",
+    label: "Lodówka",
+    icon: "🧊",
+    isActive: isActive("/fridge"),
   },
   {
-    href: '/recipes',
-    label: 'Przepisy',
-    icon: '📖',
-    isActive: isActive('/recipes'),
+    href: "/recipes",
+    label: "Przepisy",
+    icon: "📖",
+    isActive: isActive("/recipes"),
   },
   {
-    href: '/history',
-    label: 'Historia',
-    icon: '📜',
-    isActive: isActive('/history'),
+    href: "/history",
+    label: "Historia",
+    icon: "📜",
+    isActive: isActive("/history"),
   },
 ];
 ---
@@ -61,18 +61,22 @@ const navLinks = [
   <!-- Navigation Links -->
   <nav class="sidebar-nav" aria-label="Główna nawigacja">
     <ul class="nav-list">
-      {navLinks.map((link) => (
-        <li>
-          <a
-            href={link.href}
-            class:list={['nav-link', { active: link.isActive }]}
-            aria-current={link.isActive ? 'page' : undefined}
-          >
-            <span class="nav-icon" aria-hidden="true">{link.icon}</span>
-            <span class="nav-label">{link.label}</span>
-          </a>
-        </li>
-      ))}
+      {
+        navLinks.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class:list={["nav-link", { active: link.isActive }]}
+              aria-current={link.isActive ? "page" : undefined}
+            >
+              <span class="nav-icon" aria-hidden="true">
+                {link.icon}
+              </span>
+              <span class="nav-label">{link.label}</span>
+            </a>
+          </li>
+        ))
+      }
     </ul>
   </nav>
 
@@ -85,11 +89,13 @@ const navLinks = [
   </div>
 
   <!-- User Info Section (Desktop - US-001.6) -->
-  {user && (
-    <div class="sidebar-user">
-      <UserInfoDisplay user={user} variant="sidebar" client:load />
-    </div>
-  )}
+  {
+    user && (
+      <div class="sidebar-user">
+        <UserInfoDisplay user={user} variant="sidebar" client:load />
+      </div>
+    )
+  }
 </aside>
 
 <style>
@@ -244,4 +250,3 @@ const navLinks = [
     font-size: 15px;
   }
 </style>
-

@@ -1,16 +1,16 @@
 /**
  * API Endpoint: /api/recipes/from-external
- * 
+ *
  * POST - Save external recipe with product/unit names (not IDs)
  * This endpoint is used when user wants to save an external recipe to their collection
  */
 
-import type { APIContext } from 'astro';
-import { z } from 'zod';
-import { createSupabaseServerInstance } from '../../../db/supabase.client';
-import { ExternalRecipeMapper } from '../../../lib/mappers/external-recipe-mapper';
-import { successResponse, errorResponse } from '../../../lib/utils/api-response';
-import { UnauthorizedError } from '../../../lib/errors';
+import type { APIContext } from "astro";
+import { z } from "zod";
+import { createSupabaseServerInstance } from "../../../db/supabase.client";
+import { ExternalRecipeMapper } from "../../../lib/mappers/external-recipe-mapper";
+import { successResponse, errorResponse } from "../../../lib/utils/api-response";
+import { UnauthorizedError } from "../../../lib/errors";
 
 export const prerender = false;
 
@@ -21,7 +21,7 @@ export const prerender = false;
 function getAuthenticatedUser(context: APIContext): string {
   const user = context.locals.user;
   if (!user) {
-    throw new UnauthorizedError('Authentication required');
+    throw new UnauthorizedError("Authentication required");
   }
   return user.id;
 }
@@ -34,40 +34,38 @@ const externalRecipeSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, { message: 'title is required' })
-    .max(255, { message: 'title cannot exceed 255 characters' }),
+    .min(1, { message: "title is required" })
+    .max(255, { message: "title cannot exceed 255 characters" }),
   description: z.string().trim().nullable().optional(),
-  instructions: z.string().trim().min(1, { message: 'instructions are required' }),
-  cooking_time: z
-    .number()
-    .int()
-    .positive({ message: 'cooking_time must be positive' })
-    .nullable()
-    .optional(),
-  difficulty: z.enum(['easy', 'medium', 'hard']).nullable().optional(),
+  instructions: z.string().trim().min(1, { message: "instructions are required" }),
+  cooking_time: z.number().int().positive({ message: "cooking_time must be positive" }).nullable().optional(),
+  difficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
   ingredients: z
     .array(
       z.object({
-        product_name: z.string().trim().min(1, { message: 'product_name is required' }),
-        quantity: z.number().positive({ message: 'quantity must be positive' }),
-        unit_name: z.string().trim().min(1, { message: 'unit_name is required' }),
+        product_name: z.string().trim().min(1, { message: "product_name is required" }),
+        quantity: z.number().positive({ message: "quantity must be positive" }),
+        unit_name: z.string().trim().min(1, { message: "unit_name is required" }),
       })
     )
-    .min(1, { message: 'at least one ingredient is required' }),
+    .min(1, { message: "at least one ingredient is required" }),
   tags: z.array(z.string().trim()).optional(),
   // Optional metadata for external recipes
   external_id: z.string().optional(),
   image_url: z.string().url().nullable().optional(),
   source_url: z.string().url().nullable().optional(),
   // Optional sources array (for AI-generated recipes)
-  sources: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      url: z.string().url(),
-    })
-  ).optional(),
+  sources: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        url: z.string().url(),
+      })
+    )
+    .optional(),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExternalRecipeSchema = z.infer<typeof externalRecipeSchema>;
 
 /**
@@ -91,15 +89,15 @@ export async function POST(context: APIContext): Promise<Response> {
     try {
       body = await context.request.json();
     } catch {
-      return errorResponse('VALIDATION_ERROR', 'Invalid JSON body', undefined, 400);
+      return errorResponse("VALIDATION_ERROR", "Invalid JSON body", undefined, 400);
     }
 
     const validationResult = externalRecipeSchema.safeParse(body);
 
     if (!validationResult.success) {
       return errorResponse(
-        'VALIDATION_ERROR',
-        'Invalid request body',
+        "VALIDATION_ERROR",
+        "Invalid request body",
         validationResult.error.flatten().fieldErrors,
         400
       );
@@ -117,7 +115,7 @@ export async function POST(context: APIContext): Promise<Response> {
       description: externalRecipe.description ?? undefined,
       instructions: externalRecipe.instructions,
       cooking_time: externalRecipe.cooking_time ?? undefined,
-      difficulty: externalRecipe.difficulty ?? 'medium',
+      difficulty: externalRecipe.difficulty ?? "medium",
       ingredients: externalRecipe.ingredients.map((ing) => ({
         name: ing.product_name,
         quantity: ing.quantity,
@@ -133,21 +131,16 @@ export async function POST(context: APIContext): Promise<Response> {
     const savedRecipe = await mapper.mapAndSave(recipeToMap, userId);
 
     // Return 201 Created with Location header
-    return successResponse(
-      savedRecipe,
-      201,
-      {
-        Location: `/api/recipes/${savedRecipe.id}`,
-      }
-    );
+    return successResponse(savedRecipe, 201, {
+      Location: `/api/recipes/${savedRecipe.id}`,
+    });
   } catch (error) {
-    console.error('Error in POST /api/recipes/from-external:', error);
+    console.error("Error in POST /api/recipes/from-external:", error);
 
     if (error instanceof UnauthorizedError) {
-      return errorResponse('UNAUTHORIZED', error.message, undefined, 401);
+      return errorResponse("UNAUTHORIZED", error.message, undefined, 401);
     }
 
-    return errorResponse('INTERNAL_ERROR', 'Failed to save external recipe', undefined, 500);
+    return errorResponse("INTERNAL_ERROR", "Failed to save external recipe", undefined, 500);
   }
 }
-
