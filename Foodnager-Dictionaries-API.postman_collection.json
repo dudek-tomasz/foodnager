@@ -1,0 +1,525 @@
+{
+  "info": {
+    "name": "Foodnager - Dictionaries API",
+    "description": "Test collection for dictionary endpoints: Units and Tags",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4321",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "YOUR_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Units",
+      "description": "Measurement units dictionary endpoints",
+      "item": [
+        {
+          "name": "List All Units",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "description": "Authentication token (currently optional in dev)"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/units",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "units"]
+            },
+            "description": "Fetches all available measurement units.\n\nFeatures:\n- Returns all units sorted alphabetically by name\n- Aggressive caching (1 hour TTL)\n- Returns X-Cache header (HIT/MISS)\n- No pagination needed (small dataset)\n\nExpected Response (200 OK):\n```json\n{\n  \"data\": [\n    {\n      \"id\": 2,\n      \"name\": \"gram\",\n      \"abbreviation\": \"g\",\n      \"created_at\": \"2025-10-18T12:00:00Z\"\n    },\n    ...\n  ]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "Success - Cache MISS",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/units",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "units"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Cache",
+                  "value": "MISS"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 2,\n      \"name\": \"gram\",\n      \"abbreviation\": \"g\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 7,\n      \"name\": \"garść\",\n      \"abbreviation\": \"garść\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 15,\n      \"name\": \"główka\",\n      \"abbreviation\": \"głów\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 1,\n      \"name\": \"kilogram\",\n      \"abbreviation\": \"kg\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 4,\n      \"name\": \"litr\",\n      \"abbreviation\": \"l\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 6,\n      \"name\": \"łyżeczka\",\n      \"abbreviation\": \"łyżecz\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 5,\n      \"name\": \"łyżka\",\n      \"abbreviation\": \"łyż\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"miligram\",\n      \"abbreviation\": \"mg\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 5,\n      \"name\": \"mililitr\",\n      \"abbreviation\": \"ml\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 11,\n      \"name\": \"opakowanie\",\n      \"abbreviation\": \"opak\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 12,\n      \"name\": \"pęczek\",\n      \"abbreviation\": \"pęcz\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 13,\n      \"name\": \"plaster\",\n      \"abbreviation\": \"plast\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 8,\n      \"name\": \"szklanka\",\n      \"abbreviation\": \"szkl\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 16,\n      \"name\": \"szczypta\",\n      \"abbreviation\": \"szcz\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 10,\n      \"name\": \"sztuka\",\n      \"abbreviation\": \"szt\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 14,\n      \"name\": \"ząbek\",\n      \"abbreviation\": \"ząb\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Success - Cache HIT",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/units",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "units"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Cache",
+                  "value": "HIT"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    // ... same data as above, but served from cache\n  ]\n}"
+            },
+            {
+              "name": "Unauthorized (401)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/units",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "units"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UNAUTHORIZED\",\n    \"message\": \"Authentication required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cache Performance Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/units",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "units"]
+            },
+            "description": "Use this request to test cache performance.\n\nHow to test:\n1. Run this request first time - check X-Cache: MISS header\n2. Run immediately again - check X-Cache: HIT header\n3. Compare response times (HIT should be < 5ms)\n\nCache TTL: 1 hour (3600 seconds)\nAfter 1 hour, cache expires and next request will be MISS again."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "description": "Recipe tags dictionary endpoints",
+      "item": [
+        {
+          "name": "List All Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "description": "Authentication token (currently optional in dev)"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags"]
+            },
+            "description": "Fetches all available recipe tags.\n\nFeatures:\n- Returns all tags sorted alphabetically by name\n- Caching (10 minutes TTL)\n- Returns X-Cache header (HIT/MISS)\n- No pagination needed (small dataset)\n\nExpected Response (200 OK):\n```json\n{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"bezglutenowe\",\n      \"created_at\": \"2025-10-18T12:00:00Z\"\n    },\n    ...\n  ]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "Success - All Tags",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Cache",
+                  "value": "MISS"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"bezglutenowe\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"bez laktozy\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"bez orzechów\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 4,\n      \"name\": \"deser\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 5,\n      \"name\": \"dla dzieci\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    },\n    {\n      \"id\": 6,\n      \"name\": \"dla początkujących\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "description": "Authentication token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags?search=wegań",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "wegań",
+                  "description": "Search term for filtering tags (case-insensitive)"
+                }
+              ]
+            },
+            "description": "Searches for tags by name (case-insensitive).\n\nFeatures:\n- Case-insensitive ILIKE search\n- Separate cache per search query\n- Max search length: 50 characters\n- Returns empty array if no matches\n\nExpected Response (200 OK):\n```json\n{\n  \"data\": [\n    {\n      \"id\": 7,\n      \"name\": \"wegańskie\",\n      \"created_at\": \"2025-10-18T12:00:00Z\"\n    }\n  ]\n}\n```"
+          },
+          "response": [
+            {
+              "name": "Success - Search Results",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags?search=wegań",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "wegań"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-Cache",
+                  "value": "MISS"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 7,\n      \"name\": \"wegańskie\",\n      \"created_at\": \"2025-10-18T12:00:00.000Z\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Validation Error - Search Too Long",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags?search=this-is-a-very-long-search-query-that-exceeds-maximum",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "this-is-a-very-long-search-query-that-exceeds-maximum"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid query parameters\",\n    \"details\": {\n      \"errors\": [\n        {\n          \"path\": [\"search\"],\n          \"message\": \"Search query too long (max 50 characters)\"\n        }\n      ]\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "description": "Authentication token"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"test-tag\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags"]
+            },
+            "description": "Creates a new tag in the system.\n\nFeatures:\n- Community-driven (any authenticated user can create)\n- Automatic lowercase normalization\n- Case-insensitive uniqueness check\n- Cache invalidation after creation\n- Returns Location header\n\nValidation:\n- Name: required, 2-50 characters\n- Trimmed and normalized to lowercase\n\nExpected Response (201 Created):\n```json\n{\n  \"id\": 31,\n  \"name\": \"test-tag\",\n  \"created_at\": \"2025-10-19T12:00:00Z\"\n}\n```\n\nHeaders:\n- Location: /api/tags/31"
+          },
+          "response": [
+            {
+              "name": "Success - Tag Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"test-tag\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Location",
+                  "value": "/api/tags/31"
+                }
+              ],
+              "body": "{\n  \"id\": 31,\n  \"name\": \"test-tag\",\n  \"created_at\": \"2025-10-19T12:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Success - Lowercase Normalization",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"NEW-TAG\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Location",
+                  "value": "/api/tags/32"
+                }
+              ],
+              "body": "{\n  \"id\": 32,\n  \"name\": \"new-tag\",\n  \"created_at\": \"2025-10-19T12:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Conflict - Duplicate Name",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"wegańskie\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"Tag with this name already exists\",\n    \"details\": {\n      \"field\": \"name\",\n      \"value\": \"wegańskie\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Validation Error - Name Too Short",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"a\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid request data\",\n    \"details\": {\n      \"errors\": [\n        {\n          \"path\": [\"name\"],\n          \"message\": \"Tag name must be at least 2 characters\"\n        }\n      ]\n    }\n  }\n}"
+            },
+            {
+              "name": "Validation Error - Missing Name",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/tags",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "tags"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid request data\",\n    \"details\": {\n      \"errors\": [\n        {\n          \"path\": [\"name\"],\n          \"message\": \"Tag name is required\"\n        }\n      ]\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cache Invalidation Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags"]
+            },
+            "description": "Test cache invalidation after POST.\n\nHow to test:\n1. Run GET /api/tags (check X-Cache: MISS)\n2. Run GET /api/tags again (check X-Cache: HIT)\n3. Run POST /api/tags to create new tag\n4. Run GET /api/tags (should be X-Cache: MISS due to invalidation)\n\nCache TTL: 10 minutes (600 seconds)\nCache invalidation: All 'tags:*' keys deleted after POST"
+          }
+        }
+      ]
+    }
+  ]
+}

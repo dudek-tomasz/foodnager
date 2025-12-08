@@ -1,0 +1,328 @@
+{
+  "info": {
+    "name": "Foodnager - Complete Testing (with Auth)",
+    "description": "Complete test collection including Supabase Auth and AI recipe generation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "default"
+    },
+    {
+      "key": "SUPABASE_URL",
+      "value": "https://your-project.supabase.co",
+      "type": "default"
+    },
+    {
+      "key": "SUPABASE_ANON_KEY",
+      "value": "your_supabase_anon_key_here",
+      "type": "default"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "USER_EMAIL",
+      "value": "test@example.com",
+      "type": "default"
+    },
+    {
+      "key": "USER_PASSWORD",
+      "value": "testpassword123",
+      "type": "default"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Login (Supabase)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save access token to collection variable",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', jsonData.access_token);",
+                  "    console.log('Access token saved:', jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{USER_EMAIL}}\",\n  \"password\": \"{{USER_PASSWORD}}\"\n}"
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            },
+            "description": "Login using Supabase Auth. Saves access_token to collection variable."
+          }
+        },
+        {
+          "name": "2. Register (Supabase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{USER_EMAIL}}\",\n  \"password\": \"{{USER_PASSWORD}}\"\n}"
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/signup",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "signup"]
+            },
+            "description": "Register new user with Supabase Auth"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fridge",
+      "item": [
+        {
+          "name": "Get Fridge Items",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/fridge",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "fridge"]
+            }
+          }
+        },
+        {
+          "name": "Add Product to Fridge",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": 1,\n  \"quantity\": 500,\n  \"unit_id\": 1,\n  \"expiry_date\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/fridge",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "fridge"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipe Search (AI)",
+      "item": [
+        {
+          "name": "Search by Fridge (All Sources)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"use_all_fridge_items\": true,\n  \"max_results\": 3,\n  \"preferences\": {\n    \"max_cooking_time\": 45,\n    \"difficulty\": \"easy\",\n    \"dietary_restrictions\": [\"vegetarian\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/recipes/search-by-fridge",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recipes", "search-by-fridge"]
+            },
+            "description": "Search recipes using all fridge items. Will use AI if no good matches in Tier 1/2."
+          }
+        },
+        {
+          "name": "Search with Custom Products",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"use_all_fridge_items\": false,\n  \"custom_product_ids\": [1, 2, 3, 5],\n  \"max_results\": 1,\n  \"preferences\": {\n    \"difficulty\": \"easy\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/recipes/search-by-fridge",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recipes", "search-by-fridge"]
+            },
+            "description": "Search using specific product IDs"
+          }
+        },
+        {
+          "name": "Search with Dietary Restrictions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"use_all_fridge_items\": true,\n  \"max_results\": 5,\n  \"preferences\": {\n    \"max_cooking_time\": 30,\n    \"difficulty\": \"easy\",\n    \"dietary_restrictions\": [\"vegan\", \"gluten-free\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/recipes/search-by-fridge",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recipes", "search-by-fridge"]
+            },
+            "description": "Test AI with multiple dietary restrictions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "item": [
+        {
+          "name": "Get All Recipes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/recipes",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/recipes/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "recipes", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "Foodnager - AI Recipe Generation Test",
+    "description": "Test collection for OpenRouter AI recipe generation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Search Recipes (AI Generation)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"use_all_fridge_items\": true,\n  \"max_results\": 3,\n  \"preferences\": {\n    \"max_cooking_time\": 45,\n    \"difficulty\": \"easy\",\n    \"dietary_restrictions\": [\"vegetarian\"]\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/recipes/search-by-fridge",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "recipes", "search-by-fridge"]
+        },
+        "description": "Search for recipes based on all fridge items. Will use AI if no good matches in Tier 1/2."
+      }
+    },
+    {
+      "name": "Search with Custom Products (Force AI)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"use_all_fridge_items\": false,\n  \"custom_product_ids\": [1, 2, 3],\n  \"max_results\": 1,\n  \"preferences\": {\n    \"difficulty\": \"easy\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/recipes/search-by-fridge",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "recipes", "search-by-fridge"]
+        },
+        "description": "Search using specific product IDs. Replace [1,2,3] with your actual product IDs from database."
+      }
+    },
+    {
+      "name": "Get Fridge Items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/fridge",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "fridge"]
+        },
+        "description": "Get all products from your fridge to see available product IDs"
+      }
+    }
+  ]
+}

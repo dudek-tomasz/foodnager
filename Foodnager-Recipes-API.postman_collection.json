@@ -52,8 +52,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
               "query": [
-                {"key": "page", "value": "1"},
-                {"key": "limit", "value": "10"}
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
               ]
             }
           }
@@ -72,9 +72,7 @@
               "raw": "{{baseUrl}}/api/recipes?search=tomato",
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
-              "query": [
-                {"key": "search", "value": "tomato"}
-              ]
+              "query": [{ "key": "search", "value": "tomato" }]
             }
           }
         },
@@ -92,9 +90,7 @@
               "raw": "{{baseUrl}}/api/recipes?difficulty=easy",
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
-              "query": [
-                {"key": "difficulty", "value": "easy"}
-              ]
+              "query": [{ "key": "difficulty", "value": "easy" }]
             }
           }
         },
@@ -112,9 +108,7 @@
               "raw": "{{baseUrl}}/api/recipes?max_cooking_time=30",
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
-              "query": [
-                {"key": "max_cooking_time", "value": "30"}
-              ]
+              "query": [{ "key": "max_cooking_time", "value": "30" }]
             }
           }
         },
@@ -132,9 +126,7 @@
               "raw": "{{baseUrl}}/api/recipes?tags=1,2",
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
-              "query": [
-                {"key": "tags", "value": "1,2"}
-              ]
+              "query": [{ "key": "tags", "value": "1,2" }]
             }
           }
         },
@@ -153,8 +145,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
               "query": [
-                {"key": "sort", "value": "title"},
-                {"key": "order", "value": "asc"}
+                { "key": "sort", "value": "title" },
+                { "key": "order", "value": "asc" }
               ]
             }
           }
@@ -174,11 +166,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
               "query": [
-                {"key": "search", "value": "soup"},
-                {"key": "difficulty", "value": "easy"},
-                {"key": "max_cooking_time", "value": "45"},
-                {"key": "sort", "value": "created_at"},
-                {"key": "order", "value": "desc"}
+                { "key": "search", "value": "soup" },
+                { "key": "difficulty", "value": "easy" },
+                { "key": "max_cooking_time", "value": "45" },
+                { "key": "sort", "value": "created_at" },
+                { "key": "order", "value": "desc" }
               ]
             }
           }
@@ -503,8 +495,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "recipes"],
               "query": [
-                {"key": "page", "value": "0"},
-                {"key": "limit", "value": "200"}
+                { "key": "page", "value": "0" },
+                { "key": "limit", "value": "200" }
               ]
             }
           }
@@ -588,4 +580,3 @@
     }
   ]
 }
-
