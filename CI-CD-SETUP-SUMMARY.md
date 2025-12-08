@@ -49,7 +49,7 @@ Z pliku .env:
 Z pliku .env.test:
 - E2E_USERNAME
 - E2E_PASSWORD
-- E2E_TEST_USER_ID
+- E2E_USERNAME_ID
 - SUPABASE_SERVICE_ROLE_KEY
 ```
 

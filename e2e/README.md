@@ -1,62 +1,50 @@
-# E2E Tests - Foodnager
+# E2E Tests Documentation
 
-## 🚀 Setup
+This directory contains End-to-End (E2E) tests for Foodnager using Playwright.
 
-### 1. Create Test User
+## Prerequisites
 
-Before running E2E tests, you need to create a test user in your database:
+1. **Node.js** - Version specified in `.nvmrc` (22.14.0)
+2. **Playwright browsers** - Installed automatically with `npm ci` or manually with `npx playwright install chromium`
+3. **Test environment configuration** - `.env.test` file with test credentials
 
-1. Start the development server:
+## Setup
 
-   ```bash
-   npm run dev
-   ```
+### 1. Create `.env.test` file
 
-2. Navigate to http://localhost:3000/register
-
-3. Register a test user with credentials:
-   - Email: `test@foodnager.pl`
-   - Password: `TestPassword123!`
-
-4. (Optional) Verify email if required
-
-### 2. Configure Environment Variables
-
-Create a `.env.test` file in the root directory with your test user credentials:
+Create a `.env.test` file in the project root with the following variables:
 
 ```env
-# Test User Credentials
-E2E_USERNAME=test@foodnager.pl
-E2E_PASSWORD=TestPassword123!
-
-# Supabase Configuration (required for teardown)
+# Supabase Configuration
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-supabase-anon-key
+SUPABASE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Service Role Key for database cleanup after tests
-# Get from: Supabase Dashboard -> Settings -> API -> service_role key
-# WARNING: Never commit this key! Use test/dev database only!
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+# E2E Test User Credentials
+E2E_USERNAME=test@example.com
+E2E_PASSWORD=your-test-password
+E2E_USERNAME_ID=00000000-0000-0000-0000-000000000000
 
-# Test User UUID (for cleanup)
-# Get from: Supabase Dashboard -> Authentication -> Users
-E2E_TEST_USER_ID=your-test-user-uuid-here
-```
-
-Optional variables:
-
-```env
-# Custom base URL (defaults to http://localhost:3000)
+# Playwright Configuration
 PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
 ```
 
-### 3. Install Playwright Browsers
+### 2. Create Test User in Supabase
+
+1. Go to Supabase Dashboard → Authentication → Users
+2. Create a new user with the email and password from `.env.test`
+3. Confirm the user (if email confirmation is enabled)
+4. Copy the user's UUID and set it as `E2E_USERNAME_ID`
+
+### 3. Install Dependencies
 
 ```bash
-npx playwright install chromium
+npm ci
 ```
 
-## 🧪 Running Tests
+This will also install Playwright browsers automatically.
+
+## Running Tests
 
 ### Run all E2E tests
 
@@ -64,29 +52,27 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-### Run specific test file
+This command:
+- Starts the dev server in test mode (`npm run dev:e2e`)
+- Runs authentication setup
+- Executes all E2E tests
+- Cleans up test data after completion
 
-```bash
-npm run test:e2e e2e/fridge-add-product.spec.ts
-```
-
-### Run in UI mode (interactive)
+### Run tests in UI mode (interactive)
 
 ```bash
 npm run test:e2e:ui
 ```
 
-### Run in debug mode
+Great for debugging and developing tests. Shows the browser and allows step-by-step execution.
+
+### Run tests in debug mode
 
 ```bash
 npm run test:e2e:debug
 ```
 
-### Run with headed browser
-
-```bash
-npx playwright test --headed
-```
+Opens Playwright Inspector for detailed debugging.
 
 ### View test report
 
@@ -94,254 +80,187 @@ npx playwright test --headed
 npm run test:e2e:report
 ```
 
-## 📂 Directory Structure
+Opens the HTML report from the last test run.
+
+### Generate test code
+
+```bash
+npm run test:e2e:codegen
+```
+
+Opens Playwright Codegen tool to record interactions and generate test code.
+
+## Test Structure
 
 ```
 e2e/
-├── fixtures/
-│   └── auth.fixture.ts          # Authentication fixture for logged-in tests
+├── auth.setup.ts           # Authentication setup (runs first)
+├── global.teardown.ts      # Global cleanup (runs last)
+├── example.spec.ts         # Example tests
+├── fridge-add-product.spec.ts  # Fridge feature tests
+├── examples/
+│   └── cleanup-example.spec.ts  # Database cleanup examples
 ├── helpers/
-│   ├── test-helpers.ts          # Reusable helper functions
-│   └── db-cleanup.ts            # Database cleanup utilities
-├── pages/
-│   ├── components/              # Reusable component POM classes
-│   │   ├── ProductAutocompleteComponent.ts
-│   │   ├── UnitSelectComponent.ts
-│   │   └── DatePickerComponent.ts
-│   ├── FridgePage.page.ts       # Fridge page POM
-│   ├── AddProductModal.page.ts  # Add product modal POM
-│   ├── index.ts                 # Exports
-│   ├── README.md                # POM documentation
-│   └── ARCHITECTURE.md          # Architecture diagrams
-├── auth.setup.ts                # Authentication setup (runs first)
-├── global.teardown.ts           # Database cleanup (runs last)
-├── example.spec.ts              # Example test
-└── fridge-add-product.spec.ts   # Fridge tests
+│   └── db-cleanup.ts       # Database cleanup utilities
+└── pages/
+    ├── AddProductModal.page.ts  # Page Object for Add Product Modal
+    └── components/
+        └── ProductAutocompleteComponent.ts  # Component Object
 ```
 
-## 🔐 Authentication & Cleanup
+## Test Patterns
 
-Tests use **setup/teardown project** pattern recommended by Playwright:
+### Authentication
 
-1. `e2e/auth.setup.ts` runs **once before all tests**
-   - Logs in and saves session to `playwright/.auth/user.json`
-   - All tests reuse this saved session automatically
-
-2. `e2e/global.teardown.ts` runs **once after all tests**
-   - Cleans up test data from database
-   - Removes products, recipes, fridge items, and history
-   - Uses service role key to bypass RLS policies
-
-This approach is **fast** and **reliable** - login happens once, cleanup happens once!
-
-### How it works
-
-**Setup project** (runs first):
+Tests use a shared authentication state to avoid logging in for each test:
 
 ```typescript
-// e2e/auth.setup.ts
-setup("authenticate", async ({ page }) => {
-  await page.goto("/login");
-  await page.fill("input#email", email);
-  await page.fill("input#password", password);
-  await page.click('button[type="submit"]');
-
-  // Save session to file
-  await page.context().storageState({ path: "playwright/.auth/user.json" });
-});
-```
-
-**Tests** (use saved session):
-
-```typescript
-import { test } from "@playwright/test";
-
+// Tests automatically use authenticated state
 test("my test", async ({ page }) => {
-  // page is already authenticated! 🎉
+  // Already logged in
   await page.goto("/fridge");
 });
 ```
 
-Configuration automatically loads the saved session for all tests.
-
 ### Database Cleanup
 
-**Global teardown** runs after all tests complete:
+Use cleanup helpers to ensure tests start with a clean state:
 
 ```typescript
-// e2e/global.teardown.ts
-teardown("cleanup database", async () => {
-  // Cleans up all test data from Supabase
-  // - Products (private)
-  // - User products (fridge)
-  // - Recipes & ingredients
-  // - Cooking history
-});
-```
+import { cleanupFridge, cleanupUserData } from "./helpers/db-cleanup";
 
-**Per-test cleanup** (optional):
+test.describe("My Tests", () => {
+  const TEST_USER_ID = process.env.E2E_USERNAME_ID!;
 
-```typescript
-import { cleanupFridge, cleanupRecipes } from "./helpers/db-cleanup";
+  // Clean before each test
+  test.beforeEach(async () => {
+    await cleanupFridge(TEST_USER_ID);
+  });
 
-test("my test", async ({ page }) => {
-  // Test code...
-
-  // Clean up after test
-  await cleanupFridge(process.env.E2E_TEST_USER_ID!);
-});
-```
-
-Available cleanup helpers:
-
-- `cleanupUserData(userId)` - Clean all user data
-- `cleanupUserProducts(userId)` - Clean only products
-- `cleanupFridge(userId)` - Clean only fridge items
-- `cleanupRecipes(userId)` - Clean only recipes
-- `cleanupCookingHistory(userId)` - Clean only cooking history
-
-## 📝 Writing Tests
-
-### Page Object Model (POM)
-
-All tests use the Page Object Model pattern. See `e2e/pages/README.md` for details.
-
-### Example Test
-
-```typescript
-import { test, expect } from "./fixtures/auth.fixture";
-import { FridgePage } from "./pages";
-
-test.describe("My Feature", () => {
-  test("should do something", async ({ authenticatedPage }) => {
-    const fridge = new FridgePage(authenticatedPage);
-
-    await fridge.goto();
-    await fridge.openAddProductModal();
-    await fridge.addProductModal.quickAdd("Mleko", 1, "litr");
-
-    await fridge.assertProductExists("Mleko");
+  test("my test", async ({ page }) => {
+    // Fridge is empty
   });
 });
 ```
 
-## 🐛 Debugging
+See `e2e/examples/cleanup-example.spec.ts` for more patterns.
 
-### Visual debugging with UI Mode
+### Page Objects
 
-```bash
-npm run test:e2e:ui
+Use Page Objects to encapsulate page interactions:
+
+```typescript
+import { AddProductModal } from "./pages/AddProductModal.page";
+
+test("add product", async ({ page }) => {
+  const modal = new AddProductModal(page);
+  
+  await page.goto("/fridge");
+  await modal.open();
+  await modal.fillAndSubmit({
+    productName: "Mleko",
+    quantity: "1",
+    unit: "litr"
+  });
+  
+  await expect(page.getByText("Mleko")).toBeVisible();
+});
 ```
 
-This opens an interactive UI where you can:
+## CI/CD
 
-- See test execution in real-time
-- Inspect locators
-- View screenshots and videos
-- Step through tests
+Tests run automatically on GitHub Actions when pushing to `master` branch.
 
-### Debug mode
+### Required GitHub Secrets
 
-```bash
-npm run test:e2e:debug
+The following secrets must be configured in GitHub repository settings:
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `E2E_USERNAME`
+- `E2E_PASSWORD`
+- `E2E_USERNAME_ID`
+
+See `docs/GITHUB_SECRETS.md` for detailed setup instructions.
+
+### Skip E2E Tests in CI
+
+You can manually trigger the workflow and skip E2E tests:
+
+1. Go to Actions tab in GitHub
+2. Select "CI - Tests & Build" workflow
+3. Click "Run workflow"
+4. Check "Pomiń testy E2E"
+5. Click "Run workflow"
+
+## Troubleshooting
+
+### "Invalid API key" errors
+
+- Check that `.env.test` exists and contains all required variables
+- Verify `SUPABASE_SERVICE_ROLE_KEY` is correct (not the anon key)
+- Ensure there are no extra spaces or newlines in the values
+
+### Tests timeout waiting for elements
+
+- Check if the dev server is running (`npm run dev:e2e` in another terminal)
+- Verify the test user exists and is confirmed in Supabase
+- Check browser console for errors (run with `--headed` flag)
+
+### Authentication fails
+
+- Verify `E2E_USERNAME` and `E2E_PASSWORD` match a real user in Supabase
+- Check that the user is confirmed (email verified)
+- Ensure `E2E_USERNAME_ID` matches the user's UUID
+
+### Database cleanup fails
+
+- Verify `SUPABASE_SERVICE_ROLE_KEY` is set correctly
+- Check Supabase RLS policies allow service role to delete data
+- Review `e2e/global.teardown.ts` logs for specific errors
+
+## Best Practices
+
+1. **Always clean up test data** - Use `beforeEach` or `afterEach` hooks
+2. **Use meaningful test descriptions** - Describe what the test does
+3. **Keep tests independent** - Tests should not depend on each other
+4. **Use Page Objects** - Encapsulate page interactions
+5. **Wait for elements properly** - Use `waitFor()` or `expect().toBeVisible()`
+6. **Handle async operations** - Always `await` Playwright actions
+7. **Use data-testid attributes** - For stable selectors in production code
+
+## Writing New Tests
+
+1. Create a new `.spec.ts` file in the `e2e/` directory
+2. Import necessary helpers and page objects
+3. Use `test.describe()` to group related tests
+4. Add cleanup hooks if needed
+5. Write tests using Page Objects
+6. Run tests locally before committing
+
+Example:
+
+```typescript
+import { test, expect } from "@playwright/test";
+import { cleanupFridge } from "./helpers/db-cleanup";
+
+test.describe("My Feature", () => {
+  const TEST_USER_ID = process.env.E2E_USERNAME_ID!;
+
+  test.beforeEach(async () => {
+    await cleanupFridge(TEST_USER_ID);
+  });
+
+  test("should do something", async ({ page }) => {
+    await page.goto("/my-page");
+    // Test logic here
+  });
+});
 ```
 
-This runs tests with Playwright Inspector for step-by-step debugging.
+## Resources
 
-### Trace Viewer
-
-If a test fails, a trace is automatically saved. View it with:
-
-```bash
-npx playwright show-trace trace.zip
-```
-
-### Screenshots and Videos
-
-- Screenshots: Automatically taken on failure
-- Videos: Recorded for failed tests
-- Location: `test-results/` directory
-
-## ⚙️ Configuration
-
-Edit `playwright.config.ts` to customize:
-
-- Test timeout
-- Retry attempts
-- Browser settings
-- Screenshots/videos
-- Reports
-
-## 🔍 Troubleshooting
-
-### "Authentication failed" error
-
-**Solution:**
-
-1. Verify test user exists in database
-2. Check credentials in `.env.test` (must have `E2E_USERNAME` and `E2E_PASSWORD`)
-3. Ensure user is not locked out
-4. Verify `.env.test` file is in the root directory (same level as `playwright.config.ts`)
-
-### "Port 3000 already in use"
-
-**Solution:**
-
-1. Stop existing dev server
-2. Or change port in `playwright.config.ts`
-
-### "Timeout waiting for redirect"
-
-**Solution:**
-
-1. Increase timeout in `login()` helper
-2. Check network tab for API errors
-3. Verify middleware is running
-
-### Tests are slow
-
-**Solution:**
-
-1. Use `loginViaAPI()` instead of UI login
-2. Run tests in parallel: `npx playwright test --workers 4`
-3. Use `test.skip()` for slow tests during development
-
-## 📚 Resources
-
-- [Playwright Documentation](https://playwright.dev/docs/intro)
-- [Page Object Model Guide](./pages/README.md)
-- [Test Helpers](./helpers/test-helpers.ts)
-- [Auth Fixture](./fixtures/auth.fixture.ts)
-
-## 🚧 Known Issues
-
-1. **Slow first load**: First test may be slow due to cold start. Subsequent tests are faster.
-2. **Flaky toast assertions**: Toast messages may disappear quickly. Use `waitFor()` with longer timeout if needed.
-3. **Modal animations**: Wait for modal to be fully open before interacting with form fields.
-
-## 📊 Coverage
-
-Current coverage:
-
-- ✅ Fridge - Add Product (12 tests)
-- 🚧 Fridge - Edit Product (TODO)
-- 🚧 Fridge - Delete Product (TODO)
-- 🚧 Recipes - Search (TODO)
-- 🚧 Cooking History (TODO)
-
-## 🎯 CI/CD
-
-Tests run automatically on GitHub Actions for PRs and commits to main.
-
-To run tests in CI mode locally:
-
-```bash
-CI=true npm run test:e2e
-```
-
-This enables:
-
-- Retries on failure
-- Headless mode
-- Single worker
-- Full traces
+- [Playwright Documentation](https://playwright.dev/)
+- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+- [Supabase Documentation](https://supabase.com/docs)

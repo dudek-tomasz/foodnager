@@ -26,8 +26,8 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Use 1 worker to avoid race conditions with shared auth state
+  workers: 1,
 
   // Reporter to use
   reporter: [["html"], ["list"]],
@@ -64,16 +64,11 @@ export default defineConfig({
       },
       dependencies: ["setup"],
     },
-
-    // Teardown project - runs last to clean up database
-    {
-      name: "teardown",
-      testMatch: /.*\.teardown\.ts/,
-    },
   ],
 
   // Global teardown runs after all projects complete
-  globalTeardown: "./e2e/global.teardown.ts",
+  // TEMPORARILY DISABLED - Teardown pominieto podczas rozwoju testow
+  // globalTeardown: "./e2e/global.teardown.ts",
 
   // Run your local dev server before starting the tests
   webServer: {

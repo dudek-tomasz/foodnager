@@ -35,7 +35,7 @@ SUPABASE_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Test User UUID
-E2E_TEST_USER_ID=your-test-user-uuid
+E2E_USERNAME_ID=your-test-user-uuid
 
 # ===================================
 # Optional: Application URL
@@ -78,7 +78,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - ✅ Używaj TYLKO z testową/developerską bazą
 - ❌ NIGDY nie używaj z produkcyjną bazą danych!
 
-#### 3.3 E2E_TEST_USER_ID
+#### 3.3 E2E_USERNAME_ID
 
 **Opcja A: Przez Dashboard**
 
@@ -87,7 +87,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 3. Skopiuj wartość z kolumny `id` (UUID)
 
 ```env
-E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
+E2E_USERNAME_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 ```
 
 **Opcja B: Przez SQL Editor**
@@ -165,7 +165,7 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emFiYzEyMyIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE2OTQ1MjYwMDAsImV4cCI6MjAxMDEwMjAwMH0.XyZaBcDeFgHiJkLmNoPqRsTuVwXyZ
 
 # Test user UUID from: Supabase Dashboard → Authentication → Users
-E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
+E2E_USERNAME_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 
 # ===================================
 # Optional: Application URL
@@ -197,11 +197,11 @@ PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
 - Dodaj `SUPABASE_SERVICE_ROLE_KEY` do `.env.test`
 - Sprawdź czy klucz jest poprawny (powinien zaczynać się od `eyJ...`)
 
-### ⚠️ "Skipping database cleanup: E2E_TEST_USER_ID not configured"
+### ⚠️ "Skipping database cleanup: E2E_USERNAME_ID not configured"
 
 **Rozwiązanie:**
 
-- Dodaj `E2E_TEST_USER_ID` do `.env.test`
+- Dodaj `E2E_USERNAME_ID` do `.env.test`
 - UUID powinno mieć format: `a1b2c3d4-e5f6-7890-abcd-1234567890ab`
 
 ## 📚 Więcej informacji
@@ -219,7 +219,7 @@ Przed uruchomieniem testów upewnij się, że:
 - [ ] `SUPABASE_URL` jest poprawny
 - [ ] `SUPABASE_KEY` (anon) jest poprawny
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` jest poprawny (dla cleanup)
-- [ ] `E2E_TEST_USER_ID` jest poprawny UUID
+- [ ] `E2E_USERNAME_ID` jest poprawny UUID
 - [ ] Użytkownik testowy istnieje w Supabase
 - [ ] Email użytkownika jest potwierdzony
 - [ ] `.env.test` jest w `.gitignore` (już jest!)

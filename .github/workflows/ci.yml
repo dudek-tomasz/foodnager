@@ -33,7 +33,7 @@ jobs:
       # Zmienne z .env.test potrzebne do testów E2E
       E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-      E2E_TEST_USER_ID: ${{ secrets.E2E_USERNAME_ID }}
+      E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PLAYWRIGHT_TEST_BASE_URL: "http://localhost:3000"
 
@@ -104,16 +104,31 @@ jobs:
           echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
           echo "E2E_USERNAME=${{ secrets.E2E_USERNAME }}" >> .env.test
           echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}" >> .env.test
-          echo "E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test
+          echo "E2E_USERNAME_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
           echo "PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000" >> .env.test
 
           echo "✅ .env files created"
           ls -la .env .env.test
 
-          echo "📋 Checking if secrets are set:"
+          echo "📋 Checking if required secrets are set:"
           [ -n "${{ secrets.SUPABASE_URL }}" ] && echo "✓ SUPABASE_URL" || echo "✗ SUPABASE_URL MISSING!"
           [ -n "${{ secrets.SUPABASE_KEY }}" ] && echo "✓ SUPABASE_KEY" || echo "✗ SUPABASE_KEY MISSING!"
+          [ -n "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ] && echo "✓ SUPABASE_SERVICE_ROLE_KEY" || echo "✗ SUPABASE_SERVICE_ROLE_KEY MISSING!"
+          [ -n "${{ secrets.E2E_USERNAME }}" ] && echo "✓ E2E_USERNAME" || echo "✗ E2E_USERNAME MISSING!"
+          [ -n "${{ secrets.E2E_PASSWORD }}" ] && echo "✓ E2E_PASSWORD" || echo "✗ E2E_PASSWORD MISSING!"
+          [ -n "${{ secrets.E2E_USERNAME_ID }}" ] && echo "✓ E2E_USERNAME_ID" || echo "✗ E2E_USERNAME_ID MISSING!"
+          
+          # Fail if critical secrets are missing
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_KEY }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "❌ Critical Supabase secrets are missing!"
+            exit 1
+          fi
+          
+          if [ -z "${{ secrets.E2E_USERNAME }}" ] || [ -z "${{ secrets.E2E_PASSWORD }}" ] || [ -z "${{ secrets.E2E_USERNAME_ID }}" ]; then
+            echo "❌ Critical E2E test user secrets are missing!"
+            exit 1
+          fi
 
       # 12. E2E TESTS - Testy end-to-end
       - name: 🎬 Run E2E tests

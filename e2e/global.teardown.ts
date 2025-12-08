@@ -1,4 +1,3 @@
-import { test as teardown } from "@playwright/test";
 import { config } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -17,12 +16,12 @@ config({ path: resolve(__dirname, "../.env.test") });
  *
  * This runs AFTER all test projects have completed
  */
-teardown("cleanup database", async () => {
+export default async function globalTeardown() {
   console.log("🧹 Starting E2E database cleanup...");
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const testUserId = process.env.E2E_TEST_USER_ID;
+  const testUserId = process.env.E2E_USERNAME_ID;
 
   // Validate required environment variables
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -33,7 +32,7 @@ teardown("cleanup database", async () => {
   }
 
   if (!testUserId) {
-    console.warn("⚠️  Skipping database cleanup: E2E_TEST_USER_ID not configured in .env.test");
+    console.warn("⚠️  Skipping database cleanup: E2E_USERNAME_ID not configured in .env.test");
     return;
   }
 
@@ -147,4 +146,4 @@ teardown("cleanup database", async () => {
     // Don't throw - we don't want to fail the entire test run if cleanup fails
     // Tests have already completed at this point
   }
-});
+}

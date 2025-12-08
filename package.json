@@ -20,6 +20,7 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:codegen": "playwright codegen http://localhost:4321",
+    "test:e2e:verify": "node scripts/verify-test-env.js",
     "dev:e2e": "astro dev --mode test"
   },
   "dependencies": {

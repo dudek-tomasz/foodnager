@@ -57,7 +57,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # Test User UUID
 # Get from: Supabase Dashboard -> Authentication -> Users
-E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
+E2E_USERNAME_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 ```
 
 ### 2. Jak znaleźć Test User UUID?
@@ -68,7 +68,7 @@ E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 2. Przejdź do **Authentication** → **Users**
 3. Znajdź użytkownika `test@foodnager.pl`
 4. Skopiuj kolumnę `id` (UUID)
-5. Wklej jako `E2E_TEST_USER_ID` w `.env.test`
+5. Wklej jako `E2E_USERNAME_ID` w `.env.test`
 
 **Metoda B: Przez SQL Editor**
 
@@ -134,12 +134,12 @@ Dane są usuwane w **odwrotnej kolejności** kluczy obcych (foreign keys):
 
 | Tabela               | Warunek                       | Opis                       |
 | -------------------- | ----------------------------- | -------------------------- |
-| `cooking_history`    | `user_id = E2E_TEST_USER_ID`  | Historia gotowania         |
-| `user_products`      | `user_id = E2E_TEST_USER_ID`  | Produkty w lodówce         |
+| `cooking_history`    | `user_id = E2E_USERNAME_ID`  | Historia gotowania         |
+| `user_products`      | `user_id = E2E_USERNAME_ID`  | Produkty w lodówce         |
 | `recipe_tags`        | `recipe_id IN (user recipes)` | Tagi przepisów użytkownika |
 | `recipe_ingredients` | `recipe_id IN (user recipes)` | Składniki przepisów        |
-| `recipes`            | `user_id = E2E_TEST_USER_ID`  | Przepisy użytkownika       |
-| `products`           | `user_id = E2E_TEST_USER_ID`  | Prywatne produkty          |
+| `recipes`            | `user_id = E2E_USERNAME_ID`  | Przepisy użytkownika       |
+| `products`           | `user_id = E2E_USERNAME_ID`  | Prywatne produkty          |
 
 ### Co NIE jest czyszczone?
 
@@ -200,7 +200,7 @@ import { cleanupFridge } from "./helpers/db-cleanup";
 test.describe("Fridge Tests", () => {
   test("should handle empty fridge", async ({ page }) => {
     // Clean fridge before test
-    await cleanupFridge(process.env.E2E_TEST_USER_ID!);
+    await cleanupFridge(process.env.E2E_USERNAME_ID!);
 
     // Test with empty state
     await page.goto("/fridge");
@@ -239,7 +239,7 @@ import { cleanupUserData } from "../e2e/helpers/db-cleanup";
 
 config({ path: ".env.test" });
 
-const userId = process.env.E2E_TEST_USER_ID!;
+const userId = process.env.E2E_USERNAME_ID!;
 await cleanupUserData(userId);
 
 console.log("✅ Database cleaned!");
@@ -267,7 +267,7 @@ npx tsx scripts/cleanup-test-db.ts
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
    ```
 
-### ⚠️ "Skipping database cleanup: E2E_TEST_USER_ID not configured"
+### ⚠️ "Skipping database cleanup: E2E_USERNAME_ID not configured"
 
 **Przyczyna:** Brak UUID użytkownika testowego
 
@@ -278,7 +278,7 @@ npx tsx scripts/cleanup-test-db.ts
 3. Skopiuj UUID
 4. Dodaj do `.env.test`:
    ```env
-   E2E_TEST_USER_ID=a1b2c3d4-e5f6-...
+   E2E_USERNAME_ID=a1b2c3d4-e5f6-...
    ```
 
 ### ❌ "Error cleaning products: foreign key violation"
@@ -349,7 +349,7 @@ export const test = base.extend({
 
       // Only cleanup after last test in file
       if (testInfo.project.name === "chromium") {
-        await cleanupUserData(process.env.E2E_TEST_USER_ID!);
+        await cleanupUserData(process.env.E2E_USERNAME_ID!);
       }
     },
     { auto: true },
@@ -385,7 +385,7 @@ test.afterAll(async () => {
   const { count } = await supabase
     .from("user_products")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", process.env.E2E_TEST_USER_ID!);
+    .eq("user_id", process.env.E2E_USERNAME_ID!);
 
   expect(count).toBe(0);
 });

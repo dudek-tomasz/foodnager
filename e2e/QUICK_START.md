@@ -99,7 +99,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # Test User UUID (required for cleanup)
 # Get from: Supabase Dashboard -> Authentication -> Users
-E2E_TEST_USER_ID=your-test-user-uuid-here
+E2E_USERNAME_ID=your-test-user-uuid-here
 ```
 
 ### Jak znaleźć potrzebne wartości:
@@ -114,7 +114,7 @@ E2E_TEST_USER_ID=your-test-user-uuid-here
    - Znajdź "service_role" (secret!)
    - ⚠️ NIGDY nie commituj tego klucza!
 
-3. **E2E_TEST_USER_ID**:
+3. **E2E_USERNAME_ID**:
    - Supabase Dashboard → Authentication → Users
    - Znajdź użytkownika testowego (test@foodnager.pl)
    - Skopiuj UUID (np. `a1b2c3d4-e5f6-...`)
@@ -130,7 +130,7 @@ Jeśli chcesz użyć innych danych:
 
 2. Zarejestruj użytkownika z tymi danymi
 
-3. Zaktualizuj E2E_TEST_USER_ID w `.env.test`
+3. Zaktualizuj E2E_USERNAME_ID w `.env.test`
 
 4. Uruchom testy ponownie
 
@@ -160,7 +160,7 @@ Jeśli potrzebujesz wyczyścić bazę w trakcie developmentu:
 import { cleanupUserData } from "./helpers/db-cleanup";
 
 // W teście lub standalone skrypcie
-await cleanupUserData(process.env.E2E_TEST_USER_ID!);
+await cleanupUserData(process.env.E2E_USERNAME_ID!);
 ```
 
 ## ✅ Gotowe!

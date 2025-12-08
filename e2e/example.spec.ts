@@ -20,8 +20,8 @@ test.describe("Home Page", () => {
     await page.goto("/");
 
     // Check if navigation elements are present
-    // Adjust selectors based on your actual navigation structure
-    const nav = page.locator("nav");
+    // Use first() to handle multiple nav elements (sidebar + bottom navigation)
+    const nav = page.locator("nav").first();
     await expect(nav).toBeVisible();
   });
 });

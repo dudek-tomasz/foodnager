@@ -84,7 +84,7 @@ SUPABASE_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # ⚠️ WYMAGANE!
 
 # Test User UUID
-E2E_TEST_USER_ID=your-test-user-uuid  # ⚠️ WYMAGANE!
+E2E_USERNAME_ID=your-test-user-uuid  # ⚠️ WYMAGANE!
 ```
 
 **Gdzie znaleźć wartości:**
@@ -94,7 +94,7 @@ E2E_TEST_USER_ID=your-test-user-uuid  # ⚠️ WYMAGANE!
 | `SUPABASE_URL`              | Dashboard → Settings → API → Project URL  |
 | `SUPABASE_KEY`              | Dashboard → Settings → API → anon/public  |
 | `SUPABASE_SERVICE_ROLE_KEY` | Dashboard → Settings → API → service_role |
-| `E2E_TEST_USER_ID`          | Dashboard → Authentication → Users → id   |
+| `E2E_USERNAME_ID`          | Dashboard → Authentication → Users → id   |
 
 ### 5. Dokumentacja
 
@@ -211,7 +211,7 @@ import { cleanupFridge } from "./helpers/db-cleanup";
 
 test("should start with empty fridge", async ({ page }) => {
   // Clean before test
-  await cleanupFridge(process.env.E2E_TEST_USER_ID!);
+  await cleanupFridge(process.env.E2E_USERNAME_ID!);
 
   await page.goto("/fridge");
   await expect(page.getByText("Lodówka jest pusta")).toBeVisible();
@@ -223,11 +223,11 @@ test("should start with empty fridge", async ({ page }) => {
 ```typescript
 test.describe("Fridge Tests", () => {
   test.beforeEach(async () => {
-    await cleanupFridge(process.env.E2E_TEST_USER_ID!);
+    await cleanupFridge(process.env.E2E_USERNAME_ID!);
   });
 
   test.afterEach(async () => {
-    await cleanupFridge(process.env.E2E_TEST_USER_ID!);
+    await cleanupFridge(process.env.E2E_USERNAME_ID!);
   });
 
   test("test 1", async ({ page }) => {
@@ -263,7 +263,7 @@ await cleanupCookingHistory(TEST_USER_ID);
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
    ```
 
-### Problem: "Skipping database cleanup: E2E_TEST_USER_ID not configured"
+### Problem: "Skipping database cleanup: E2E_USERNAME_ID not configured"
 
 **Rozwiązanie:**
 
@@ -272,7 +272,7 @@ await cleanupCookingHistory(TEST_USER_ID);
 3. Skopiuj UUID (id)
 4. Dodaj do `.env.test`:
    ```env
-   E2E_TEST_USER_ID=a1b2c3d4-e5f6-...
+   E2E_USERNAME_ID=a1b2c3d4-e5f6-...
    ```
 
 ### Problem: Cleanup nie usuwa danych
@@ -280,7 +280,7 @@ await cleanupCookingHistory(TEST_USER_ID);
 **Rozwiązanie:**
 
 1. Sprawdź logi - czy cleanup się uruchamia?
-2. Sprawdź `E2E_TEST_USER_ID` - czy to poprawny UUID?
+2. Sprawdź `E2E_USERNAME_ID` - czy to poprawny UUID?
 3. Sprawdź service role key - czy jest poprawny?
 4. Sprawdź RLS policies - czy są włączone?
 
@@ -347,7 +347,7 @@ Przed pierwszym uruchomieniem testów:
 - [ ] Utworzyłem plik `.env.test`
 - [ ] Dodałem `SUPABASE_URL`, `SUPABASE_KEY`
 - [ ] Dodałem `SUPABASE_SERVICE_ROLE_KEY` (⚠️ service role!)
-- [ ] Dodałem `E2E_TEST_USER_ID`
+- [ ] Dodałem `E2E_USERNAME_ID`
 - [ ] Utworzyłem użytkownika testowego w Supabase
 - [ ] Email użytkownika jest potwierdzony
 - [ ] Uruchomiłem testy: `npm run test:e2e`

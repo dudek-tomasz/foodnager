@@ -154,6 +154,15 @@ The following scripts are defined in the project's `package.json`:
 - **`npm run test:e2e:debug`**: Runs E2E tests in debug mode for step-by-step execution.
 - **`npm run test:e2e:report`**: Shows Playwright test report from previous runs.
 - **`npm run test:e2e:codegen`**: Interactive test code generation tool.
+- **`npm run test:e2e:verify`**: Verifies E2E test environment configuration.
+- **`npm run dev:e2e`**: Starts dev server in test mode for E2E tests.
+
+📖 **E2E Test Setup:** Before running E2E tests, you need to:
+1. Create a `.env.test` file with test credentials (see `e2e/README.md`)
+2. Create a test user in Supabase
+3. Run `npm run test:e2e:verify` to check your configuration
+
+See [e2e/README.md](e2e/README.md) for detailed E2E testing documentation.
 
 ## Project Scope
 
