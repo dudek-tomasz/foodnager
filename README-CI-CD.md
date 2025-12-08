@@ -20,10 +20,12 @@
 ### Workflow
 
 **Trigger:**
+
 - ✅ Automatycznie: push do `master`
 - ✅ Manualnie: GitHub Actions UI (z opcją pominięcia E2E)
 
 **Kroki:**
+
 1. 🔍 Lint (ESLint + Prettier)
 2. 🏗️ Build produkcyjny
 3. 🧪 Testy jednostkowe (Vitest)
@@ -32,12 +34,14 @@
 ## 🔐 Wymagane GitHub Secrets
 
 ### Z pliku `.env` (build)
+
 ```
 SUPABASE_URL
 SUPABASE_ANON_KEY
 ```
 
 ### Z pliku `.env.test` (E2E)
+
 ```
 E2E_USERNAME
 E2E_PASSWORD
@@ -70,16 +74,20 @@ GitHub Repository → Settings → Secrets and variables → Actions → New rep
 ## 💡 Tips
 
 ### Wyłącz E2E tymczasowo
+
 GitHub → Actions → CI - Tests & Build → Run workflow → ✅ "Pomiń testy E2E"
 
 ### Wyłącz E2E na stałe
+
 Edytuj `.github/workflows/ci.yml`:
+
 ```yaml
 - name: 🎬 Run E2E tests
-  if: false  # ← zmień na false
+  if: false # ← zmień na false
 ```
 
 ### Pobierz raporty z błędów
+
 GitHub → Actions → konkretny run → Artifacts → `playwright-report` / `test-videos`
 
 ## ✅ Gotowe!

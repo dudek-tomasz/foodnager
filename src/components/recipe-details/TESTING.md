@@ -1,6 +1,7 @@
 # Recipe Details View - Testing Guide
 
 ## Overview
+
 Comprehensive testing guide for Recipe Details view covering all user flows, edge cases, and accessibility requirements.
 
 ## Manual Testing Checklist
@@ -8,6 +9,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 1. Navigation & Routing
 
 #### ✅ Basic Navigation
+
 - [ ] Navigate to `/recipes/:id` with valid recipe ID
 - [ ] Recipe loads and displays correctly
 - [ ] Back button navigates to previous page
@@ -18,6 +20,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
   - No param → "Wróć"
 
 #### ✅ URL Query Parameters
+
 - [ ] `matchScore` param displays MatchScoreBadge
 - [ ] Missing `matchScore` hides the badge
 - [ ] Invalid recipe ID redirects or shows error
@@ -26,6 +29,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 2. Recipe Display
 
 #### ✅ Header Section
+
 - [ ] Recipe title displays correctly
 - [ ] SourceBadge shows correct color:
   - USER → blue "MOJE"
@@ -38,6 +42,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Actions dropdown opens/closes correctly
 
 #### ✅ Meta Section
+
 - [ ] Cooking time displays and formats correctly (min/hours)
 - [ ] Difficulty shows with correct color:
   - Easy → green "Łatwy"
@@ -47,6 +52,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Section hides when no meta data available
 
 #### ✅ Ingredients Section
+
 - [ ] All ingredients display with correct names and quantities
 - [ ] Color coding works correctly:
   - Green background → full availability (✓ checkmark icon)
@@ -59,6 +65,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Button state updates during generation (loading)
 
 #### ✅ Instructions Section
+
 - [ ] Description shows (if available)
 - [ ] Instructions parse correctly (numbered or line-separated)
 - [ ] Steps display in ordered list with numbers
@@ -67,6 +74,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 3. User Actions - Cook Recipe
 
 #### ✅ Happy Path
+
 - [ ] Click "Ugotuj to" button
 - [ ] Validation passes (all ingredients available)
 - [ ] Confirmation dialog opens
@@ -79,12 +87,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Redirects to `/history`
 
 #### ✅ Missing Ingredients
+
 - [ ] Click "Ugotuj to" with missing ingredients
 - [ ] Error toast appears with message
 - [ ] Toast includes "Generuj listę zakupów" action button
 - [ ] Dialog does NOT open
 
 #### ✅ Dialog Interactions
+
 - [ ] Click "Anuluj" closes dialog
 - [ ] Click outside dialog closes it
 - [ ] ESC key closes dialog
@@ -94,6 +104,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 4. User Actions - Delete Recipe
 
 #### ✅ User Recipes Only
+
 - [ ] Dropdown shows "Edytuj przepis" and "Usuń przepis" for user recipes
 - [ ] Click "Usuń przepis"
 - [ ] Confirmation dialog opens
@@ -105,6 +116,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Redirects to `/recipes`
 
 #### ✅ Dialog Interactions
+
 - [ ] Click "Anuluj" closes dialog
 - [ ] Click outside dialog closes it
 - [ ] ESC key closes dialog
@@ -112,6 +124,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 5. User Actions - Save Recipe (Copy)
 
 #### ✅ External Recipes Only (API/AI)
+
 - [ ] Dropdown shows "Zapisz do moich przepisów" for external recipes
 - [ ] Click "Zapisz do moich przepisów"
 - [ ] Loading state shows ("Zapisywanie...")
@@ -122,12 +135,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 6. User Actions - Edit Recipe
 
 #### ✅ User Recipes Only
+
 - [ ] Click "Edytuj przepis" in dropdown
 - [ ] Redirects to `/recipes/:id/edit` (if edit page exists)
 
 ### 7. User Actions - Generate Shopping List
 
 #### ✅ Happy Path
+
 - [ ] Button visible only when ingredients missing
 - [ ] Click "Generuj listę zakupów"
 - [ ] Loading state shows ("Generowanie...")
@@ -137,6 +152,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 8. Sticky Bottom Bar
 
 #### ✅ Scroll Behavior
+
 - [ ] Bar hidden on page load
 - [ ] Bar appears after scrolling down 300px
 - [ ] Smooth transition (opacity + translate)
@@ -145,6 +161,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] "Zapisz przepis" only shows for external recipes
 
 #### ✅ Actions from Sticky Bar
+
 - [ ] "Ugotuj to" works same as main button
 - [ ] "Zapisz przepis" works same as main button
 - [ ] Loading states update correctly
@@ -152,6 +169,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 9. Error Handling
 
 #### ✅ Recipe Not Found (404)
+
 - [ ] Error state displays with message
 - [ ] "Spróbuj ponownie" button available
 - [ ] "Wróć" button available
@@ -159,26 +177,31 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Clicking back navigates away
 
 #### ✅ Unauthorized (401)
+
 - [ ] Error message about login required
 - [ ] Appropriate action buttons
 
 #### ✅ Network Error
+
 - [ ] Generic error message displays
 - [ ] Retry button available
 - [ ] Retry functionality works
 
 #### ✅ Cooking with Insufficient Ingredients (422)
+
 - [ ] Error toast shows specific message
 - [ ] "Generuj listę zakupów" action in toast
 
 ### 10. Loading States
 
 #### ✅ Initial Load
+
 - [ ] Loading spinner displays
 - [ ] "Ładowanie przepisu..." message shows
 - [ ] No content flash before loading
 
 #### ✅ Action Loading States
+
 - [ ] "Ugotuj to" → "Gotowanie..."
 - [ ] "Zapisz przepis" → "Zapisywanie..."
 - [ ] "Usuń przepis" → "Usuwanie..."
@@ -189,6 +212,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 11. Responsive Design
 
 #### ✅ Mobile (< 640px)
+
 - [ ] Layout stacks vertically
 - [ ] Header compact and readable
 - [ ] Meta section wraps properly
@@ -200,12 +224,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Text sizes appropriate
 
 #### ✅ Tablet (640px - 1024px)
+
 - [ ] Layout uses available space
 - [ ] Action buttons side-by-side
 - [ ] Meta section uses flexbox
 - [ ] All content readable
 
 #### ✅ Desktop (> 1024px)
+
 - [ ] Content centered with max-width
 - [ ] Action buttons min-width maintained
 - [ ] Sticky bar buttons maintain size
@@ -214,6 +240,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 12. Accessibility (a11y)
 
 #### ✅ Keyboard Navigation
+
 - [ ] Tab through all interactive elements
 - [ ] Focus visible on all elements
 - [ ] Dropdown opens with Enter/Space
@@ -223,6 +250,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Skip links work (if implemented)
 
 #### ✅ Screen Reader
+
 - [ ] Page title announces correctly
 - [ ] Headings hierarchy (h1 → h2)
 - [ ] Landmarks identified (header, main, sections)
@@ -235,6 +263,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Images have alt text (if added)
 
 #### ✅ Color & Contrast
+
 - [ ] Color coding has sufficient contrast
 - [ ] Text readable in light mode
 - [ ] Text readable in dark mode (if implemented)
@@ -242,6 +271,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Focus indicators visible
 
 #### ✅ ARIA Attributes
+
 - [ ] `role="status"` on loading spinner
 - [ ] `role="alert"` on error state
 - [ ] `role="list"` on ingredient list
@@ -256,6 +286,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 13. Edge Cases
 
 #### ✅ Data Edge Cases
+
 - [ ] Recipe with no ingredients
 - [ ] Recipe with no instructions
 - [ ] Recipe with no tags
@@ -269,6 +300,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - [ ] Recipe with 50+ ingredients
 
 #### ✅ User Interactions
+
 - [ ] Rapid clicking on buttons (debouncing)
 - [ ] Opening multiple dialogs (only one opens)
 - [ ] Switching tabs during API call
@@ -278,12 +310,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 14. Performance
 
 #### ✅ Load Times
+
 - [ ] Initial page load < 2s (good network)
 - [ ] Images lazy load (if added)
 - [ ] No layout shift during load
 - [ ] Smooth scroll behavior
 
 #### ✅ Interactions
+
 - [ ] Button clicks responsive (< 100ms feedback)
 - [ ] Scroll smooth (60fps)
 - [ ] Dialog animations smooth
@@ -292,12 +326,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ### 15. Browser Compatibility
 
 #### ✅ Modern Browsers
+
 - [ ] Chrome (latest)
 - [ ] Firefox (latest)
 - [ ] Safari (latest)
 - [ ] Edge (latest)
 
 #### ✅ Features
+
 - [ ] Fetch API works
 - [ ] Promises work
 - [ ] Async/await works
@@ -307,12 +343,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ## Test Data Scenarios
 
 ### Scenario 1: User Recipe with All Ingredients
+
 - User owns recipe
 - All ingredients in fridge (full availability)
 - Can cook immediately
 - Can edit/delete
 
 ### Scenario 2: External Recipe (API) with Missing Ingredients
+
 - Recipe from API
 - Some ingredients missing
 - Should show shopping list button
@@ -320,12 +358,14 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - Cannot edit/delete
 
 ### Scenario 3: AI Recipe with Partial Ingredients
+
 - Recipe from AI
 - Some ingredients partially available
 - Warning in cook dialog
 - Can save to own recipes
 
 ### Scenario 4: Recipe with Minimal Data
+
 - No cooking time
 - No difficulty
 - No tags
@@ -333,6 +373,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 - Should still display correctly
 
 ### Scenario 5: Recipe with Match Score
+
 - Came from search results
 - Has matchScore query param
 - Badge displays with correct color
@@ -340,6 +381,7 @@ Comprehensive testing guide for Recipe Details view covering all user flows, edg
 ## Automation Opportunities
 
 While this is a manual testing guide, consider automating:
+
 - API call mocking for consistent test data
 - Snapshot tests for component rendering
 - Unit tests for utility functions
@@ -359,9 +401,9 @@ While this is a manual testing guide, consider automating:
 **Issue:** [Brief description]
 **Severity:** [Critical/High/Medium/Low]
 **Steps to Reproduce:**
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 **Expected:** [What should happen]
 **Actual:** [What actually happens]
@@ -372,6 +414,7 @@ While this is a manual testing guide, consider automating:
 ## Sign-off Checklist
 
 Before considering Recipe Details View complete:
+
 - [ ] All critical paths tested
 - [ ] All accessibility requirements met
 - [ ] All responsive breakpoints verified
@@ -381,4 +424,3 @@ Before considering Recipe Details View complete:
 - [ ] Performance acceptable
 - [ ] No console errors/warnings
 - [ ] Documentation complete
-

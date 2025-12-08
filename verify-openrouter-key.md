@@ -9,11 +9,13 @@ OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxx
 ```
 
 ### ✅ Prawidłowy klucz:
+
 - Zaczyna się od `sk-or-v1-`
 - Ma długość ~60-80 znaków
 - Składa się z losowych znaków alfanumerycznych
 
 ### ❌ Nieprawidłowy klucz:
+
 - `###` (placeholder)
 - `your_key_here`
 - Pusta wartość
@@ -41,6 +43,7 @@ curl https://openrouter.ai/api/v1/auth/key \
 ```
 
 **Odpowiedź jeśli klucz jest prawidłowy:**
+
 ```json
 {
   "data": {
@@ -57,6 +60,7 @@ curl https://openrouter.ai/api/v1/auth/key \
 ```
 
 **Odpowiedź jeśli klucz jest nieprawidłowy:**
+
 ```json
 {
   "error": {
@@ -74,6 +78,7 @@ curl https://openrouter.ai/api/v1/credits \
 ```
 
 **Odpowiedź:**
+
 ```json
 {
   "credits": 4.87,
@@ -91,4 +96,3 @@ Jeśli `credits` < 0.01, musisz dodać środki!
 2. **Zrestartuj serwer:** `npm run dev`
 3. Wywołaj API ponownie
 4. Sprawdź logi - powinno działać! 🎉
-

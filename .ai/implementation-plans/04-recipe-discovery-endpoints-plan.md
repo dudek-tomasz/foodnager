@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Recipe Discovery & AI Integration
 
 ## Spis treści
+
 1. [POST /api/recipes/search-by-fridge - Search Recipes by Fridge Contents](#1-post-apirecipessearch-by-fridge---search-recipes-by-fridge-contents)
 2. [POST /api/recipes/generate - Generate Recipe with AI](#2-post-apirecipesgenerate---generate-recipe-with-ai)
 
@@ -9,6 +10,7 @@
 ## 1. POST /api/recipes/search-by-fridge - Search Recipes by Fridge Contents
 
 ### 1.1 Przegląd punktu końcowego
+
 Najbardziej złożony endpoint w systemie. Implementuje hierarchiczne wyszukiwanie przepisów (US-004): najpierw przeszukuje przepisy użytkownika, następnie zewnętrzne API, a ostatecznie generuje przepis przez AI. Matching algorithm oblicza score na podstawie dostępności składników.
 
 **Powiązane User Stories:** US-004 (Wyszukiwanie przepisu na podstawie dostępnych produktów)
@@ -22,6 +24,7 @@ Najbardziej złożony endpoint w systemie. Implementuje hierarchiczne wyszukiwan
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `use_all_fridge_items` (boolean) - Czy użyć wszystkich produktów z lodówki
 - **Opcjonalne:**
@@ -33,6 +36,7 @@ Najbardziej złożony endpoint w systemie. Implementuje hierarchiczne wyszukiwan
     - `dietary_restrictions` (array of strings) - Ograniczenia dietetyczne (np. ["vegetarian", "gluten-free"])
 
 **Przykładowe żądania:**
+
 ```json
 POST /api/recipes/search-by-fridge
 {
@@ -58,6 +62,7 @@ POST /api/recipes/search-by-fridge
 ### 1.3 Wykorzystywane typy
 
 **Request DTOs:**
+
 ```typescript
 SearchRecipesByFridgeDTO {
   use_all_fridge_items: boolean;
@@ -74,6 +79,7 @@ SearchRecipePreferencesDTO {
 ```
 
 **Response DTOs:**
+
 ```typescript
 SearchRecipesResponseDTO {
   results: RecipeSearchResultDTO[];
@@ -105,6 +111,7 @@ SearchMetadataDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "results": [
@@ -154,6 +161,7 @@ SearchMetadataDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `422 Unprocessable Entity` - Nieprawidłowe dane wejściowe
 - `500 Internal Server Error` - Błąd zewnętrznego API lub AI
@@ -204,67 +212,77 @@ SearchMetadataDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - Dostęp tylko do własnej lodówki
 - custom_product_ids: weryfikacja dostępności dla użytkownika
 
 **Walidacja:**
+
 - Walidacja use_all_fridge_items + custom_product_ids logic
 - max_results: 1-50
 - preferences validation
 - Sanityzacja przed wysłaniem do External API/AI
 
 **Rate Limiting:**
+
 - Szczególnie ważne dla AI tier (kosztowne)
 - Limit: 5 AI requests per minute per user
 - Cache wyniki na podstawie product combination
 
 **External API:**
+
 - API key security (environment variables)
 - Timeout handling (max 10s per tier)
 - Error handling (failover to next tier)
 
 **AI Safety:**
+
 - Prompt injection prevention
 - Output validation (schema check)
 - Content filtering (optional)
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowe dane | 422 | VALIDATION_ERROR | Zwróć szczegóły walidacji |
-| custom_product_ids nie istnieją | 422 | VALIDATION_ERROR | Zwróć: Invalid product IDs |
-| Pusta lodówka | 422 | VALIDATION_ERROR | Zwróć: No products available |
-| External API timeout | 500 | EXTERNAL_API_ERROR | Log, fallback to next tier |
-| External API error | 500 | EXTERNAL_API_ERROR | Log, fallback to next tier |
-| AI service error | 500 | AI_SERVICE_ERROR | Log, return empty results with metadata |
-| AI rate limit exceeded | 429 | RATE_LIMIT_EXCEEDED | Zwróć: Try again later |
-| Wszystkie tiers failed | 500 | INTERNAL_ERROR | Zwróć: No recipes found, try different products |
+| Scenariusz                      | Kod HTTP | Error Code          | Akcja                                           |
+| ------------------------------- | -------- | ------------------- | ----------------------------------------------- |
+| Brak tokenu                     | 401      | UNAUTHORIZED        | Zwróć komunikat o wymaganej autoryzacji         |
+| Nieprawidłowy token             | 401      | UNAUTHORIZED        | Zwróć komunikat o nieprawidłowym tokenie        |
+| Nieprawidłowe dane              | 422      | VALIDATION_ERROR    | Zwróć szczegóły walidacji                       |
+| custom_product_ids nie istnieją | 422      | VALIDATION_ERROR    | Zwróć: Invalid product IDs                      |
+| Pusta lodówka                   | 422      | VALIDATION_ERROR    | Zwróć: No products available                    |
+| External API timeout            | 500      | EXTERNAL_API_ERROR  | Log, fallback to next tier                      |
+| External API error              | 500      | EXTERNAL_API_ERROR  | Log, fallback to next tier                      |
+| AI service error                | 500      | AI_SERVICE_ERROR    | Log, return empty results with metadata         |
+| AI rate limit exceeded          | 429      | RATE_LIMIT_EXCEEDED | Zwróć: Try again later                          |
+| Wszystkie tiers failed          | 500      | INTERNAL_ERROR      | Zwróć: No recipes found, try different products |
 
 **Partial Success:**
+
 - Jeśli Tier 1 zwraca 0 wyników: nie jest to błąd, próbujemy Tier 2
 - Jeśli wszystkie tiers zwracają 0: zwracamy 200 z pustą listą + metadata
 
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - Tier 1 (user recipes) - najbardziej efektywny, zawsze próbujemy najpierw
 - Batch loading: wszystkie przepisy + ingredients w 2-3 queries
 - Match score calculation: in-memory (szybkie)
 - Cache wyników: `search:{userId}:{productsHash}:{preferencesHash}` na 1 godzinę
 
 **Timeouts:**
+
 - Tier 1: max 5 sekund
 - Tier 2: max 10 sekund
 - Tier 3: max 30 sekund
 - Total timeout: 45 sekund
 
 **Caching Strategy:**
+
 ```typescript
 // Cache key
 const cacheKey = `search:${userId}:${hashProducts(products)}:${hashPreferences(prefs)}`;
@@ -278,6 +296,7 @@ cache.set(cacheKey, results, 3600); // 1 hour
 ```
 
 **Cost Optimization (AI):**
+
 - Cache agresywnie dla AI tier
 - Fallback to tier 2 jeśli możliwe
 - Batch AI requests (jeśli możliwe)
@@ -287,25 +306,32 @@ cache.set(cacheKey, results, 3600); // 1 hour
 #### Phase 1: Core Infrastructure
 
 1. **Zod schema walidacji**
+
    ```typescript
    z.object({
      use_all_fridge_items: z.boolean(),
      custom_product_ids: z.array(z.number().int().positive()).optional(),
      max_results: z.number().int().min(1).max(50).default(10),
-     preferences: z.object({
-       max_cooking_time: z.number().int().positive().optional(),
-       difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
-       dietary_restrictions: z.array(z.string()).optional()
-     }).optional()
-   }).refine(data => {
-     if (!data.use_all_fridge_items && !data.custom_product_ids) {
-       return false;
-     }
-     return true;
-   }, { message: "custom_product_ids required when use_all_fridge_items is false" })
+     preferences: z
+       .object({
+         max_cooking_time: z.number().int().positive().optional(),
+         difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+         dietary_restrictions: z.array(z.string()).optional(),
+       })
+       .optional(),
+   }).refine(
+     (data) => {
+       if (!data.use_all_fridge_items && !data.custom_product_ids) {
+         return false;
+       }
+       return true;
+     },
+     { message: "custom_product_ids required when use_all_fridge_items is false" }
+   );
    ```
 
 2. **Match Score Calculator**
+
    ```typescript
    class MatchScoreCalculator {
      calculate(
@@ -315,7 +341,7 @@ cache.set(cacheKey, results, 3600); // 1 hour
        score: number;
        available: AvailableIngredientDTO[];
        missing: AvailableIngredientDTO[];
-     }
+     };
    }
    ```
 
@@ -326,15 +352,17 @@ cache.set(cacheKey, results, 3600); // 1 hour
 #### Phase 2: Tier 1 Implementation
 
 4. **RecipeDiscoveryService - Tier 1**
+
    ```typescript
    class RecipeDiscoveryService {
      async searchUserRecipes(
        userId: string,
        products: Product[],
        preferences?: Preferences
-     ): Promise<RecipeSearchResultDTO[]>
+     ): Promise<RecipeSearchResultDTO[]>;
    }
    ```
+
    - Fetch user recipes with ingredients
    - Calculate match scores
    - Filter by preferences
@@ -343,126 +371,118 @@ cache.set(cacheKey, results, 3600); // 1 hour
 
 5. **Preferences Filter**
    ```typescript
-   function filterByPreferences(
-     recipes: Recipe[],
-     preferences?: Preferences
-   ): Recipe[]
+   function filterByPreferences(recipes: Recipe[], preferences?: Preferences): Recipe[];
    ```
 
 #### Phase 3: Tier 2 Implementation
 
 6. **External API Service**
+
    ```typescript
    class ExternalAPIService {
-     async searchRecipes(
-       ingredients: string[],
-       preferences?: Preferences
-     ): Promise<ExternalRecipe[]>
+     async searchRecipes(ingredients: string[], preferences?: Preferences): Promise<ExternalRecipe[]>;
    }
    ```
+
    - HTTP client with timeout
    - Error handling
    - Response parsing
 
 7. **External API Mapper**
+
    ```typescript
    class ExternalRecipeMapper {
-     async mapToInternalFormat(
-       externalRecipe: ExternalRecipe,
-       userId: string
-     ): Promise<Recipe>
+     async mapToInternalFormat(externalRecipe: ExternalRecipe, userId: string): Promise<Recipe>;
    }
    ```
+
    - Ingredient mapping (fuzzy match product names)
    - Create products if not exist
    - Save recipe with source='api'
 
 8. **Fuzzy Product Matcher**
+
    ```typescript
    class ProductMatcher {
-     async findOrCreateProduct(
-       productName: string,
-       userId: string
-     ): Promise<Product>
+     async findOrCreateProduct(productName: string, userId: string): Promise<Product>;
    }
    ```
+
    - Search existing products (case-insensitive, fuzzy)
    - Create new product if no match
 
 #### Phase 4: Tier 3 Implementation
 
 9. **AI Service**
+
    ```typescript
    class AIService {
-     async generateRecipe(
-       products: Product[],
-       preferences?: Preferences
-     ): Promise<GeneratedRecipe>
+     async generateRecipe(products: Product[], preferences?: Preferences): Promise<GeneratedRecipe>;
    }
    ```
+
    - Build prompt
    - Call OpenRouter API
    - Parse JSON response
    - Validate structure
 
 10. **Prompt Builder**
+
     ```typescript
     class RecipePromptBuilder {
-      build(
-        products: Product[],
-        preferences?: Preferences
-      ): string
+      build(products: Product[], preferences?: Preferences): string;
     }
     ```
+
     - Structured prompt for consistent output
     - Include JSON schema for response
 
 11. **AI Response Validator**
+
     ```typescript
     class AIResponseValidator {
-      validate(response: unknown): GeneratedRecipe
+      validate(response: unknown): GeneratedRecipe;
     }
     ```
+
     - Zod schema for AI response
     - Error handling for malformed responses
 
 #### Phase 5: Integration & Endpoint
 
 12. **Orchestrator Service**
+
     ```typescript
     class RecipeDiscoveryService {
-      async searchByFridge(
-        userId: string,
-        searchDto: SearchRecipesByFridgeDTO
-      ): Promise<SearchRecipesResponseDTO> {
+      async searchByFridge(userId: string, searchDto: SearchRecipesByFridgeDTO): Promise<SearchRecipesResponseDTO> {
         const startTime = Date.now();
-        
+
         // Get available products
         const products = await this.getAvailableProducts(userId, searchDto);
-        
+
         // Tier 1: User recipes
         const tier1Results = await this.searchUserRecipes(userId, products, searchDto.preferences);
         if (this.isGoodMatch(tier1Results)) {
-          return this.buildResponse(tier1Results, 'user_recipes', startTime);
+          return this.buildResponse(tier1Results, "user_recipes", startTime);
         }
-        
+
         // Tier 2: External API
         try {
           const tier2Results = await this.searchExternalAPI(products, searchDto.preferences);
           if (tier2Results.length > 0) {
-            return this.buildResponse(tier2Results, 'external_api', startTime);
+            return this.buildResponse(tier2Results, "external_api", startTime);
           }
         } catch (error) {
-          logger.error('External API failed', error);
+          logger.error("External API failed", error);
         }
-        
+
         // Tier 3: AI Generation
         try {
           const tier3Results = await this.generateWithAI(products, searchDto.preferences);
-          return this.buildResponse(tier3Results, 'ai_generated', startTime);
+          return this.buildResponse(tier3Results, "ai_generated", startTime);
         } catch (error) {
-          logger.error('AI generation failed', error);
-          return this.buildResponse([], 'ai_generated', startTime);
+          logger.error("AI generation failed", error);
+          return this.buildResponse([], "ai_generated", startTime);
         }
       }
     }
@@ -504,6 +524,7 @@ cache.set(cacheKey, results, 3600); // 1 hour
 ### 1.10 Configuration
 
 **Environment Variables:**
+
 ```env
 # External Recipe API
 EXTERNAL_RECIPE_API_URL=https://api.spoonacular.com
@@ -529,6 +550,7 @@ AI_REQUESTS_PER_MINUTE=5
 ## 2. POST /api/recipes/generate - Generate Recipe with AI
 
 ### 2.1 Przegląd punktu końcowego
+
 Endpoint bezpośrednio generuje nowy przepis używając AI na podstawie wybranych produktów i preferencji. W przeciwieństwie do search-by-fridge, ten endpoint pomija wyszukiwanie i idzie bezpośrednio do generacji AI. Opcjonalnie zapisuje wygenerowany przepis do bazy danych użytkownika.
 
 **Powiązane User Stories:** US-004 (Wyszukiwanie przepisu), rozszerzenie funkcjonalności AI
@@ -542,6 +564,7 @@ Endpoint bezpośrednio generuje nowy przepis używając AI na podstawie wybranyc
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `product_ids` (array of integers) - Lista IDs produktów do użycia, minimum 1
 - **Opcjonalne:**
@@ -553,6 +576,7 @@ Endpoint bezpośrednio generuje nowy przepis używając AI na podstawie wybranyc
   - `save_to_recipes` (boolean) - Czy zapisać wygenerowany przepis, domyślnie true
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/recipes/generate
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -573,6 +597,7 @@ Content-Type: application/json
 ### 2.3 Wykorzystywane typy
 
 **Request DTOs:**
+
 ```typescript
 GenerateRecipeDTO {
   product_ids: number[];
@@ -589,6 +614,7 @@ GenerateRecipePreferencesDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 GenerateRecipeResponseDTO {
   recipe: RecipeDTO;
@@ -598,6 +624,7 @@ GenerateRecipeResponseDTO {
 ### 2.4 Szczegóły odpowiedzi
 
 **Sukces (201 Created):**
+
 ```json
 {
   "recipe": {
@@ -645,6 +672,7 @@ GenerateRecipeResponseDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane wejściowe
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Produkt nie istnieje lub nie jest dostępny
@@ -694,24 +722,29 @@ GenerateRecipeResponseDTO {
 ### 2.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - product_ids: weryfikacja dostępności dla użytkownika
 - Zapisywanie tylko do własnych przepisów
 
 **Walidacja:**
+
 - product_ids: minimum 1, maximum 20 (praktyczny limit)
 - Weryfikacja wszystkich product_ids przed generacją
 - Sanityzacja preferences przed wysłaniem do AI
 
 **Rate Limiting:**
+
 - **Krytyczne**: AI generation jest kosztowne
 - Limit: 5 requests per minute per user
 - Limit dzienny: 50 requests per day per user
 - Header w response: `X-RateLimit-Remaining-AI`
 
 **AI Safety:**
+
 - **Prompt Injection Prevention:**
   - Nie pozwalaj użytkownikowi na bezpośredni input do promptu
   - Tylko kontrolowane parametry (cuisine, difficulty)
@@ -726,29 +759,31 @@ GenerateRecipeResponseDTO {
   - Monitor usage per user
 
 **Data Privacy:**
+
 - Metadata zawiera input data (audyt)
 - Nie wysyłamy user PII do AI
 - Log AI interactions (dla audytu)
 
 ### 2.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak product_ids | 400 | VALIDATION_ERROR | Zwróć: product_ids required |
-| Puste product_ids | 400 | VALIDATION_ERROR | Zwróć: at least one product required |
-| Za dużo product_ids (>20) | 400 | VALIDATION_ERROR | Zwróć: maximum 20 products allowed |
-| product_id nie istnieje | 404 | NOT_FOUND | Zwróć: Product not found (ID) |
-| product_id innego użytkownika | 404 | NOT_FOUND | Zwróć: Product not found |
-| Rate limit exceeded | 429 | RATE_LIMIT_EXCEEDED | Zwróć: AI generation rate limit exceeded, headers z reset time |
-| AI API timeout | 503 | AI_SERVICE_ERROR | Zwróć: AI service temporarily unavailable |
-| AI API error | 500 | AI_SERVICE_ERROR | Log, zwróć: Failed to generate recipe |
-| AI response malformed | 500 | AI_SERVICE_ERROR | Log, zwróć: Failed to parse AI response |
-| AI response validation failed | 500 | AI_SERVICE_ERROR | Log, zwróć: Generated recipe is invalid |
-| Save to DB failed | 500 | INTERNAL_ERROR | Log, ale zwróć generated recipe (bez ID) |
+| Scenariusz                    | Kod HTTP | Error Code          | Akcja                                                          |
+| ----------------------------- | -------- | ------------------- | -------------------------------------------------------------- |
+| Brak tokenu                   | 401      | UNAUTHORIZED        | Zwróć komunikat o wymaganej autoryzacji                        |
+| Nieprawidłowy token           | 401      | UNAUTHORIZED        | Zwróć komunikat o nieprawidłowym tokenie                       |
+| Brak product_ids              | 400      | VALIDATION_ERROR    | Zwróć: product_ids required                                    |
+| Puste product_ids             | 400      | VALIDATION_ERROR    | Zwróć: at least one product required                           |
+| Za dużo product_ids (>20)     | 400      | VALIDATION_ERROR    | Zwróć: maximum 20 products allowed                             |
+| product_id nie istnieje       | 404      | NOT_FOUND           | Zwróć: Product not found (ID)                                  |
+| product_id innego użytkownika | 404      | NOT_FOUND           | Zwróć: Product not found                                       |
+| Rate limit exceeded           | 429      | RATE_LIMIT_EXCEEDED | Zwróć: AI generation rate limit exceeded, headers z reset time |
+| AI API timeout                | 503      | AI_SERVICE_ERROR    | Zwróć: AI service temporarily unavailable                      |
+| AI API error                  | 500      | AI_SERVICE_ERROR    | Log, zwróć: Failed to generate recipe                          |
+| AI response malformed         | 500      | AI_SERVICE_ERROR    | Log, zwróć: Failed to parse AI response                        |
+| AI response validation failed | 500      | AI_SERVICE_ERROR    | Log, zwróć: Generated recipe is invalid                        |
+| Save to DB failed             | 500      | INTERNAL_ERROR      | Log, ale zwróć generated recipe (bez ID)                       |
 
 **Error Response Format:**
+
 ```json
 {
   "error": {
@@ -766,20 +801,24 @@ GenerateRecipeResponseDTO {
 ### 2.8 Wydajność
 
 **Optymalizacje:**
+
 - Cache identical requests: `ai:recipe:${hashProducts}:${hashPreferences}` na 24 godziny
 - Batch product fetching
 - Async processing (optional): zwróć job ID, poll for result
 
 **Cost Optimization:**
+
 - Agresywne cachowanie
 - Monitoring usage per user
 - Alert przy nadmiernym użyciu
 
 **Timeouts:**
+
 - AI API call: max 30 sekund
 - Total request: max 45 sekund
 
 **Caching Strategy:**
+
 ```typescript
 // Cache key based on products + preferences
 const cacheKey = `ai:recipe:${hashArray(productIds)}:${hashObject(preferences)}`;
@@ -801,31 +840,36 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 #### Phase 1: Validation & Core
 
 1. **Zod schema walidacji**
+
    ```typescript
    z.object({
      product_ids: z.array(z.number().int().positive()).min(1).max(20),
-     preferences: z.object({
-       cuisine: z.string().trim().max(50).optional(),
-       max_cooking_time: z.number().int().positive().optional(),
-       difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
-       dietary_restrictions: z.array(z.string().trim()).optional()
-     }).optional(),
-     save_to_recipes: z.boolean().default(true)
-   })
+     preferences: z
+       .object({
+         cuisine: z.string().trim().max(50).optional(),
+         max_cooking_time: z.number().int().positive().optional(),
+         difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+         dietary_restrictions: z.array(z.string().trim()).optional(),
+       })
+       .optional(),
+     save_to_recipes: z.boolean().default(true),
+   });
    ```
 
 2. **Rate Limiter**
+
    ```typescript
    class AIRateLimiter {
      async checkLimit(userId: string): Promise<{
        allowed: boolean;
        remaining: number;
        resetAt: Date;
-     }>
-     
-     async consumeToken(userId: string): Promise<void>
+     }>;
+
+     async consumeToken(userId: string): Promise<void>;
    }
    ```
+
    - Redis-based rate limiting
    - Sliding window algorithm
    - Per-minute and per-day limits
@@ -833,20 +877,18 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 #### Phase 2: AI Integration
 
 3. **AI Prompt Builder**
+
    ```typescript
    class AIRecipePromptBuilder {
-     build(
-       products: Product[],
-       preferences?: GenerateRecipePreferencesDTO
-     ): string {
+     build(products: Product[], preferences?: GenerateRecipePreferencesDTO): string {
        return `Generate a recipe using the following ingredients:
-       ${products.map(p => `- ${p.name}`).join('\n')}
+       ${products.map((p) => `- ${p.name}`).join("\n")}
        
        Preferences:
-       ${preferences?.cuisine ? `- Cuisine: ${preferences.cuisine}` : ''}
-       ${preferences?.max_cooking_time ? `- Max cooking time: ${preferences.max_cooking_time} minutes` : ''}
-       ${preferences?.difficulty ? `- Difficulty: ${preferences.difficulty}` : ''}
-       ${preferences?.dietary_restrictions?.length ? `- Dietary restrictions: ${preferences.dietary_restrictions.join(', ')}` : ''}
+       ${preferences?.cuisine ? `- Cuisine: ${preferences.cuisine}` : ""}
+       ${preferences?.max_cooking_time ? `- Max cooking time: ${preferences.max_cooking_time} minutes` : ""}
+       ${preferences?.difficulty ? `- Difficulty: ${preferences.difficulty}` : ""}
+       ${preferences?.dietary_restrictions?.length ? `- Dietary restrictions: ${preferences.dietary_restrictions.join(", ")}` : ""}
        
        Return a JSON object with the following structure:
        {
@@ -869,36 +911,37 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
    ```
 
 4. **OpenRouter Client**
+
    ```typescript
    class OpenRouterClient {
      async generateRecipe(prompt: string): Promise<unknown> {
        const response = await fetch(OPENROUTER_API_URL, {
-         method: 'POST',
+         method: "POST",
          headers: {
-           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-           'Content-Type': 'application/json',
-           'HTTP-Referer': 'https://foodnager.app',
-           'X-Title': 'Foodnager'
+           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+           "Content-Type": "application/json",
+           "HTTP-Referer": "https://foodnager.app",
+           "X-Title": "Foodnager",
          },
          body: JSON.stringify({
            model: OPENROUTER_MODEL,
            messages: [
              {
-               role: 'user',
-               content: prompt
-             }
+               role: "user",
+               content: prompt,
+             },
            ],
            temperature: 0.7,
            max_tokens: 2000,
-           response_format: { type: 'json_object' }
+           response_format: { type: "json_object" },
          }),
-         signal: AbortSignal.timeout(30000)
+         signal: AbortSignal.timeout(30000),
        });
-       
+
        if (!response.ok) {
          throw new AIServiceError(`OpenRouter API error: ${response.status}`);
        }
-       
+
        const data = await response.json();
        return JSON.parse(data.choices[0].message.content);
      }
@@ -906,21 +949,26 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
    ```
 
 5. **AI Response Validator**
+
    ```typescript
    const AIRecipeSchema = z.object({
      title: z.string().min(1),
      description: z.string().optional(),
      instructions: z.string().min(1),
      cooking_time: z.number().int().positive().optional(),
-     difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
-     ingredients: z.array(z.object({
-       product_name: z.string(),
-       quantity: z.number().positive(),
-       unit: z.string()
-     })).min(1),
-     tags: z.array(z.string()).optional()
+     difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+     ingredients: z
+       .array(
+         z.object({
+           product_name: z.string(),
+           quantity: z.number().positive(),
+           unit: z.string(),
+         })
+       )
+       .min(1),
+     tags: z.array(z.string()).optional(),
    });
-   
+
    class AIResponseValidator {
      validate(response: unknown): AIRecipe {
        return AIRecipeSchema.parse(response);
@@ -931,37 +979,33 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 #### Phase 3: Product & Unit Mapping
 
 6. **AI Ingredient Mapper**
+
    ```typescript
    class AIIngredientMapper {
-     async mapIngredients(
-       aiIngredients: AIIngredient[],
-       userId: string
-     ): Promise<RecipeIngredient[]> {
+     async mapIngredients(aiIngredients: AIIngredient[], userId: string): Promise<RecipeIngredient[]> {
        const results = [];
-       
+
        for (const aiIng of aiIngredients) {
          // Find or create product
-         const product = await this.productMatcher.findOrCreate(
-           aiIng.product_name,
-           userId
-         );
-         
+         const product = await this.productMatcher.findOrCreate(aiIng.product_name, userId);
+
          // Find or create unit
          const unit = await this.unitMatcher.findOrCreate(aiIng.unit);
-         
+
          results.push({
            product_id: product.id,
            quantity: aiIng.quantity,
-           unit_id: unit.id
+           unit_id: unit.id,
          });
        }
-       
+
        return results;
      }
    }
    ```
 
 7. **Tag Auto-Assignment**
+
    ```typescript
    class TagAutoAssigner {
      async assignTags(
@@ -970,22 +1014,20 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
        preferences?: GenerateRecipePreferencesDTO
      ): Promise<number[]> {
        const tagNames = new Set<string>();
-       
+
        // Add AI-suggested tags
-       aiTags?.forEach(t => tagNames.add(t.toLowerCase()));
-       
+       aiTags?.forEach((t) => tagNames.add(t.toLowerCase()));
+
        // Add tags from dietary restrictions
-       preferences?.dietary_restrictions?.forEach(r => 
-         tagNames.add(r.toLowerCase())
-       );
-       
+       preferences?.dietary_restrictions?.forEach((r) => tagNames.add(r.toLowerCase()));
+
        // Find or create tags
        const tagIds = [];
        for (const name of tagNames) {
          const tag = await this.findOrCreateTag(name);
          tagIds.push(tag.id);
        }
-       
+
        return tagIds;
      }
    }
@@ -994,6 +1036,7 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 #### Phase 4: Service Integration
 
 8. **AIRecipeService**
+
    ```typescript
    class AIRecipeService {
      async generateRecipe(
@@ -1002,36 +1045,36 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
      ): Promise<RecipeDTO> {
        // 1. Verify products
        const products = await this.verifyProducts(userId, generateDto.product_ids);
-       
+
        // 2. Check cache
        const cacheKey = this.buildCacheKey(generateDto);
        const cached = await this.cache.get(cacheKey);
        if (cached) {
          return this.handleCachedRecipe(cached, userId, generateDto.save_to_recipes);
        }
-       
+
        // 3. Build prompt
        const prompt = this.promptBuilder.build(products, generateDto.preferences);
-       
+
        // 4. Call AI
        const aiResponse = await this.openRouterClient.generateRecipe(prompt);
-       
+
        // 5. Validate response
        const validatedRecipe = this.validator.validate(aiResponse);
-       
+
        // 6. Map ingredients
        const ingredients = await this.ingredientMapper.mapIngredients(
          validatedRecipe.ingredients,
          userId
        );
-       
+
        // 7. Auto-assign tags
        const tagIds = await this.tagAssigner.assignTags(
          validatedRecipe,
          validatedRecipe.tags || [],
          generateDto.preferences
        );
-       
+
        // 8. Save to DB (if requested)
        let savedRecipe: Recipe | null = null;
        if (generateDto.save_to_recipes) {
@@ -1043,14 +1086,14 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
            generateDto
          );
        }
-       
+
        // 9. Cache result
        await this.cache.set(cacheKey, validatedRecipe, 86400);
-       
+
        // 10. Build response
        return this.buildRecipeDTO(savedRecipe || validatedRecipe, ingredients);
      }
-     
+
      private async saveRecipe(
        userId: string,
        aiRecipe: AIRecipe,
@@ -1081,13 +1124,13 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
              preferences: originalRequest.preferences
            })
          ]);
-         
+
          // Insert ingredients
          await this.batchInsertIngredients(client, recipe.id, ingredients);
-         
+
          // Insert tags
          await this.batchInsertTags(client, recipe.id, tagIds);
-         
+
          return recipe.rows[0];
        });
      }
@@ -1106,11 +1149,12 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
    - Zwróć 201 z response
 
 10. **Rate Limit Headers**
+
     ```typescript
     // Add headers to response
-    response.headers.set('X-RateLimit-Limit-AI', '5');
-    response.headers.set('X-RateLimit-Remaining-AI', remaining.toString());
-    response.headers.set('X-RateLimit-Reset-AI', resetAt.toISOString());
+    response.headers.set("X-RateLimit-Limit-AI", "5");
+    response.headers.set("X-RateLimit-Remaining-AI", remaining.toString());
+    response.headers.set("X-RateLimit-Reset-AI", resetAt.toISOString());
     ```
 
 11. **Testing**
@@ -1128,6 +1172,7 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 ### 2.10 Monitoring & Observability
 
 **Metrics to Track:**
+
 - AI requests per user (rate limiting)
 - AI response times
 - AI success/failure rates
@@ -1136,29 +1181,31 @@ await cache.set(cacheKey, recipe, 86400); // 24 hours
 - Generated recipes saved vs not saved
 
 **Logging:**
+
 ```typescript
-logger.info('AI recipe generation started', {
+logger.info("AI recipe generation started", {
   userId,
   productIds: generateDto.product_ids,
-  preferences: generateDto.preferences
+  preferences: generateDto.preferences,
 });
 
-logger.info('AI recipe generated successfully', {
+logger.info("AI recipe generated successfully", {
   userId,
   recipeId: savedRecipe?.id,
   duration: Date.now() - startTime,
   cached: false,
-  tokenUsage: aiResponse.usage
+  tokenUsage: aiResponse.usage,
 });
 
-logger.error('AI generation failed', {
+logger.error("AI generation failed", {
   userId,
   error: error.message,
-  productIds: generateDto.product_ids
+  productIds: generateDto.product_ids,
 });
 ```
 
 **Alerts:**
+
 - AI error rate > 10%
 - User exceeding daily limits frequently
 - High AI costs (monthly budget)
@@ -1193,6 +1240,7 @@ logger.error('AI generation failed', {
 ```
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -1251,29 +1299,19 @@ AI_RECIPE_CACHE_TTL=86400
 ### Kolejność implementacji
 
 **Week 1: Infrastructure**
+
 1. Rate limiter (Redis-based)
 2. Cache utilities
 3. Hash functions
 4. Base error classes
 
-**Week 2: Tier 1 (User Recipes)**
-5. MatchScoreCalculator
-6. Preferences filter
-7. RecipeDiscoveryService - Tier 1
+**Week 2: Tier 1 (User Recipes)** 5. MatchScoreCalculator 6. Preferences filter 7. RecipeDiscoveryService - Tier 1
+
 <!-- 8. Tests -->
 
-**Week 3: Tier 2 (External API)**
-9. ExternalAPIService
-10. ExternalRecipeMapper
-11. Product fuzzy matcher
-12. Integration
+**Week 3: Tier 2 (External API)** 9. ExternalAPIService 10. ExternalRecipeMapper 11. Product fuzzy matcher 12. Integration
 
-**Week 4: Tier 3 (AI Generation)**
-13. OpenRouter client
-14. Prompt builder
-15. Response validator
-16. AI ingredient mapper
-17. Tag auto-assigner
+**Week 4: Tier 3 (AI Generation)** 13. OpenRouter client 14. Prompt builder 15. Response validator 16. AI ingredient mapper 17. Tag auto-assigner
 
 <!-- **Week 5: Integration & Testing**
 18. Full RecipeDiscoveryService orchestration
@@ -1290,4 +1328,3 @@ AI_RECIPE_CACHE_TTL=86400
 4. **Monitoring**: Tracking AI usage, costs, success rates
 5. **Validation**: Strict validation AI outputs (security + quality)
 6. **Performance**: Timeouts i optymalizacje dla każdego tier
-

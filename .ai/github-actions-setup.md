@@ -12,6 +12,7 @@ Projekt używa GitHub Actions do automatycznego uruchamiania testów i buildu. W
 ## 🎯 Triggery
 
 Workflow uruchamia się:
+
 - ✅ **Automatycznie** po pushu do brancha `master`
 - ✅ **Manualnie** z poziomu GitHub UI (Actions → CI - Tests & Build → Run workflow)
   - Z opcją pominięcia testów E2E (checkbox "Pomiń testy E2E")
@@ -28,12 +29,13 @@ Workflow uruchamia się:
 
 #### Zmienne z pliku `.env` (wymagane do buildu)
 
-| Secret Name | Opis | Gdzie znaleźć |
-|-------------|------|---------------|
-| `SUPABASE_URL` | URL projektu Supabase | Supabase Dashboard → Settings → API → Project URL |
-| `SUPABASE_ANON_KEY` | Publiczny klucz API | Supabase Dashboard → Settings → API → anon/public key |
+| Secret Name         | Opis                  | Gdzie znaleźć                                         |
+| ------------------- | --------------------- | ----------------------------------------------------- |
+| `SUPABASE_URL`      | URL projektu Supabase | Supabase Dashboard → Settings → API → Project URL     |
+| `SUPABASE_ANON_KEY` | Publiczny klucz API   | Supabase Dashboard → Settings → API → anon/public key |
 
 **Dodaj w GitHub:**
+
 ```
 Name: SUPABASE_URL
 Secret: https://your-project.supabase.co
@@ -46,14 +48,15 @@ Secret: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ⚠️ **UWAGA:** Używaj TYLKO danych z dedykowanej testowej instancji Supabase!
 
-| Secret Name | Opis | Gdzie znaleźć |
-|-------------|------|---------------|
-| `E2E_USERNAME` | Email użytkownika testowego | Twój testowy użytkownik (np. `test@foodnager.pl`) |
-| `E2E_PASSWORD` | Hasło użytkownika testowego | Hasło testowe (np. `TestPassword123!`) |
-| `E2E_TEST_USER_ID` | UUID użytkownika testowego | Supabase Dashboard → Authentication → Users |
+| Secret Name                 | Opis                           | Gdzie znaleźć                                      |
+| --------------------------- | ------------------------------ | -------------------------------------------------- |
+| `E2E_USERNAME`              | Email użytkownika testowego    | Twój testowy użytkownik (np. `test@foodnager.pl`)  |
+| `E2E_PASSWORD`              | Hasło użytkownika testowego    | Hasło testowe (np. `TestPassword123!`)             |
+| `E2E_TEST_USER_ID`          | UUID użytkownika testowego     | Supabase Dashboard → Authentication → Users        |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (dla cleanup) | Supabase Dashboard → Settings → API → service_role |
 
 **Dodaj w GitHub:**
+
 ```
 Name: E2E_USERNAME
 Secret: test@foodnager.pl
@@ -86,6 +89,7 @@ Po dodaniu wszystkich secrets, lista powinna wyglądać tak:
 ### Automatyczne uruchomienie
 
 Workflow uruchomi się automatycznie po:
+
 ```bash
 git push origin master
 ```
@@ -112,7 +116,7 @@ Edytuj `.github/workflows/ci.yml` i dodaj warunek do kroku E2E:
 
 ```yaml
 - name: 🎬 Run E2E tests
-  if: false  # ← Dodaj tę linię aby wyłączyć E2E
+  if: false # ← Dodaj tę linię aby wyłączyć E2E
   run: npm run test:e2e
 ```
 
@@ -122,10 +126,8 @@ Workflow automatycznie zapisuje:
 
 1. **Coverage Report** - Raport pokrycia kodu testami (zawsze)
    - Dostępny w: Actions → konkretny run → Artifacts → `coverage-report`
-   
 2. **Playwright Report** - Raport testów E2E (tylko przy błędach)
    - Dostępny w: Actions → konkretny run → Artifacts → `playwright-report`
-   
 3. **Test Videos** - Nagrania testów E2E (tylko przy błędach)
    - Dostępny w: Actions → konkretny run → Artifacts → `test-videos`
 
@@ -136,18 +138,20 @@ Artefakty są przechowywane przez **7 dni**.
 ### Cache Dependencies
 
 Workflow używa cache dla `node_modules`:
+
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    cache: 'npm'  # ← Automatyczny cache
+    cache: "npm" # ← Automatyczny cache
 ```
 
 ### Retry na błędy (E2E)
 
 Testy E2E automatycznie powtarzają się 2 razy przy błędzie (tylko w CI):
+
 ```typescript
 // playwright.config.ts
-retries: process.env.CI ? 2 : 0
+retries: process.env.CI ? 2 : 0;
 ```
 
 ## 🐛 Troubleshooting
@@ -157,6 +161,7 @@ retries: process.env.CI ? 2 : 0
 **Problem:** Workflow nie może znaleźć secrets.
 
 **Rozwiązanie:**
+
 - Sprawdź czy wszystkie secrets są dodane w Settings → Secrets
 - Sprawdź wielkość liter - nazwy muszą się zgadzać dokładnie
 
@@ -165,6 +170,7 @@ retries: process.env.CI ? 2 : 0
 **Problem:** Testy E2E nie mogą się zalogować.
 
 **Rozwiązanie:**
+
 - Sprawdź czy użytkownik testowy istnieje w Supabase
 - Sprawdź czy `E2E_USERNAME` i `E2E_PASSWORD` są poprawne
 - Sprawdź czy email jest potwierdzony (confirmed)
@@ -174,6 +180,7 @@ retries: process.env.CI ? 2 : 0
 **Problem:** Build nie może znaleźć zmiennych środowiskowych.
 
 **Rozwiązanie:**
+
 - Upewnij się, że `SUPABASE_URL` i `SUPABASE_ANON_KEY` są dodane do secrets
 - Sprawdź czy są one użyte w sekcji `env:` w workflow
 
@@ -182,6 +189,7 @@ retries: process.env.CI ? 2 : 0
 **Problem:** Czyszczenie bazy testowej nie działa.
 
 **Rozwiązanie:**
+
 - Sprawdź czy `SUPABASE_SERVICE_ROLE_KEY` jest poprawny
 - Upewnij się, że używasz dedykowanej testowej instancji Supabase
 - ⚠️ NIGDY nie używaj klucza service_role z produkcyjnej bazy!
@@ -217,4 +225,3 @@ Workflow uruchomi się automatycznie i zobaczysz rezultaty w zakładce **Actions
 - [Playwright CI Documentation](https://playwright.dev/docs/ci)
 - [Vitest Documentation](https://vitest.dev/)
 - Dokumentacja testów w projekcie: `TESTING_SETUP.md`, `ENV_TEST_SETUP.md`
-

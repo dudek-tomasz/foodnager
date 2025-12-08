@@ -7,13 +7,9 @@ Widok szczegółów przepisu z pełną funkcjonalnością zarządzania przepisam
 ### Użycie w projekcie
 
 ```tsx
-import { RecipeDetailsView } from '@/components/recipe-details';
+import { RecipeDetailsView } from "@/components/recipe-details";
 
-<RecipeDetailsView 
-  recipeId={123} 
-  from="search" 
-  matchScore={85} 
-/>
+<RecipeDetailsView recipeId={123} from="search" matchScore={85} />;
 ```
 
 ### Routing (Astro)
@@ -25,6 +21,7 @@ Plik: `src/pages/recipes/[id].astro`
 ## ✨ Funkcjonalności
 
 ### 1. Wyświetlanie Przepisu
+
 - **Tytuł** i podstawowe informacje
 - **Metadane**: czas gotowania, trudność, tagi
 - **Składniki** z informacją o dostępności
@@ -32,11 +29,13 @@ Plik: `src/pages/recipes/[id].astro`
 - **Źródło** przepisu (USER/API/AI)
 
 ### 2. Color Coding Dostępności
+
 - 🟢 **Zielony** - składnik w pełni dostępny
 - 🟡 **Żółty** - składnik częściowo dostępny
 - 🔴 **Czerwony** - składnik niedostępny
 
 ### 3. Akcje Użytkownika
+
 - **Ugotuj to** - rejestruje gotowanie i aktualizuje lodówkę
 - **Generuj listę zakupów** - tworzy listę brakujących składników
 - **Zapisz przepis** - kopiuje przepis do własnej kolekcji (API/AI)
@@ -44,6 +43,7 @@ Plik: `src/pages/recipes/[id].astro`
 - **Usuń przepis** - usuwa przepis (tylko własne)
 
 ### 4. Sticky Bottom Bar
+
 Akcje główne dostępne po scrollu w dół strony.
 
 ## 📁 Struktura Komponentów
@@ -63,6 +63,7 @@ RecipeDetailsView (główny kontener)
 ## 🔌 API Integration
 
 ### Endpointy
+
 - `GET /api/recipes/:id` - pobieranie przepisu
 - `GET /api/fridge` - pobieranie lodówki
 - `POST /api/cooking-history` - rejestracja gotowania
@@ -71,7 +72,9 @@ RecipeDetailsView (główny kontener)
 - `POST /api/recipes` - zapisywanie kopii
 
 ### Client Functions
+
 Dostępne w `src/lib/api/`:
+
 - `recipes-client.ts`
 - `fridge-client.ts`
 - `cooking-history-client.ts`
@@ -80,21 +83,24 @@ Dostępne w `src/lib/api/`:
 ## 🎨 Customization
 
 ### Kolory Dostępności
+
 ```typescript
 // src/lib/utils/recipe-utils.ts
-getAvailabilityColors(status)
+getAvailabilityColors(status);
 ```
 
 ### Threshold Sticky Bar
+
 ```typescript
 // RecipeDetailsView.tsx
 const isStickyBarVisible = useScrollVisibility(300); // 300px
 ```
 
 ### Parsowanie Instrukcji
+
 ```typescript
 // src/lib/utils/recipe-utils.ts
-parseInstructions(instructions)
+parseInstructions(instructions);
 ```
 
 ## 🧪 Testing
@@ -102,6 +108,7 @@ parseInstructions(instructions)
 **Pełny testing guide:** Zobacz `TESTING.md`
 
 ### Quick Test Checklist
+
 - [ ] Navigate to `/recipes/:id`
 - [ ] Sprawdź color coding składników
 - [ ] Kliknij "Ugotuj to" i potwierdź
@@ -118,6 +125,7 @@ parseInstructions(instructions)
 ## 🎯 Custom Hooks
 
 ### useRecipeDetails
+
 Główny hook zarządzający całym stanem widoku.
 
 ```typescript
@@ -132,6 +140,7 @@ const {
 ```
 
 ### useScrollVisibility
+
 Monitoruje pozycję scrolla.
 
 ```typescript
@@ -141,14 +150,18 @@ const isVisible = useScrollVisibility(threshold);
 ## 🔧 Typy
 
 ### RecipeViewModel
+
 Przepis z wzbogaconymi danymi UI:
+
 - `enrichedIngredients` - składniki z dostępnością
 - `hasAllIngredients` - boolean flag
 - `hasMissingIngredients` - boolean flag
 - `matchScore` - opcjonalny wynik dopasowania
 
 ### IngredientWithAvailability
+
 Składnik z informacją o dostępności:
+
 - `availabilityStatus` - 'full' | 'partial' | 'none'
 - `availableQuantity` - ilość w lodówce
 - `requiredQuantity` - ilość wymagana
@@ -157,16 +170,19 @@ Składnik z informacją o dostępności:
 ## 🐛 Troubleshooting
 
 ### Przepis się nie ładuje
+
 - Sprawdź czy recipe ID jest prawidłowy
 - Sprawdź network tab w DevTools
 - Sprawdź czy użytkownik jest zalogowany
 
 ### Składniki pokazują nieprawidłowy status
+
 - Sprawdź czy lodówka jest zsynchronizowana
 - Sprawdź unit_id (muszą być takie same)
 - Sprawdź console dla błędów
 
 ### Sticky bar nie pojawia się
+
 - Sprawdź czy wysokość contentu > 300px
 - Sprawdź console dla błędów JavaScript
 
@@ -180,6 +196,7 @@ Składnik z informacją o dostępności:
 ## 📝 Contribution
 
 Aby dodać nową funkcjonalność:
+
 1. Utwórz nowy komponent atomic/composite
 2. Dodaj do odpowiedniej sekcji
 3. Zaktualizuj typy w `recipe-view-models.ts`
@@ -201,7 +218,7 @@ Aby dodać nową funkcjonalność:
 ---
 
 **Related:**
+
 - [Implementation Summary](./IMPLEMENTATION_SUMMARY.md)
 - [Testing Guide](./TESTING.md)
 - [API Documentation](../../pages/api/recipes/)
-

@@ -73,6 +73,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ✅ **Bezpieczeństwo:**
+
 - ✅ Plik `.env.test` jest w `.gitignore` (nie zostanie commitowany)
 - ✅ Używaj TYLKO z testową/developerską bazą
 - ❌ NIGDY nie używaj z produkcyjną bazą danych!
@@ -95,8 +96,8 @@ E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 2. Uruchom:
 
 ```sql
-SELECT id, email 
-FROM auth.users 
+SELECT id, email
+FROM auth.users
 WHERE email = 'test@foodnager.pl';
 ```
 
@@ -130,6 +131,7 @@ npm run test:e2e
 ```
 
 Powinieneś zobaczyć:
+
 ```
 🔐 Login attempt with: { email: 'test@foodnager.pl', password: '***' }
 ✅ Successfully authenticated and navigated to: http://localhost:3000/fridge
@@ -176,12 +178,14 @@ PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
 ### ❌ "E2E_USERNAME and E2E_PASSWORD must be set"
 
 **Rozwiązanie:**
+
 - Upewnij się, że plik `.env.test` istnieje w katalogu głównym
 - Sprawdź czy są ustawione `E2E_USERNAME` i `E2E_PASSWORD`
 
 ### ❌ "Authentication failed"
 
 **Rozwiązanie:**
+
 - Sprawdź czy użytkownik `test@foodnager.pl` istnieje w Supabase
 - Sprawdź czy hasło jest poprawne (`TestPassword123!`)
 - Sprawdź czy email jest potwierdzony (confirmed)
@@ -189,12 +193,14 @@ PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
 ### ⚠️ "Skipping database cleanup: SUPABASE_SERVICE_ROLE_KEY not configured"
 
 **Rozwiązanie:**
+
 - Dodaj `SUPABASE_SERVICE_ROLE_KEY` do `.env.test`
 - Sprawdź czy klucz jest poprawny (powinien zaczynać się od `eyJ...`)
 
 ### ⚠️ "Skipping database cleanup: E2E_TEST_USER_ID not configured"
 
 **Rozwiązanie:**
+
 - Dodaj `E2E_TEST_USER_ID` do `.env.test`
 - UUID powinno mieć format: `a1b2c3d4-e5f6-7890-abcd-1234567890ab`
 
@@ -225,4 +231,3 @@ npm run test:e2e
 ```
 
 🎉 **Gotowe!**
-

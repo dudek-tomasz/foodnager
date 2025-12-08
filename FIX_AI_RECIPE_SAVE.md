@@ -29,6 +29,7 @@ Funkcja `handleSave` w `useRecipeDetails.ts` wysyłała nazwy produktów i jedno
 **Zmiana:** W trybie zapisywania przepisu AI (linie 429-434), zmieniono mapowanie składników:
 
 **Przed:**
+
 ```typescript
 ingredients: aiRecipe.ingredients.map(ing => ({
   product_name: ing.product.name,
@@ -39,6 +40,7 @@ tags: aiRecipe.tags.map(tag => tag.name),
 ```
 
 **Po:**
+
 ```typescript
 ingredients: aiRecipe.ingredients.map(ing => ({
   product_id: ing.product.id,
@@ -53,11 +55,13 @@ tag_ids: aiRecipe.tags.map(tag => tag.id),
 **Plik:** `src/pages/api/recipes/from-external.ts` (nowy)
 
 Endpoint `/api/recipes/from-external` akceptuje przepisy z nazwami produktów i jednostek (zamiast ID) i automatycznie:
+
 - Wyszukuje istniejące produkty/jednostki po nazwie
 - Tworzy nowe produkty/jednostki, jeśli nie istnieją
 - Zapisuje przepis do bazy danych
 
 **Schema walidacji:**
+
 ```typescript
 {
   title: string,
@@ -113,7 +117,7 @@ Zmieniono endpoint dla zewnętrznych przepisów z `/api/recipes` na `/api/recipe
 ## Weryfikacja
 
 Po zastosowaniu poprawek:
+
 - Przepisy AI powinny zapisywać się poprawnie z ID produktów i jednostek
 - Przepisy zewnętrzne powinny zapisywać się przez dedykowany endpoint
 - Brak błędów walidacji w konsoli przeglądarki i odpowiedziach API
-

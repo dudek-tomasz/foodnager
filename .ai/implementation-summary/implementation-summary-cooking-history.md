@@ -3,9 +3,11 @@
 ## ✅ Completed (Steps 1-6)
 
 ### Step 1: PostgreSQL Function
+
 **File:** `supabase/migrations/20251019110000_create_cooking_history_function.sql`
 
 Created `record_cooking_event()` PostgreSQL function that:
+
 - Validates recipe ownership
 - Captures fridge state before cooking (JSONB snapshot)
 - Validates sufficient ingredients
@@ -16,6 +18,7 @@ Created `record_cooking_event()` PostgreSQL function that:
 - Returns comprehensive result with all state changes
 
 **Key Features:**
+
 - Full ACID transaction guarantees
 - Row-level locking (`FOR UPDATE`) for concurrency safety
 - Detailed error messages for parsing
@@ -24,9 +27,11 @@ Created `record_cooking_event()` PostgreSQL function that:
 ---
 
 ### Step 2: Validation Schemas & Error Classes
+
 **File:** `src/lib/validations/cooking-history.validation.ts`
 
 Created two Zod validation schemas:
+
 - `ListCookingHistoryQuerySchema` - validates GET query parameters
   - Filters: recipe_id, from_date, to_date
   - Pagination: page, limit (max 100)
@@ -37,6 +42,7 @@ Created two Zod validation schemas:
 **File:** `src/lib/errors/index.ts`
 
 Added new error class:
+
 - `InsufficientIngredientsError` - 400 Bad Request
   - Used when fridge doesn't have enough ingredients
   - Includes detailed information about missing items
@@ -44,11 +50,13 @@ Added new error class:
 ---
 
 ### Step 3: Service Layer
+
 **File:** `src/lib/services/cooking-history.service.ts`
 
 Created `CookingHistoryService` with two main methods:
 
 #### `listCookingHistory()`
+
 - Fetches cooking history with filtering and pagination
 - Filters: recipe_id, date range (from_date, to_date)
 - Sorts by cooked_at DESC
@@ -56,12 +64,14 @@ Created `CookingHistoryService` with two main methods:
 - Uses Supabase query builder with joins
 
 #### `createCookingHistoryEntry()`
+
 - Calls PostgreSQL `record_cooking_event` RPC function
 - Handles atomic transaction for fridge updates
 - Parses PostgreSQL errors and throws appropriate API errors
 - Transforms result to comprehensive response DTO
 
 **Key Features:**
+
 - Intelligent error parsing (PostgreSQL exceptions → API errors)
 - Robust handling of edge cases
 - Type-safe transformations
@@ -69,9 +79,11 @@ Created `CookingHistoryService` with two main methods:
 ---
 
 ### Step 4: POST Endpoint
+
 **File:** `src/pages/api/cooking-history/index.ts`
 
 Implemented POST /api/cooking-history:
+
 - Authentication via JWT Bearer token
 - Request body validation (recipe_id)
 - Calls `CookingHistoryService.createCookingHistoryEntry()`
@@ -86,9 +98,11 @@ Implemented POST /api/cooking-history:
 ---
 
 ### Step 5: GET Endpoint
+
 **File:** `src/pages/api/cooking-history/index.ts` (same file)
 
 Implemented GET /api/cooking-history:
+
 - Authentication via JWT Bearer token
 - Query parameter validation (filters, pagination)
 - Calls `CookingHistoryService.listCookingHistory()`
@@ -101,9 +115,11 @@ Implemented GET /api/cooking-history:
 ---
 
 ### Step 6: Testing Documentation
+
 **File:** `test-cooking-history-api.md`
 
 Created comprehensive test guide with:
+
 - Request/response examples for all scenarios
 - Success cases
 - Error cases (401, 400, 404, 422, 500)
@@ -158,34 +174,44 @@ foodnager/
 ## Key Technical Decisions
 
 ### 1. PostgreSQL Function for Core Logic
-**Why:** 
+
+**Why:**
+
 - Ensures atomicity (all-or-nothing)
 - Reduces network round-trips
 - Guarantees data consistency
 - Enables complex FIFO logic with locking
 
 ### 2. FIFO Strategy for Ingredient Deduction
+
 **Why:**
+
 - Realistic (use oldest items first)
 - Prevents waste (items with earlier expiry used first)
 - Fair (consistent ordering by created_at)
 
 ### 3. JSONB for Fridge State Snapshots
+
 **Why:**
+
 - Immutable audit trail
 - Flexible structure
 - Efficient storage and retrieval
 - Easy to query and display
 
 ### 4. Zod for Validation
+
 **Why:**
+
 - Type-safe validation
 - Clear error messages
 - Runtime type checking
 - Consistent with project pattern
 
 ### 5. Custom Error Classes
+
 **Why:**
+
 - Consistent error handling
 - Proper HTTP status codes
 - Detailed error information
@@ -216,12 +242,14 @@ foodnager/
 ## Next Steps (Post-Implementation)
 
 1. **Run Migration:**
+
    ```bash
    supabase db reset  # or
    supabase db push
    ```
 
 2. **Regenerate Types:**
+
    ```bash
    supabase gen types typescript --local > src/db/database.types.ts
    ```
@@ -279,4 +307,3 @@ foodnager/
 - **Error Messages:** Maintain consistent format for parsing in service
 - **Performance:** Monitor transaction duration, add indexes if needed
 - **Audit:** Fridge states are immutable, never modify cooking_history records
-

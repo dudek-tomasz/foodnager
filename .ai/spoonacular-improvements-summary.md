@@ -7,11 +7,13 @@
 **Rozwiązanie:** Automatyczne tłumaczenie używając OpenRouter LLM
 
 **Pliki:**
+
 - `src/lib/utils/recipe-translator.ts` - Nowy moduł tłumaczący
 - `src/lib/services/ai/openrouter.client.ts` - Dodana metoda `generateText()`
 - `src/lib/services/external-api.service.ts` - Integracja tłumaczenia
 
 **Jak działa:**
+
 ```typescript
 // 1. Pobierz przepis z Spoonacular (angielski)
 const externalRecipe = await spoonacular.getRecipeDetails(id);
@@ -32,6 +34,7 @@ const translated = await translateRecipe({
 ```
 
 **Konfiguracja:**
+
 - Używa modelu skonfigurowanego w `OPENROUTER_MODEL`
 - Temperatura: 0.3 (dla spójnych tłumaczeń)
 - Fallback: jeśli tłumaczenie się nie powiedzie, zwraca oryginalny angielski tekst
@@ -45,18 +48,21 @@ const translated = await translateRecipe({
 **Plik:** `src/lib/utils/html-to-text.ts`
 
 **Przed:**
+
 ```typescript
-description: stripHtmlTags(recipe.summary).substring(0, 200)
+description: stripHtmlTags(recipe.summary).substring(0, 200);
 // Wynik: "Stuffed Breakfast Balls is a gluten free side dish. One portion..."
 ```
 
 **Teraz:**
+
 ```typescript
-description: extractSummary(recipe.summary, 500)
+description: extractSummary(recipe.summary, 500);
 // Wynik: Pełny opis, maksymalnie 500 znaków, ucięty na granicy zdania
 ```
 
 **Funkcja `extractSummary()`:**
+
 - Domyślnie 500 znaków (możliwość konfiguracji)
 - Stara się ciąć na granicy zdania (`. `)
 - Jeśli nie ma zdania, cięcie na granicy słowa
@@ -71,11 +77,16 @@ description: extractSummary(recipe.summary, 500)
 **Plik:** `src/lib/utils/html-to-text.ts`
 
 **Przed:**
+
 ```html
-<ol><li>Shred 5 red skinned potatoes.</li><li>Squeeze all liquid...</li></ol>
+<ol>
+  <li>Shred 5 red skinned potatoes.</li>
+  <li>Squeeze all liquid...</li>
+</ol>
 ```
 
 **Teraz:**
+
 ```
 1. Shred 5 red skinned potatoes.
 2. Squeeze all liquid out of red skinned potatoes in papertowel.
@@ -83,6 +94,7 @@ description: extractSummary(recipe.summary, 500)
 ```
 
 **Funkcja `htmlToText()`:**
+
 - Konwertuje `<ol><li>` → numerowane kroki (`1. `, `2. `)
 - Konwertuje `<ul><li>` → punktory (`• `)
 - Konwertuje `<p>` → nowe linie
@@ -91,6 +103,7 @@ description: extractSummary(recipe.summary, 500)
 - Czyści nadmiarowe białe znaki
 
 **Obsługiwane formaty:**
+
 - Listy numerowane (`<ol>`)
 - Listy wypunktowane (`<ul>`)
 - Paragrafy (`<p>`)
@@ -107,26 +120,28 @@ description: extractSummary(recipe.summary, 500)
 **Plik:** `src/lib/services/external-api.service.ts`
 
 **Przed:**
+
 ```typescript
 ingredients: recipe.extendedIngredients.map((ing) => ({
   name: ing.nameClean || ing.name,
   quantity: ing.amount || 1,
-  unit: ing.measures.metric.unitShort || ing.unit || 'piece',
-}))
+  unit: ing.measures.metric.unitShort || ing.unit || "piece",
+}));
 ```
 
 **Problem:** Crashowało gdy `extendedIngredients` było puste lub undefined
 
 **Teraz:**
+
 ```typescript
 const ingredients: ExternalIngredient[] = [];
 
 if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
   for (const ing of recipe.extendedIngredients) {
     ingredients.push({
-      name: ing.nameClean || ing.name || ing.originalName || 'unknown',
+      name: ing.nameClean || ing.name || ing.originalName || "unknown",
       quantity: ing.amount && ing.amount > 0 ? ing.amount : 1,
-      unit: ing.measures?.metric?.unitShort || ing.unit || 'piece',
+      unit: ing.measures?.metric?.unitShort || ing.unit || "piece",
     });
   }
   console.log(`🌐 [SPOONACULAR] Parsed ${ingredients.length} ingredients`);
@@ -136,6 +151,7 @@ if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
 ```
 
 **Ulepszenia:**
+
 1. **Sprawdzanie istnienia:** `if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0)`
 2. **Fallbacki dla nazwy:** `nameClean || name || originalName || 'unknown'`
 3. **Sprawdzanie ilości:** `ing.amount && ing.amount > 0 ? ing.amount : 1`
@@ -143,16 +159,13 @@ if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
 5. **Szczegółowe logi:** Informuje ile składników zostało sparsowanych
 
 **Instrukcje - podwójne źródło:**
+
 ```typescript
 // Preferuj analyzedInstructions (strukturowane kroki)
 if (recipe.analyzedInstructions && recipe.analyzedInstructions.length > 0) {
   instructions = recipe.analyzedInstructions
-    .map(instruction => 
-      instruction.steps
-        .map(step => `${step.number}. ${step.step}`)
-        .join('\n')
-    )
-    .join('\n\n');
+    .map((instruction) => instruction.steps.map((step) => `${step.number}. ${step.step}`).join("\n"))
+    .join("\n\n");
 }
 // Fallback do plain instructions (HTML format)
 else if (recipe.instructions) {
@@ -160,7 +173,7 @@ else if (recipe.instructions) {
 }
 // Ostateczny fallback
 else {
-  instructions = 'Brak instrukcji przygotowania.';
+  instructions = "Brak instrukcji przygotowania.";
 }
 ```
 
@@ -181,6 +194,7 @@ Dodano obszerne logi do debugowania:
 ```
 
 **Poziomy logowania:**
+
 - `🌐 [SPOONACULAR]` - Operacje Spoonacular API
 - `🌍 [TRANSLATOR]` - Tłumaczenie przepisów
 - `📦 [MAPPER]` - Mapowanie i zapis do bazy
@@ -193,18 +207,23 @@ Dodano obszerne logi do debugowania:
 ## Nowe pliki
 
 ### 1. `src/lib/utils/html-to-text.ts`
+
 Konwersja HTML na czytelny tekst:
+
 - `htmlToText(html: string): string` - Pełna konwersja
 - `stripHtmlTags(html: string): string` - Tylko usuwanie tagów
 - `extractSummary(html: string, maxLength: number): string` - Inteligentne skracanie
 
 ### 2. `src/lib/utils/recipe-translator.ts`
+
 Tłumaczenie przepisów używając LLM:
+
 - `translateRecipe(recipe): Promise<TranslatedRecipe>` - Tłumacz pojedynczy przepis
 - `translateRecipes(recipes): Promise<TranslatedRecipe[]>` - Batch tłumaczenie
 - Automatyczny fallback do angielskiego jeśli tłumaczenie się nie powiedzie
 
 ### 3. Rozszerzenie `src/lib/services/ai/openrouter.client.ts`
+
 - `generateText(prompt, options): Promise<string>` - Ogólna generacja tekstu
 - Używane do tłumaczenia przepisów
 
@@ -213,19 +232,22 @@ Tłumaczenie przepisów używając LLM:
 ## Koszty i wydajność
 
 ### Tłumaczenie (OpenRouter):
+
 - **Model:** `perplexity/sonar-pro` (lub skonfigurowany)
 - **Koszt:** ~$3 per 1M tokens
 - **Szacowany koszt na przepis:** ~$0.01 (1 przepis = ~300 tokenów)
 - **Czas:** ~2-5 sekund na przepis
 
 ### Spoonacular API:
-- **Koszt punktów:** 
+
+- **Koszt punktów:**
   - findByIngredients: 1 punkt
   - recipe information: 1 punkt na przepis
   - Razem: ~6 punktów na wyszukiwanie (5 przepisów)
 - **Limit darmowy:** 150 punktów/dzień = ~25 wyszukiwań
 
 ### Optymalizacja:
+
 - Tłumaczenie jest **opcjonalne** - jeśli OpenRouter nie jest skonfigurowany, zwraca angielski tekst
 - Przepisy są cache'owane w bazie - tłumaczenie raz, używane wielokrotnie
 - Duplikaty są wykrywane (external_id) - nie ma ponownego tłumaczenia
@@ -235,6 +257,7 @@ Tłumaczenie przepisów używając LLM:
 ## Testowanie
 
 ### Scenariusz 1: Pełny przepis ze składnikami
+
 ```bash
 # Wyszukaj: mięso mielone, jajko, cebula
 🌐 [SPOONACULAR] Found 5 recipe summaries
@@ -244,28 +267,33 @@ Tłumaczenie przepisów używając LLM:
 ```
 
 **Oczekiwany wynik:**
+
 - ✅ Przepis po polsku
 - ✅ Wszystkie składniki widoczne
 - ✅ Instrukcje jako numerowana lista
 - ✅ Pełny opis (do 500 znaków)
 
 ### Scenariusz 2: Przepis bez składników
+
 ```bash
 🌐 [SPOONACULAR] ⚠️ No extendedIngredients for recipe 12345
 🌐 [SPOONACULAR] Using plain instructions field (HTML format)
 ```
 
 **Oczekiwany wynik:**
+
 - ✅ Brak błędów
 - ⚠️ Lista składników pusta
 - ✅ Instrukcje nadal widoczne (z HTML)
 
 ### Scenariusz 3: Tłumaczenie wyłączone
+
 ```bash
 🌍 [TRANSLATOR] OpenRouter not configured, skipping translation
 ```
 
 **Oczekiwany wynik:**
+
 - ✅ Przepis po angielsku (oryginalny)
 - ✅ Brak błędów
 - ✅ Pozostała funkcjonalność działa
@@ -277,11 +305,13 @@ Tłumaczenie przepisów używając LLM:
 ### Problem: Przepisy nadal po angielsku
 
 **Powody:**
+
 1. OpenRouter nie skonfigurowany
 2. Brak kredytów w OpenRouter
 3. Błąd tłumaczenia (fallback do angielskiego)
 
 **Rozwiązanie:**
+
 - Sprawdź logi: `🌍 [TRANSLATOR]`
 - Sprawdź `OPENROUTER_API_KEY` w `.env`
 - Sprawdź kredyty na [OpenRouter](https://openrouter.ai/credits)
@@ -291,6 +321,7 @@ Tłumaczenie przepisów używając LLM:
 **Powód:** Funkcja `htmlToText` nie została zastosowana
 
 **Rozwiązanie:**
+
 - Sprawdź czy import jest poprawny
 - Sprawdź logi: `🌐 [SPOONACULAR] Using plain instructions`
 - Kod powinien używać `htmlToText(recipe.instructions)`
@@ -298,10 +329,12 @@ Tłumaczenie przepisów używając LLM:
 ### Problem: Brak składników
 
 **Powody:**
+
 1. Spoonacular nie zwraca `extendedIngredients` dla tego przepisu
 2. Błąd parsowania
 
 **Rozwiązanie:**
+
 - Sprawdź logi: `🌐 [SPOONACULAR] Recipe has X ingredients`
 - Jeśli X = 0: problem po stronie Spoonacular API
 - Spróbuj innego przepisu
@@ -329,4 +362,3 @@ Tłumaczenie przepisów używając LLM:
 5. **Obsługa wielu źródeł instrukcji**
    - Parsuj różne formaty HTML
    - Obsługa video URLs (YouTube, Vimeo)
-

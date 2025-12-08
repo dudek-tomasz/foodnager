@@ -1,12 +1,14 @@
 # Recipes API - Test Collection for Postman/curl
 
 ## Prerequisites
+
 1. Start Supabase: `npx supabase start`
 2. Reset database: `npx supabase db reset`
 3. Start dev server: `npm run dev`
 4. Get auth token from Supabase Dashboard or create test user
 
 ## Environment Variables
+
 ```bash
 # Set these in Postman Environment or use in terminal
 BASE_URL=http://localhost:4321
@@ -18,6 +20,7 @@ AUTH_TOKEN=your_supabase_jwt_token_here
 ## 1. GET /api/recipes - List Recipes
 
 ### 1.1 Basic List (no filters)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -25,6 +28,7 @@ curl -X GET "http://localhost:4321/api/recipes" \
 ```
 
 ### 1.2 List with Pagination
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?page=1&limit=10" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -32,6 +36,7 @@ curl -X GET "http://localhost:4321/api/recipes?page=1&limit=10" \
 ```
 
 ### 1.3 Search by Text
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?search=tomato" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -39,6 +44,7 @@ curl -X GET "http://localhost:4321/api/recipes?search=tomato" \
 ```
 
 ### 1.4 Filter by Source
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?source=user" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -46,6 +52,7 @@ curl -X GET "http://localhost:4321/api/recipes?source=user" \
 ```
 
 ### 1.5 Filter by Difficulty
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?difficulty=easy" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -53,6 +60,7 @@ curl -X GET "http://localhost:4321/api/recipes?difficulty=easy" \
 ```
 
 ### 1.6 Filter by Max Cooking Time
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?max_cooking_time=30" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -60,6 +68,7 @@ curl -X GET "http://localhost:4321/api/recipes?max_cooking_time=30" \
 ```
 
 ### 1.7 Filter by Tags (comma-separated)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?tags=1,2" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -67,6 +76,7 @@ curl -X GET "http://localhost:4321/api/recipes?tags=1,2" \
 ```
 
 ### 1.8 Sort by Title (ascending)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?sort=title&order=asc" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -74,6 +84,7 @@ curl -X GET "http://localhost:4321/api/recipes?sort=title&order=asc" \
 ```
 
 ### 1.9 Sort by Cooking Time (descending)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?sort=cooking_time&order=desc" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -81,6 +92,7 @@ curl -X GET "http://localhost:4321/api/recipes?sort=cooking_time&order=desc" \
 ```
 
 ### 1.10 Complex Query (multiple filters)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?search=soup&difficulty=easy&max_cooking_time=45&sort=created_at&order=desc&page=1&limit=20" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -92,6 +104,7 @@ curl -X GET "http://localhost:4321/api/recipes?search=soup&difficulty=easy&max_c
 ## 2. POST /api/recipes - Create Recipe
 
 ### 2.1 Create Simple Recipe
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -110,6 +123,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 2.2 Create Recipe with All Fields
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -142,6 +156,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 2.3 Create Easy Recipe
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -169,6 +184,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 2.4 Create Recipe with Multiple Ingredients
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -215,6 +231,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ## 3. GET /api/recipes/:id - Get Recipe by ID
 
 ### 3.1 Get Specific Recipe
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -222,6 +239,7 @@ curl -X GET "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 3.2 Get Non-existent Recipe (should return 404)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes/99999" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -229,6 +247,7 @@ curl -X GET "http://localhost:4321/api/recipes/99999" \
 ```
 
 ### 3.3 Get Recipe with Invalid ID (should return 400)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes/invalid" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -240,6 +259,7 @@ curl -X GET "http://localhost:4321/api/recipes/invalid" \
 ## 4. PATCH /api/recipes/:id - Update Recipe
 
 ### 4.1 Update Title Only
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -250,6 +270,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.2 Update Cooking Time and Difficulty
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -261,6 +282,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.3 Update Description and Instructions
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -272,6 +294,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.4 Replace All Ingredients
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -298,6 +321,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.5 Replace All Tags
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -308,6 +332,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.6 Remove All Tags (empty array)
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -318,6 +343,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.7 Update Multiple Fields
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -339,6 +365,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 4.8 Invalid Update - Empty Body (should return 400)
+
 ```bash
 curl -X PATCH "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -351,6 +378,7 @@ curl -X PATCH "http://localhost:4321/api/recipes/1" \
 ## 5. DELETE /api/recipes/:id - Delete Recipe
 
 ### 5.1 Delete Existing Recipe
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/recipes/1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -358,6 +386,7 @@ curl -X DELETE "http://localhost:4321/api/recipes/1" \
 ```
 
 ### 5.2 Delete Non-existent Recipe (should return 404)
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/recipes/99999" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -369,12 +398,14 @@ curl -X DELETE "http://localhost:4321/api/recipes/99999" \
 ## 6. Error Cases to Test
 
 ### 6.1 Missing Authorization (should return 401)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes" \
   -H "Content-Type: application/json"
 ```
 
 ### 6.2 Invalid Authorization Token (should return 401)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer invalid_token_here" \
@@ -382,6 +413,7 @@ curl -X GET "http://localhost:4321/api/recipes" \
 ```
 
 ### 6.3 Create Recipe without Required Fields (should return 400)
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -392,6 +424,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 6.4 Create Recipe with Duplicate Ingredients (should return 400)
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -415,6 +448,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 6.5 Create Recipe with Non-existent Product (should return 404)
+
 ```bash
 curl -X POST "http://localhost:4321/api/recipes" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -433,6 +467,7 @@ curl -X POST "http://localhost:4321/api/recipes" \
 ```
 
 ### 6.6 Invalid Query Parameters (should return 422)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?page=0&limit=200" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -440,6 +475,7 @@ curl -X GET "http://localhost:4321/api/recipes?page=0&limit=200" \
 ```
 
 ### 6.7 Invalid Difficulty Value (should return 422)
+
 ```bash
 curl -X GET "http://localhost:4321/api/recipes?difficulty=super_easy" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -581,12 +617,14 @@ You can import this collection into Postman:
 ## 8. How to Get Auth Token
 
 ### Option 1: Using Supabase Dashboard
+
 1. Go to http://localhost:54323 (Supabase Studio)
 2. Go to Authentication → Users
 3. Create a test user or select existing user
 4. Copy the JWT token from user details
 
 ### Option 2: Using curl to sign up/sign in
+
 ```bash
 # Sign up new user
 curl -X POST "http://localhost:54321/auth/v1/signup" \
@@ -655,4 +693,3 @@ curl -X GET "http://localhost:4321/api/recipes/1" \
 - All timestamps are in ISO 8601 format
 - Responses include pagination metadata for list endpoints
 - CASCADE DELETE removes related ingredients, tags, and cooking history
-

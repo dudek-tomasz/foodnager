@@ -63,6 +63,7 @@ recipes.astro (Astro page)
 **Opis:** Główny komponent widoku, zarządzający stanem, fetching danych, filtrowaniem, sortowaniem oraz wyświetlaniem przepisów.
 
 **Główne elementy:**
+
 - Container (`<main>`) z layoutem flex/grid
 - Header z tytułem i statystykami
 - Toolbar z wyszukiwarką i filtrami
@@ -71,6 +72,7 @@ recipes.astro (Astro page)
 - Modal dodawania/edycji przepisu (conditional render)
 
 **Obsługiwane interakcje:**
+
 - Fetch przepisów przy montowaniu komponentu
 - Wyszukiwanie z debouncing (300ms)
 - Zmiana filtrów (źródło, trudność, tagi, czas gotowania)
@@ -81,15 +83,18 @@ recipes.astro (Astro page)
 - Nawigacja do szczegółów przepisu
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji w tym komponencie (tylko wyświetlanie)
 
 **Typy:**
+
 - `RecipesListResponseDTO` - odpowiedź API
 - `RecipeSummaryDTO[]` - lista przepisów
 - `PaginationMetaDTO` - metadane paginacji
 - `RecipeListFilters` (custom ViewModel) - stan filtrów
 
 **Propsy:**
+
 - `initialData?: RecipesListResponseDTO` - dane z SSR (opcjonalne)
 
 ### 4.2 RecipeListHeader
@@ -97,18 +102,22 @@ recipes.astro (Astro page)
 **Opis:** Header widoku z tytułem strony oraz statystykami przepisów (liczba ogółem i według źródeł).
 
 **Główne elementy:**
+
 - `<header>` z flexbox layout
 - Tytuł "Moje przepisy" (`<h1>`)
 - Liczniki: Ogółem, USER, API, AI (badges z kolorami)
 - Przycisk "Dodaj przepis" (primary button, desktop)
 
 **Obsługiwane interakcje:**
+
 - Click "Dodaj przepis" → emit callback `onAddRecipe`
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - `RecipeStats` (custom ViewModel):
   ```typescript
   {
@@ -120,6 +129,7 @@ recipes.astro (Astro page)
   ```
 
 **Propsy:**
+
 - `stats: RecipeStats`
 - `onAddRecipe: () => void`
 
@@ -128,6 +138,7 @@ recipes.astro (Astro page)
 **Opis:** Toolbar z narzędziami do wyszukiwania, filtrowania i sortowania przepisów.
 
 **Główne elementy:**
+
 - Container (`<div>`) z flexbox layout (wrap na mobile)
 - SearchBar (40% szerokości desktop, full mobile)
 - SortDropdown
@@ -135,16 +146,19 @@ recipes.astro (Astro page)
 - Przycisk "Dodaj przepis" (mobile only, floated)
 
 **Obsługiwane interakcje:**
+
 - Wpisywanie w search bar → emit `onSearchChange` (debounced 300ms)
 - Wybór sortowania → emit `onSortChange`
 - Wybór filtrów → emit `onFilterChange`
 - Click "Dodaj przepis" → emit `onAddRecipe`
 
 **Obsługiwana walidacja:**
+
 - Search: trim, max 100 znaków
 - Max cooking time: number >= 0
 
 **Typy:**
+
 - `SortOption`: `{ field: 'title' | 'cooking_time' | 'difficulty' | 'created_at'; order: 'asc' | 'desc' }`
 - `RecipeFilters` (custom ViewModel):
   ```typescript
@@ -157,6 +171,7 @@ recipes.astro (Astro page)
   ```
 
 **Propsy:**
+
 - `searchValue: string`
 - `sortOption: SortOption`
 - `filters: RecipeFilters`
@@ -171,12 +186,14 @@ recipes.astro (Astro page)
 **Opis:** Grid wyświetlający karty przepisów w responsywnym układzie kolumnowym.
 
 **Główne elementy:**
+
 - Container (`<div>`) z CSS Grid (3 kolumny desktop, 2 tablet, 1 mobile)
 - RecipeCard[] - lista kart przepisów
 - EmptyState - gdy brak przepisów
 - LoadingState - skeleton cards podczas ładowania
 
 **Obsługiwane interakcje:**
+
 - Click karty → emit `onRecipeClick`
 - Click "Szczegóły" → nawigacja do `/recipes/:id`
 - Click "Ugotuj" → emit `onCookRecipe`
@@ -184,12 +201,15 @@ recipes.astro (Astro page)
 - Click "Usuń" (dropdown) → emit `onDeleteRecipe`
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - `RecipeSummaryDTO[]` - lista przepisów
 
 **Propsy:**
+
 - `recipes: RecipeSummaryDTO[]`
 - `loading: boolean`
 - `onRecipeClick: (id: number) => void`
@@ -202,6 +222,7 @@ recipes.astro (Astro page)
 **Opis:** Karta pojedynczego przepisu z obrazem placeholder, tytułem, składnikami, meta danymi i akcjami.
 
 **Główne elementy:**
+
 - Card container (Shadcn Card component)
 - SourceBadge (prawy górny róg, position absolute)
 - Tytuł przepisu (`<h3>`, 2-line clamp)
@@ -211,6 +232,7 @@ recipes.astro (Astro page)
 - Dropdown menu (three dots): Edytuj, Usuń (tylko dla USER source)
 
 **Obsługiwane interakcje:**
+
 - Click całej karty → `onRecipeClick`
 - Click "Szczegóły" → `onDetailsClick`
 - Click "Ugotuj" → `onCookClick`
@@ -219,12 +241,15 @@ recipes.astro (Astro page)
 - Hover effect: scale(1.02), shadow
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - `RecipeSummaryDTO` - dane przepisu
 
 **Propsy:**
+
 - `recipe: RecipeSummaryDTO`
 - `onRecipeClick: () => void`
 - `onDetailsClick: () => void`
@@ -237,6 +262,7 @@ recipes.astro (Astro page)
 **Opis:** Modal do tworzenia i edycji przepisów. Full-screen na mobile, centered 600px na desktop. Zawiera formularz z czterema sekcjami: podstawowe info, składniki, instrukcje, meta.
 
 **Główne elementy:**
+
 - Dialog/Modal (Shadcn Dialog)
 - Sticky Header: "Dodaj przepis" / "Edytuj przepis" + close button
 - Form (`<form>`)
@@ -252,6 +278,7 @@ recipes.astro (Astro page)
 - Sticky Footer: "Anuluj" + "Zapisz przepis"
 
 **Obsługiwane interakcje:**
+
 - Otwieranie/zamykanie modalu
 - Wypełnianie formularza
 - Dodawanie/usuwanie składników (dynamic list)
@@ -262,6 +289,7 @@ recipes.astro (Astro page)
 - Keyboard navigation: Enter = dodaj składnik, Escape = zamknij modal
 
 **Obsługiwana walidacja:**
+
 - **Tytuł:** required, min 1, max 100 znaków (trim)
 - **Opis:** optional, max 500 znaków
 - **Instrukcje:** required, min 10, max 5000 znaków
@@ -275,6 +303,7 @@ recipes.astro (Astro page)
 - **Tagi:** optional, array of valid tag IDs
 
 **Typy:**
+
 - `CreateRecipeDTO` - request body dla POST
 - `UpdateRecipeDTO` - request body dla PATCH
 - `RecipeDTO` - response z API
@@ -301,6 +330,7 @@ recipes.astro (Astro page)
   ```
 
 **Propsy:**
+
 - `mode: 'add' | 'edit'`
 - `recipe?: RecipeSummaryDTO` - dla trybu edit
 - `isOpen: boolean`
@@ -312,6 +342,7 @@ recipes.astro (Astro page)
 **Opis:** Komponenty kontrolek paginacji (previous, page numbers, next).
 
 **Główne elementy:**
+
 - Container z flexbox
 - Button "Poprzednia"
 - Page numbers (current bold, clickable)
@@ -319,17 +350,21 @@ recipes.astro (Astro page)
 - Info: "Strona X z Y"
 
 **Obsługiwane interakcje:**
+
 - Click "Poprzednia" → emit `onPageChange(page - 1)`
 - Click numer strony → emit `onPageChange(pageNumber)`
 - Click "Następna" → emit `onPageChange(page + 1)`
 
 **Obsługiwana walidacja:**
+
 - Brak (disabled states dla prev/next gdy na krańcach)
 
 **Typy:**
+
 - `PaginationMetaDTO`
 
 **Propsy:**
+
 - `pagination: PaginationMetaDTO`
 - `onPageChange: (page: number) => void`
 
@@ -338,22 +373,27 @@ recipes.astro (Astro page)
 **Opis:** Dialog potwierdzenia usunięcia przepisu.
 
 **Główne elementy:**
+
 - Dialog (Shadcn AlertDialog)
 - Tytuł: "Czy na pewno usunąć przepis?"
 - Treść: "Przepis '[nazwa]' zostanie trwale usunięty. Tej operacji nie można cofnąć."
 - Przyciski: "Anuluj" (secondary) + "Usuń" (destructive)
 
 **Obsługiwane interakcje:**
+
 - Click "Anuluj" → emit `onCancel`
 - Click "Usuń" → emit `onConfirm`, loading state, wywołaj DELETE `/api/recipes/:id`
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - Brak specjalnych typów
 
 **Propsy:**
+
 - `isOpen: boolean`
 - `recipeName: string`
 - `onConfirm: () => Promise<void>`
@@ -364,6 +404,7 @@ recipes.astro (Astro page)
 **Opis:** Stan pusty gdy użytkownik nie ma żadnych przepisów.
 
 **Główne elementy:**
+
 - Container centered
 - Ikona (duża, 64px)
 - Tytuł: "Nie masz jeszcze przepisów"
@@ -371,16 +412,20 @@ recipes.astro (Astro page)
 - Przyciski: "Dodaj przepis" (primary) + "Znajdź przepis" (secondary)
 
 **Obsługiwane interakcje:**
+
 - Click "Dodaj przepis" → emit `onAddRecipe`
 - Click "Znajdź przepis" → navigate to `/recipes/search`
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - Brak
 
 **Propsy:**
+
 - `onAddRecipe: () => void`
 
 ### 4.10 SourceBadge
@@ -388,23 +433,29 @@ recipes.astro (Astro page)
 **Opis:** Badge wyświetlający źródło przepisu z odpowiednim kolorem i ikoną.
 
 **Główne elementy:**
+
 - Badge (Shadcn Badge) z custom styling
 - Ikona (opcjonalna)
 - Tekst: "MOJE" | "API" | "AI"
 
 **Obsługiwane interakcje:**
+
 - Brak (pure display)
 
 **Obsługiwana walidacja:**
+
 - Brak
 
 **Typy:**
+
 - `SourceEnum` - 'user' | 'api' | 'ai'
 
 **Propsy:**
+
 - `source: SourceEnum`
 
 **Mapping kolorów:**
+
 - USER: niebieski #3b82f6
 - API: fioletowy #8b5cf6
 - AI: pomarańczowy #f59e0b
@@ -521,8 +572,8 @@ export interface RecipeStats {
  * Opcje sortowania dla widoku przepisów
  */
 export interface SortOption {
-  field: 'title' | 'cooking_time' | 'difficulty' | 'created_at';
-  order: 'asc' | 'desc';
+  field: "title" | "cooking_time" | "difficulty" | "created_at";
+  order: "asc" | "desc";
 }
 
 /**
@@ -604,54 +655,47 @@ Funkcje transformacji między API DTOs a ViewModels:
 ```typescript
 // src/lib/mappers/recipe-view.mapper.ts
 
-export function mapRecipeFormDataToCreateDTO(
-  formData: RecipeFormData
-): CreateRecipeDTO {
+export function mapRecipeFormDataToCreateDTO(formData: RecipeFormData): CreateRecipeDTO {
   return {
     title: formData.title.trim(),
     description: formData.description.trim() || null,
     instructions: formData.instructions.trim(),
     cooking_time: formData.cookingTime,
     difficulty: formData.difficulty,
-    ingredients: formData.ingredients.map(ing => ({
+    ingredients: formData.ingredients.map((ing) => ({
       product_id: ing.productId!,
       quantity: ing.quantity,
-      unit_id: ing.unitId!
+      unit_id: ing.unitId!,
     })),
-    tag_ids: formData.tagIds.length > 0 ? formData.tagIds : undefined
+    tag_ids: formData.tagIds.length > 0 ? formData.tagIds : undefined,
   };
 }
 
-export function mapRecipeFormDataToUpdateDTO(
-  formData: RecipeFormData
-): UpdateRecipeDTO {
+export function mapRecipeFormDataToUpdateDTO(formData: RecipeFormData): UpdateRecipeDTO {
   // Podobne do CreateDTO, ale wszystkie pola opcjonalne
   const updates: UpdateRecipeDTO = {};
-  
+
   if (formData.title) updates.title = formData.title.trim();
-  if (formData.description !== undefined) 
-    updates.description = formData.description.trim() || null;
+  if (formData.description !== undefined) updates.description = formData.description.trim() || null;
   if (formData.instructions) updates.instructions = formData.instructions.trim();
   if (formData.cookingTime !== null) updates.cooking_time = formData.cookingTime;
   if (formData.difficulty !== null) updates.difficulty = formData.difficulty;
   if (formData.ingredients.length > 0) {
-    updates.ingredients = formData.ingredients.map(ing => ({
+    updates.ingredients = formData.ingredients.map((ing) => ({
       product_id: ing.productId!,
       quantity: ing.quantity,
-      unit_id: ing.unitId!
+      unit_id: ing.unitId!,
     }));
   }
   if (formData.tagIds.length > 0) updates.tag_ids = formData.tagIds;
-  
+
   return updates;
 }
 
-export function mapRecipeDTOToFormData(
-  recipe: RecipeSummaryDTO | RecipeDTO
-): RecipeFormData {
+export function mapRecipeDTOToFormData(recipe: RecipeSummaryDTO | RecipeDTO): RecipeFormData {
   return {
     title: recipe.title,
-    description: recipe.description || '',
+    description: recipe.description || "",
     instructions: recipe.instructions,
     cookingTime: recipe.cooking_time,
     difficulty: recipe.difficulty,
@@ -660,20 +704,18 @@ export function mapRecipeDTOToFormData(
       productId: ing.product.id,
       productName: ing.product.name,
       quantity: ing.quantity,
-      unitId: ing.unit.id
+      unitId: ing.unit.id,
     })),
-    tagIds: recipe.tags.map(tag => tag.id)
+    tagIds: recipe.tags.map((tag) => tag.id),
   };
 }
 
-export function calculateRecipeStats(
-  recipes: RecipeSummaryDTO[]
-): RecipeStats {
+export function calculateRecipeStats(recipes: RecipeSummaryDTO[]): RecipeStats {
   return {
     total: recipes.length,
-    userCount: recipes.filter(r => r.source === 'user').length,
-    apiCount: recipes.filter(r => r.source === 'api').length,
-    aiCount: recipes.filter(r => r.source === 'ai').length
+    userCount: recipes.filter((r) => r.source === "user").length,
+    apiCount: recipes.filter((r) => r.source === "api").length,
+    aiCount: recipes.filter((r) => r.source === "ai").length,
   };
 }
 ```
@@ -688,9 +730,7 @@ Widok wykorzystuje **lokalny stan komponentu React** (`useState`) bez zewnętrzn
 
 ```typescript
 // Stan listy przepisów
-const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(
-  initialData?.data || []
-);
+const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(initialData?.data || []);
 
 // Stan paginacji
 const [pagination, setPagination] = useState<PaginationMetaDTO>(
@@ -698,10 +738,10 @@ const [pagination, setPagination] = useState<PaginationMetaDTO>(
 );
 
 // Stan wyszukiwania i filtrów
-const [search, setSearch] = useState<string>('');
+const [search, setSearch] = useState<string>("");
 const [sort, setSort] = useState<SortOption>({
-  field: 'created_at',
-  order: 'desc'
+  field: "created_at",
+  order: "desc",
 });
 const [filters, setFilters] = useState<RecipeFilters>({});
 
@@ -742,7 +782,7 @@ interface UseRecipeListReturn {
   search: string;
   sort: SortOption;
   filters: RecipeFilters;
-  
+
   // Akcje
   fetchRecipes: () => Promise<void>;
   setSearch: (value: string) => void;
@@ -753,25 +793,21 @@ interface UseRecipeListReturn {
   refreshList: () => Promise<void>;
 }
 
-export function useRecipeList(
-  options: UseRecipeListOptions = {}
-): UseRecipeListReturn {
-  const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(
-    options.initialData?.data || []
-  );
+export function useRecipeList(options: UseRecipeListOptions = {}): UseRecipeListReturn {
+  const [recipes, setRecipes] = useState<RecipeSummaryDTO[]>(options.initialData?.data || []);
   const [pagination, setPagination] = useState<PaginationMetaDTO>(
     options.initialData?.pagination || { page: 1, limit: 20, total: 0, total_pages: 0 }
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortOption>({ field: 'created_at', order: 'desc' });
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>({ field: "created_at", order: "desc" });
   const [filters, setFilters] = useState<RecipeFilters>({});
 
   const fetchRecipes = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params: ListRecipesQueryDTO = {
         page: pagination.page,
@@ -779,19 +815,16 @@ export function useRecipeList(
         search: search || undefined,
         sort: sort.field,
         order: sort.order,
-        ...filters
+        ...filters,
       };
 
-      const response = await apiClient.get<RecipesListResponseDTO>(
-        '/api/recipes',
-        params
-      );
+      const response = await apiClient.get<RecipesListResponseDTO>("/api/recipes", params);
 
       setRecipes(response.data);
       setPagination(response.pagination);
     } catch (err) {
-      setError('Nie udało się pobrać przepisów. Spróbuj ponownie.');
-      console.error('Fetch recipes error:', err);
+      setError("Nie udało się pobrać przepisów. Spróbuj ponownie.");
+      console.error("Fetch recipes error:", err);
     } finally {
       setLoading(false);
     }
@@ -807,7 +840,7 @@ export function useRecipeList(
       await apiClient.delete(`/api/recipes/${id}`);
       await refreshList();
     } catch (err) {
-      throw new Error('Nie udało się usunąć przepisu');
+      throw new Error("Nie udało się usunąć przepisu");
     }
   };
 
@@ -816,7 +849,7 @@ export function useRecipeList(
   };
 
   const setPage = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   return {
@@ -833,7 +866,7 @@ export function useRecipeList(
     setFilters,
     setPage,
     deleteRecipe,
-    refreshList
+    refreshList,
   };
 }
 ```
@@ -845,23 +878,23 @@ Dla lepszego UX można synchronizować filtry z URL params:
 ```typescript
 // Inicjalizacja z URL params
 const searchParams = new URLSearchParams(window.location.search);
-const [search, setSearch] = useState(searchParams.get('search') || '');
+const [search, setSearch] = useState(searchParams.get("search") || "");
 const [filters, setFilters] = useState<RecipeFilters>({
-  source: searchParams.get('source') as SourceEnum,
-  difficulty: searchParams.get('difficulty') as DifficultyEnum,
+  source: searchParams.get("source") as SourceEnum,
+  difficulty: searchParams.get("difficulty") as DifficultyEnum,
   // ... inne filtry
 });
 
 // Update URL przy zmianie filtrów
 useEffect(() => {
   const params = new URLSearchParams();
-  if (search) params.set('search', search);
-  if (filters.source) params.set('source', filters.source);
-  if (filters.difficulty) params.set('difficulty', filters.difficulty);
+  if (search) params.set("search", search);
+  if (filters.source) params.set("source", filters.source);
+  if (filters.difficulty) params.set("difficulty", filters.difficulty);
   // ... inne filtry
-  
+
   const newUrl = `${window.location.pathname}?${params.toString()}`;
-  window.history.replaceState({}, '', newUrl);
+  window.history.replaceState({}, "", newUrl);
 }, [search, filters]);
 ```
 
@@ -872,38 +905,37 @@ useEffect(() => {
 **Kiedy:** Przy montowaniu komponentu, zmianie filtrów, sortowania, strony, wyszukiwania
 
 **Request:**
+
 ```typescript
 // Query parameters
 interface ListRecipesQuery {
   search?: string;
-  source?: 'user' | 'api' | 'ai';
-  difficulty?: 'easy' | 'medium' | 'hard';
+  source?: "user" | "api" | "ai";
+  difficulty?: "easy" | "medium" | "hard";
   tags?: number[]; // comma-separated w URL
   max_cooking_time?: number;
-  sort?: 'title' | 'cooking_time' | 'difficulty' | 'created_at';
-  order?: 'asc' | 'desc';
+  sort?: "title" | "cooking_time" | "difficulty" | "created_at";
+  order?: "asc" | "desc";
   page?: number;
   limit?: number;
 }
 
 // Wywołanie
-const response = await apiClient.get<RecipesListResponseDTO>(
-  '/api/recipes',
-  {
-    page: 1,
-    limit: 20,
-    search: 'tomato',
-    source: 'user',
-    difficulty: 'easy',
-    tags: [1, 2],
-    max_cooking_time: 30,
-    sort: 'created_at',
-    order: 'desc'
-  }
-);
+const response = await apiClient.get<RecipesListResponseDTO>("/api/recipes", {
+  page: 1,
+  limit: 20,
+  search: "tomato",
+  source: "user",
+  difficulty: "easy",
+  tags: [1, 2],
+  max_cooking_time: 30,
+  sort: "created_at",
+  order: "desc",
+});
 ```
 
 **Response:**
+
 ```typescript
 RecipesListResponseDTO {
   data: RecipeSummaryDTO[];
@@ -912,6 +944,7 @@ RecipesListResponseDTO {
 ```
 
 **Obsługa błędów:**
+
 - 401 Unauthorized → Redirect do `/login`
 - 422 Unprocessable Entity → Toast z komunikatem błędu walidacji
 - 500 Internal Server Error → Toast "Wystąpił błąd serwera"
@@ -922,27 +955,29 @@ RecipesListResponseDTO {
 **Kiedy:** Submit formularza w RecipeFormModal (tryb add)
 
 **Request:**
+
 ```typescript
 const requestBody: CreateRecipeDTO = {
-  title: 'Zupa pomidorowa',
-  description: 'Prosta i pyszna zupa',
-  instructions: '1. Pokrój pomidory...',
+  title: "Zupa pomidorowa",
+  description: "Prosta i pyszna zupa",
+  instructions: "1. Pokrój pomidory...",
   cooking_time: 30,
-  difficulty: 'easy',
+  difficulty: "easy",
   ingredients: [
     {
       product_id: 10,
       quantity: 5,
-      unit_id: 1
-    }
+      unit_id: 1,
+    },
   ],
-  tag_ids: [1, 2]
+  tag_ids: [1, 2],
 };
 
-const response = await apiClient.post<RecipeDTO>('/api/recipes', requestBody);
+const response = await apiClient.post<RecipeDTO>("/api/recipes", requestBody);
 ```
 
 **Response:**
+
 ```typescript
 RecipeDTO {
   id: number;
@@ -954,11 +989,13 @@ RecipeDTO {
 ```
 
 **Obsługa błędów:**
+
 - 400 Bad Request → Wyświetl błędy walidacji w formularzu
 - 404 Not Found → Toast "Produkt, jednostka lub tag nie istnieje"
 - 409 Conflict → Toast "Przepis o tej nazwie już istnieje"
 
 **Po sukcesie:**
+
 1. Toast "Przepis został dodany"
 2. Zamknij modal
 3. Odśwież listę przepisów (fetchRecipes())
@@ -969,29 +1006,30 @@ RecipeDTO {
 **Kiedy:** Submit formularza w RecipeFormModal (tryb edit)
 
 **Request:**
+
 ```typescript
 const requestBody: UpdateRecipeDTO = {
-  title: 'Zaktualizowana zupa',
+  title: "Zaktualizowana zupa",
   cooking_time: 25,
   // ... tylko zmienione pola
 };
 
-const response = await apiClient.patch<RecipeDTO>(
-  `/api/recipes/${recipeId}`,
-  requestBody
-);
+const response = await apiClient.patch<RecipeDTO>(`/api/recipes/${recipeId}`, requestBody);
 ```
 
 **Response:**
+
 ```typescript
-RecipeDTO // zaktualizowany przepis
+RecipeDTO; // zaktualizowany przepis
 ```
 
 **Obsługa błędów:**
+
 - 400 Bad Request → Błędy walidacji
 - 404 Not Found → Toast "Przepis nie istnieje"
 
 **Po sukcesie:**
+
 1. Toast "Przepis został zaktualizowany"
 2. Zamknij modal
 3. Odśwież listę
@@ -1001,18 +1039,22 @@ RecipeDTO // zaktualizowany przepis
 **Kiedy:** Potwierdzenie w DeleteConfirmDialog
 
 **Request:**
+
 ```typescript
 await apiClient.delete(`/api/recipes/${recipeId}`);
 ```
 
 **Response:**
+
 - 204 No Content (puste body)
 
 **Obsługa błędów:**
+
 - 404 Not Found → Toast "Przepis nie istnieje"
 - 403 Forbidden → Toast "Nie masz uprawnień do usunięcia tego przepisu"
 
 **Po sukcesie:**
+
 1. Toast "Przepis został usunięty"
 2. Zamknij dialog
 3. Odśwież listę
@@ -1023,13 +1065,15 @@ await apiClient.delete(`/api/recipes/${recipeId}`);
 **Kiedy:** Przy otwieraniu RecipeFormModal (jeśli nie są już w cache)
 
 **Request:**
+
 ```typescript
-const response = await apiClient.get<TagsListResponseDTO>('/api/tags', {
-  search: 'vege' // opcjonalnie
+const response = await apiClient.get<TagsListResponseDTO>("/api/tags", {
+  search: "vege", // opcjonalnie
 });
 ```
 
 **Response:**
+
 ```typescript
 TagsListResponseDTO {
   data: TagDTO[];
@@ -1041,15 +1085,17 @@ TagsListResponseDTO {
 **Kiedy:** Użytkownik wybiera "+ Dodaj tag" w multi-select
 
 **Request:**
+
 ```typescript
 const requestBody: CreateTagDTO = {
-  name: 'bezglutenowe'
+  name: "bezglutenowe",
 };
 
-const response = await apiClient.post<TagDTO>('/api/tags', requestBody);
+const response = await apiClient.post<TagDTO>("/api/tags", requestBody);
 ```
 
 **Response:**
+
 ```typescript
 TagDTO {
   id: number;
@@ -1059,6 +1105,7 @@ TagDTO {
 ```
 
 **Po sukcesie:**
+
 1. Dodaj nowy tag do lokalnej listy tags
 2. Automatycznie wybierz nowy tag w formularzu
 
@@ -1072,18 +1119,18 @@ Wykorzystanie wspólnego API client z error handling:
 class ApiClient {
   private baseURL: string;
 
-  constructor(baseURL: string = '') {
+  constructor(baseURL: string = "") {
     this.baseURL = baseURL;
   }
 
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const url = new URL(endpoint, window.location.origin);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            url.searchParams.set(key, value.join(','));
+            url.searchParams.set(key, value.join(","));
           } else {
             url.searchParams.set(key, String(value));
           }
@@ -1092,7 +1139,7 @@ class ApiClient {
     }
 
     const response = await fetch(url.toString(), {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
 
     return this.handleResponse<T>(response);
@@ -1100,9 +1147,9 @@ class ApiClient {
 
   async post<T>(endpoint: string, body: any): Promise<T> {
     const response = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: this.getHeaders(),
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     return this.handleResponse<T>(response);
@@ -1110,9 +1157,9 @@ class ApiClient {
 
   async patch<T>(endpoint: string, body: any): Promise<T> {
     const response = await fetch(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: this.getHeaders(),
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     return this.handleResponse<T>(response);
@@ -1120,8 +1167,8 @@ class ApiClient {
 
   async delete(endpoint: string): Promise<void> {
     const response = await fetch(endpoint, {
-      method: 'DELETE',
-      headers: this.getHeaders()
+      method: "DELETE",
+      headers: this.getHeaders(),
     });
 
     if (!response.ok) {
@@ -1131,7 +1178,7 @@ class ApiClient {
 
   private getHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       // 'Authorization': `Bearer ${getToken()}` // TODO: implement auth
     };
   }
@@ -1151,16 +1198,9 @@ class ApiClient {
   private async parseError(response: Response): Promise<ApiError> {
     try {
       const errorData = await response.json();
-      return new ApiError(
-        response.status,
-        errorData.error?.message || 'Wystąpił błąd',
-        errorData.error?.code
-      );
+      return new ApiError(response.status, errorData.error?.message || "Wystąpił błąd", errorData.error?.code);
     } catch {
-      return new ApiError(
-        response.status,
-        'Wystąpił nieoczekiwany błąd'
-      );
+      return new ApiError(response.status, "Wystąpił nieoczekiwany błąd");
     }
   }
 }
@@ -1172,7 +1212,7 @@ export class ApiError extends Error {
     public code?: string
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
@@ -1184,12 +1224,14 @@ export const apiClient = new ApiClient();
 ### 8.1 Przeglądanie przepisów
 
 **Flow:**
+
 1. Użytkownik wchodzi na `/recipes`
 2. Widok ładuje się z danymi SSR (opcjonalnie) lub fetchuje dane client-side
 3. Wyświetla grid kart przepisów
 4. Użytkownik scrolluje i przegląda przepisy
 
 **Elementy UI:**
+
 - Grid responsywny (3/2/1 kolumny)
 - Lazy loading obrazów (placeholder)
 - Smooth scroll
@@ -1198,6 +1240,7 @@ export const apiClient = new ApiClient();
 ### 8.2 Wyszukiwanie przepisów
 
 **Flow:**
+
 1. Użytkownik wpisuje tekst w search bar
 2. Debouncing 300ms
 3. Wywołanie API z parametrem `search`
@@ -1205,6 +1248,7 @@ export const apiClient = new ApiClient();
 5. Wyświetlenie wyników
 
 **Elementy UI:**
+
 - Search bar z ikoną lupy
 - Clear button (X) gdy jest tekst
 - Loading spinner w input podczas fetchu
@@ -1213,6 +1257,7 @@ export const apiClient = new ApiClient();
 ### 8.3 Filtrowanie przepisów
 
 **Flow:**
+
 1. Użytkownik otwiera dropdown "Filtruj"
 2. Wybiera filtry: źródło (USER/API/AI), trudność, tagi, max czas
 3. Każda zmiana → auto-submit (lub przycisk "Zastosuj")
@@ -1220,6 +1265,7 @@ export const apiClient = new ApiClient();
 5. Wyświetlenie przefiltrowanych wyników
 
 **Elementy UI:**
+
 - Multi-select dropdown
 - Checkboxes dla każdego filtru
 - Badge pokazujący liczbę aktywnych filtrów
@@ -1229,12 +1275,14 @@ export const apiClient = new ApiClient();
 ### 8.4 Sortowanie przepisów
 
 **Flow:**
+
 1. Użytkownik otwiera dropdown "Sortuj"
 2. Wybiera opcję: Najnowsze/Najstarsze/A-Z/Czas gotowania
 3. Wywołanie API z parametrami sort + order
 4. Wyświetlenie posortowanych wyników
 
 **Elementy UI:**
+
 - Single-select dropdown
 - Radio buttons dla opcji sortowania
 - Ikony strzałek (asc/desc)
@@ -1242,12 +1290,14 @@ export const apiClient = new ApiClient();
 ### 8.5 Przechodzenie między stronami
 
 **Flow:**
+
 1. Użytkownik klika "Następna" lub numer strony
 2. Wywołanie API z parametrem `page`
 3. Scroll do góry strony
 4. Wyświetlenie nowej strony wyników
 
 **Elementy UI:**
+
 - Pagination controls na dole gridu
 - Disabled state dla prev/next gdy na końcu
 - Current page bold/highlighted
@@ -1256,6 +1306,7 @@ export const apiClient = new ApiClient();
 ### 8.6 Dodawanie przepisu
 
 **Flow:**
+
 1. Użytkownik klika "Dodaj przepis"
 2. Otwiera się modal RecipeFormModal
 3. Użytkownik wypełnia formularz:
@@ -1278,6 +1329,7 @@ export const apiClient = new ApiClient();
 9. Error → wyświetl błędy w formularzu
 
 **Elementy UI:**
+
 - Modal full-screen (mobile) / centered 600px (desktop)
 - Focus trap w modalu
 - Validation errors inline (czerwone obramowanie + tekst)
@@ -1287,6 +1339,7 @@ export const apiClient = new ApiClient();
 ### 8.7 Edycja przepisu
 
 **Flow:**
+
 1. Użytkownik klika three dots na karcie przepisu (tylko USER source)
 2. Wybiera "Edytuj" z dropdown
 3. Otwiera się modal RecipeFormModal z prefilowanymi danymi
@@ -1296,6 +1349,7 @@ export const apiClient = new ApiClient();
 7. Success → Toast + zamknij modal + refresh listy
 
 **Elementy UI:**
+
 - Ten sam modal co dodawanie, zmienia się tytuł "Edytuj przepis"
 - Prefilowane wartości w polach
 - Możliwość edycji wszystkich pól oprócz source
@@ -1303,6 +1357,7 @@ export const apiClient = new ApiClient();
 ### 8.8 Usuwanie przepisu
 
 **Flow:**
+
 1. Użytkownik klika three dots na karcie przepisu
 2. Wybiera "Usuń" z dropdown
 3. Otwiera się DeleteConfirmDialog
@@ -1314,6 +1369,7 @@ export const apiClient = new ApiClient();
 9. Jeśli ostatnia pozycja na stronie → przejdź do poprzedniej strony
 
 **Elementy UI:**
+
 - AlertDialog z czerwonym przyciskiem "Usuń"
 - Wyraźne ostrzeżenie o trwałym usunięciu
 - Przyciski: "Anuluj" (secondary) + "Usuń" (destructive)
@@ -1321,11 +1377,13 @@ export const apiClient = new ApiClient();
 ### 8.9 Nawigacja do szczegółów przepisu
 
 **Flow:**
+
 1. Użytkownik klika "Szczegóły" na karcie przepisu
 2. Nawigacja do `/recipes/:id`
 3. Widok szczegółów przepisu (inny widok, poza scope tego planu)
 
 **Elementy UI:**
+
 - Link/button "Szczegóły"
 - Cała karta również klikalna (optional)
 - Hover effect wskazujący kliknięcie
@@ -1333,6 +1391,7 @@ export const apiClient = new ApiClient();
 ### 8.10 Dodawanie nowego produktu inline
 
 **Flow (w ramach formularza przepisu):**
+
 1. Użytkownik wpisuje nazwę produktu w autocomplete
 2. Produkt nie istnieje w liście
 3. Wyświetla się opcja "+ Dodaj 'nazwa produktu'"
@@ -1342,6 +1401,7 @@ export const apiClient = new ApiClient();
 7. Automatycznie wybrany w autocomplete
 
 **Elementy UI:**
+
 - Opcja z ikoną plus w dropdown autocomplete
 - Loading state podczas dodawania
 - Success feedback (highlight)
@@ -1349,6 +1409,7 @@ export const apiClient = new ApiClient();
 ### 8.11 Dodawanie nowego tagu inline
 
 **Flow (w ramach formularza przepisu):**
+
 1. Użytkownik wpisuje nazwę tagu w multi-select
 2. Tag nie istnieje
 3. Wyświetla się opcja "+ Dodaj tag 'nazwa'"
@@ -1358,6 +1419,7 @@ export const apiClient = new ApiClient();
 7. Automatycznie wybrany
 
 **Elementy UI:**
+
 - Podobnie jak produkty
 
 ## 9. Warunki i walidacja
@@ -1365,30 +1427,35 @@ export const apiClient = new ApiClient();
 ### 9.1 Walidacja client-side w RecipeFormModal
 
 **Tytuł:**
+
 - **Warunek:** required, min 1 znak (po trim), max 100 znaków
 - **Weryfikacja:** `onBlur` i `onSubmit`
 - **Komunikat:** "Tytuł jest wymagany" / "Tytuł może mieć max 100 znaków"
 - **UI:** Czerwone obramowanie input + tekst błędu pod polem
 
 **Opis:**
+
 - **Warunek:** optional, max 500 znaków
 - **Weryfikacja:** `onBlur` i `onSubmit`
 - **Komunikat:** "Opis może mieć max 500 znaków"
 - **UI:** Licznik znaków "X/500"
 
 **Instrukcje:**
+
 - **Warunek:** required, min 10 znaków, max 5000 znaków
 - **Weryfikacja:** `onBlur` i `onSubmit`
 - **Komunikat:** "Instrukcje są wymagane (min. 10 znaków)" / "Instrukcje mogą mieć max 5000 znaków"
 - **UI:** Licznik znaków, czerwone obramowanie
 
 **Składniki:**
+
 - **Warunek:** minimum 1 składnik
 - **Weryfikacja:** `onSubmit`
 - **Komunikat:** "Dodaj przynajmniej jeden składnik"
 - **UI:** Alert box nad sekcją składników
 
 **Każdy składnik:**
+
 - **product_id:**
   - **Warunek:** required
   - **Weryfikacja:** `onBlur` wiersza składnika
@@ -1414,18 +1481,21 @@ export const apiClient = new ApiClient();
   - **UI:** Toast warning
 
 **Czas gotowania:**
+
 - **Warunek:** optional, jeśli podany: integer > 0
 - **Weryfikacja:** `onChange` (prevent negative), `onBlur`
 - **Komunikat:** "Czas gotowania musi być większy od 0"
 - **UI:** Czerwone obramowanie, input type="number" min="1"
 
 **Trudność:**
+
 - **Warunek:** optional, enum: easy/medium/hard
 - **Weryfikacja:** automatyczna przez radio buttons
 - **Komunikat:** brak (nie może być błędu)
 - **UI:** Radio group
 
 **Tagi:**
+
 - **Warunek:** optional, array of valid tag IDs
 - **Weryfikacja:** automatyczna przez multi-select
 - **Komunikat:** brak
@@ -1434,6 +1504,7 @@ export const apiClient = new ApiClient();
 ### 9.2 Walidacja server-side (odpowiedź API)
 
 **Błędy 400 Bad Request:**
+
 - Mapowanie błędów z API response do pól formularza
 - Wyświetlenie pod odpowiednimi polami
 - Przykład: `{ "error": { "details": { "title": "Title is required" } } }`
@@ -1441,38 +1512,47 @@ export const apiClient = new ApiClient();
 ### 9.3 Warunki wyświetlania elementów UI
 
 **Przycisk "Edytuj" w karcie:**
+
 - **Warunek:** `recipe.source === 'user'`
 - **UI:** Widoczny tylko dla przepisów USER
 
 **Przycisk "Usuń" w karcie:**
+
 - **Warunek:** `recipe.source === 'user'`
 - **UI:** Widoczny tylko dla przepisów USER
 
 **EmptyState:**
+
 - **Warunek:** `recipes.length === 0 && !loading`
 - **UI:** Wyświetl empty state zamiast gridu
 
 **Skeleton loading:**
+
 - **Warunek:** `loading === true`
 - **UI:** 6 skeleton cards zamiast prawdziwych kart
 
 **Pagination controls:**
+
 - **Warunek:** `pagination.total_pages > 1`
 - **UI:** Widoczne tylko gdy więcej niż 1 strona
 
 **Button "Poprzednia":**
+
 - **Warunek:** `pagination.page > 1`
 - **UI:** Enabled gdy nie pierwsza strona, inaczej disabled
 
 **Button "Następna":**
+
 - **Warunek:** `pagination.page < pagination.total_pages`
 - **UI:** Enabled gdy nie ostatnia strona, inaczej disabled
 
 **Badge liczby filtrów:**
+
 - **Warunek:** `Object.keys(filters).length > 0`
 - **UI:** Wyświetl badge z liczbą aktywnych filtrów
 
 **Clear button w search bar:**
+
 - **Warunek:** `search.length > 0`
 - **UI:** Wyświetl X button do czyszczenia
 
@@ -1481,58 +1561,71 @@ export const apiClient = new ApiClient();
 ### 10.1 Błędy API
 
 **401 Unauthorized:**
+
 - **Przyczyna:** Brak lub nieprawidłowy token
 - **Obsługa:** Redirect do `/login` + toast "Sesja wygasła. Zaloguj się ponownie."
 
 **403 Forbidden:**
+
 - **Przyczyna:** Próba edycji/usunięcia cudzego przepisu
 - **Obsługa:** Toast "Nie masz uprawnień do wykonania tej operacji"
 
 **404 Not Found:**
+
 - **Przyczyna:** Przepis, produkt, jednostka lub tag nie istnieje
 - **Obsługa:** Toast "Zasób nie został znaleziony"
 
 **409 Conflict:**
+
 - **Przyczyna:** Duplikat nazwy przepisu lub tagu
 - **Obsługa:** Wyświetl błąd w formularzu pod polem "title" / "tag name"
 
 **422 Unprocessable Entity:**
+
 - **Przyczyna:** Błędy walidacji
 - **Obsługa:** Parsuj `error.details` i wyświetl błędy pod odpowiednimi polami
 
 **500 Internal Server Error:**
+
 - **Przyczyna:** Błąd serwera
 - **Obsługa:** Toast "Wystąpił błąd serwera. Spróbuj ponownie później."
 
 **Network error:**
+
 - **Przyczyna:** Brak internetu
 - **Obsługa:** Toast "Brak połączenia z internetem. Sprawdź połączenie." + retry button
 
 ### 10.2 Błędy UI
 
 **Empty state (brak wyników wyszukiwania):**
+
 - **Przyczyna:** Wyszukiwanie nie zwróciło wyników
 - **UI:** "Nie znaleziono przepisów pasujących do '[query]'" + sugestie: "Spróbuj innych słów kluczowych" + button "Wyczyść filtry"
 
 **Empty state (brak przepisów użytkownika):**
+
 - **Przyczyna:** Użytkownik nie ma żadnych przepisów
 - **UI:** EmptyState z CTA "Dodaj przepis" + "Znajdź przepis"
 
 **Failed to load recipes:**
+
 - **Przyczyna:** Błąd podczas fetch
 - **UI:** Error state z ikoną ostrzeżenia + "Nie udało się pobrać przepisów" + button "Spróbuj ponownie"
 
 **Failed to delete recipe:**
+
 - **Przyczyna:** Błąd podczas DELETE
 - **UI:** Toast error "Nie udało się usunąć przepisu. Spróbuj ponownie."
 
 **Failed to save recipe:**
+
 - **Przyczyna:** Błąd podczas POST/PATCH
 - **UI:** Toast error + zachowaj formularz otwarty + wyświetl błędy walidacji
 
 ### 10.3 Error Boundary
 
 **React Error Boundary dla całego widoku:**
+
 ```typescript
 // src/components/ErrorBoundary.tsx
 
@@ -1571,15 +1664,19 @@ class RecipeViewErrorBoundary extends React.Component<
 ### 10.4 Loading States
 
 **Initial load:**
+
 - **UI:** Skeleton grid (6 skeleton cards)
 
 **Searching/Filtering:**
+
 - **UI:** Loading overlay na gridzie (blur + spinner)
 
 **Deleting recipe:**
+
 - **UI:** Disabled + spinner na przycisku "Usuń", disable entire dialog
 
 **Saving recipe:**
+
 - **UI:** Disabled + spinner na przycisku "Zapisz przepis", disable entire form
 
 ### 10.5 Toast Notifications
@@ -1587,12 +1684,14 @@ class RecipeViewErrorBoundary extends React.Component<
 Wszystkie toasty używają globalnego ToastContext:
 
 **Typy toastów:**
+
 - **Success:** zielony, ikona checkmark, 5s auto-dismiss
 - **Error:** czerwony, ikona X, 7s auto-dismiss + manual dismiss
 - **Info:** niebieski, ikona info, 5s auto-dismiss
 - **Warning:** pomarańczowy, ikona ostrzeżenia, 5s auto-dismiss
 
 **Przykłady komunikatów:**
+
 - Success: "Przepis został dodany", "Przepis został zaktualizowany", "Przepis został usunięty"
 - Error: "Nie udało się zapisać przepisu", "Brak połączenia z internetem"
 - Warning: "Produkt już został dodany do listy składników"
@@ -1602,6 +1701,7 @@ Wszystkie toasty używają globalnego ToastContext:
 ### Krok 1: Struktura plików i podstawowe typy
 
 1.1. Utworzenie struktury folderów:
+
 ```
 src/
 ├── components/
@@ -1627,22 +1727,27 @@ src/
 ```
 
 1.2. Utworzenie pliku typów `src/components/recipes/types.ts`:
+
 - Zdefiniowanie wszystkich ViewModels (RecipeStats, SortOption, RecipeFilters, RecipeListState, RecipeFormData, etc.)
 
-1.3. Utworzenie mappera `src/lib/mappers/recipe-view.mapper.ts`:
+  1.3. Utworzenie mappera `src/lib/mappers/recipe-view.mapper.ts`:
+
 - Funkcje transformacji DTO ↔ ViewModel
 
 ### Krok 2: Utility components (podstawowe komponenty UI)
 
 2.1. **SourceBadge.tsx**:
+
 - Prosty komponent wyświetlający badge z kolorem według source
 - Mapping: USER → niebieski, API → fioletowy, AI → pomarańczowy
 
-2.2. **EmptyState.tsx**:
+  2.2. **EmptyState.tsx**:
+
 - Komponent z ikoną, tekstem, opisem i przyciskami CTA
 - Reużywalny dla różnych scenariuszy (brak przepisów, brak wyników)
 
-2.3. **PaginationControls.tsx**:
+  2.3. **PaginationControls.tsx**:
+
 - Komponenty kontrolek paginacji
 - Disabled states dla prev/next
 - Click handlers
@@ -1650,6 +1755,7 @@ src/
 ### Krok 3: Custom hook useRecipeList
 
 3.1. Implementacja `src/hooks/useRecipeList.ts`:
+
 - Stan: recipes, pagination, loading, error, search, sort, filters
 - Funkcje: fetchRecipes, setSearch, setSort, setFilters, setPage, deleteRecipe, refreshList
 - useEffect do fetch przy zmianie parametrów
@@ -1658,6 +1764,7 @@ src/
 ### Krok 4: RecipeCard component
 
 4.1. Implementacja `src/components/recipes/RecipeCard.tsx`:
+
 - Layout karty z Shadcn Card
 - SourceBadge position absolute
 - Truncate title (2 lines) i ingredients (1 line)
@@ -1665,7 +1772,8 @@ src/
 - Dropdown menu (three dots) dla USER source
 - Click handlers dla wszystkich akcji
 
-4.2. Stylowanie:
+  4.2. Stylowanie:
+
 - Responsive layout
 - Hover effects (scale, shadow)
 - Transition animations
@@ -1673,35 +1781,41 @@ src/
 ### Krok 5: RecipeGrid component
 
 5.1. Implementacja `src/components/recipes/RecipeGrid.tsx`:
+
 - CSS Grid layout (3/2/1 kolumny)
 - Map recipes do RecipeCard
 - Conditional render: loading → skeleton, empty → EmptyState
 - Przekazywanie event handlers do kart
 
-5.2. Skeleton cards:
+  5.2. Skeleton cards:
+
 - 6 skeleton cards z shimmer animation
 - Struktura podobna do RecipeCard
 
 ### Krok 6: RecipeToolbar components
 
 6.1. **SearchBar** (może być reużywalny komponent):
+
 - Input z ikoną lupy
 - Clear button (X)
 - Debounced onChange (300ms)
 - Focus management
 
-6.2. **SortDropdown**:
+  6.2. **SortDropdown**:
+
 - Shadcn Select component
 - Opcje: Najnowsze, Najstarsze, A-Z, Czas gotowania
 - Icon pokazujący aktualny order (asc/desc)
 
-6.3. **FilterMultiSelect**:
+  6.3. **FilterMultiSelect**:
+
 - Dropdown z checkboxes
 - Sekcje: Źródło, Trudność, Tagi, Max czas
 - Badge z liczbą aktywnych filtrów
 - Button "Wyczyść wszystkie"
 
-6.4. **RecipeToolbar**:
+  6.4. **RecipeToolbar**:
+
 - Container łączący wszystkie powyższe
 - Responsive layout (wrap na mobile)
 - Button "Dodaj przepis" dla mobile
@@ -1709,32 +1823,38 @@ src/
 ### Krok 7: RecipeListHeader component
 
 7.1. Implementacja `src/components/recipes/RecipeListHeader.tsx`:
+
 - Tytuł "Moje przepisy"
 - Statystyki (badges z licznikami)
 - Button "Dodaj przepis" dla desktop
 
-7.2. Funkcja `calculateRecipeStats`:
+  7.2. Funkcja `calculateRecipeStats`:
+
 - Zliczanie przepisów według źródła
 
 ### Krok 8: RecipeFormModal - podstawowa struktura
 
 8.1. Implementacja skeleton `src/components/recipes/RecipeFormModal.tsx`:
+
 - Shadcn Dialog z responsive layout
 - Sticky header i footer
 - Form z refs
 - useState dla formData
 - Validation state
 
-8.2. Sekcja 1 - Podstawowe info:
+  8.2. Sekcja 1 - Podstawowe info:
+
 - Input dla tytułu
 - Textarea dla opisu
 - Inline validation
 
-8.3. Sekcja 3 - Instrukcje:
+  8.3. Sekcja 3 - Instrukcje:
+
 - Textarea z licznikiem znaków
 - Min/max validation
 
-8.4. Sekcja 4 - Meta:
+  8.4. Sekcja 4 - Meta:
+
 - Number input dla czasu gotowania
 - Radio group dla trudności
 - Multi-select dla tagów
@@ -1742,25 +1862,30 @@ src/
 ### Krok 9: RecipeFormModal - sekcja składników (najtrudniejsza)
 
 9.1. Stan dla składników:
+
 - Array of RecipeIngredientFormData
 - Dynamic add/remove
 
-9.2. Jeden wiersz składnika:
+  9.2. Jeden wiersz składnika:
+
 - ProductAutocomplete (GET /api/products)
 - Number input dla quantity
 - Select dla jednostki (GET /api/units)
 - Remove button
 
-9.3. Button "+ Dodaj składnik":
+  9.3. Button "+ Dodaj składnik":
+
 - Dodaje nowy pusty wiersz
 - Auto-focus na autocomplete
 
-9.4. Inline tworzenie produktu:
+  9.4. Inline tworzenie produktu:
+
 - Opcja w autocomplete "+ Dodaj produkt"
 - POST /api/products
 - Dodanie do lokalnej listy
 
-9.5. Validation składników:
+  9.5. Validation składników:
+
 - Minimum 1 składnik
 - Brak duplikatów product_id
 - Wszystkie pola wypełnione
@@ -1769,6 +1894,7 @@ src/
 ### Krok 10: RecipeFormModal - submit i integracja API
 
 10.1. Submit handler:
+
 - Validate całego formularza
 - Map RecipeFormData → CreateRecipeDTO / UpdateRecipeDTO
 - POST /api/recipes lub PATCH /api/recipes/:id
@@ -1776,13 +1902,15 @@ src/
 - Error handling (wyświetl błędy w formularzu)
 - Success → callback onSuccess + zamknij modal
 
-10.2. Inicjalizacja w trybie edit:
+  10.2. Inicjalizacja w trybie edit:
+
 - useEffect: jeśli recipe prop → mapuj na formData
 - Prefill wszystkich pól
 
 ### Krok 11: DeleteConfirmDialog
 
 11.1. Implementacja `src/components/recipes/DeleteConfirmDialog.tsx`:
+
 - Shadcn AlertDialog
 - Wyświetl nazwę przepisu
 - Ostrzeżenie o trwałym usunięciu
@@ -1792,11 +1920,13 @@ src/
 ### Krok 12: RecipeListView - główny komponent
 
 12.1. Implementacja `src/components/recipes/RecipeListView.tsx`:
+
 - Użycie useRecipeList hook
 - Stan dla modalu (isOpen, editingRecipe)
 - Stan dla delete dialog (isOpen, recipeToDelete)
 
-12.2. Layout:
+  12.2. Layout:
+
 - RecipeListHeader
 - RecipeToolbar
 - RecipeGrid
@@ -1804,18 +1934,20 @@ src/
 - RecipeFormModal (conditional)
 - DeleteConfirmDialog (conditional)
 
-12.3. Event handlers:
+  12.3. Event handlers:
+
 - onAddRecipe → otwórz modal w trybie add
 - onEditRecipe → otwórz modal w trybie edit z przepisem
 - onDeleteRecipe → otwórz delete dialog
 - onRecipeClick → nawigacja do /recipes/:id
 - onCookRecipe → nawigacja do /recipes/:id lub bezpośrednie "ugotuj"
 
-12.4. Przekazywanie props i callbacks do child components
+  12.4. Przekazywanie props i callbacks do child components
 
 ### Krok 13: Strona Astro
 
 13.1. Implementacja `src/pages/recipes.astro`:
+
 - Użycie Layout.astro
 - Opcjonalnie: fetch recipes SSR i przekaż jako initialData
 - Fetch tags i units (dla modalu)
@@ -1823,22 +1955,22 @@ src/
 
 ```astro
 ---
-import Layout from '../layouts/Layout.astro';
-import RecipeListView from '../components/recipes/RecipeListView.tsx';
+import Layout from "../layouts/Layout.astro";
+import RecipeListView from "../components/recipes/RecipeListView.tsx";
 
 // Opcjonalnie SSR fetch
-const recipesResponse = await fetch('http://localhost:4321/api/recipes');
+const recipesResponse = await fetch("http://localhost:4321/api/recipes");
 const initialData = await recipesResponse.json();
 
-const tagsResponse = await fetch('http://localhost:4321/api/tags');
+const tagsResponse = await fetch("http://localhost:4321/api/tags");
 const initialTags = await tagsResponse.json();
 
-const unitsResponse = await fetch('http://localhost:4321/api/units');
+const unitsResponse = await fetch("http://localhost:4321/api/units");
 const initialUnits = await unitsResponse.json();
 ---
 
 <Layout title="Moje przepisy">
-  <RecipeListView 
+  <RecipeListView
     client:load
     initialData={initialData}
     initialTags={initialTags.data}
@@ -1850,54 +1982,64 @@ const initialUnits = await unitsResponse.json();
 ### Krok 14: Stylowanie i responsywność
 
 14.1. Tailwind classes:
+
 - Grid: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`
 - Karty: hover, shadow, transitions
 - Toolbar: flex wrap, responsive buttons
 
-14.2. Breakpoints:
+  14.2. Breakpoints:
+
 - Mobile: < 768px
 - Tablet: 768px - 1023px
 - Desktop: >= 1024px
 
-14.3. Modal responsywność:
+  14.3. Modal responsywność:
+
 - Full-screen na mobile: `className="md:max-w-[600px]"`
 - Sticky header/footer
 
 ### Krok 15: Accessibility
 
 15.1. Semantic HTML:
+
 - `<main>`, `<header>`, `<nav>`, `<article>`
 - Proper heading hierarchy (h1 → h2 → h3)
 
-15.2. ARIA attributes:
+  15.2. ARIA attributes:
+
 - `aria-label` dla icon buttons
 - `aria-labelledby` dla modalu
 - `aria-live` dla loading states
 
-15.3. Keyboard navigation:
+  15.3. Keyboard navigation:
+
 - Tab order logiczny
 - Focus trap w modalu
 - ESC zamyka modal
 - Enter submits form
 
-15.4. Focus visible:
+  15.4. Focus visible:
+
 - Custom focus ring (Tailwind: `focus:ring-2 focus:ring-amber-500`)
 
 ### Krok 16: Toast notifications
 
 16.1. Integracja z globalnym ToastContext:
+
 - Success toasts po dodaniu/edycji/usunięciu
 - Error toasts przy błędach API
 
-16.2. Przykłady:
+  16.2. Przykłady:
+
 ```typescript
-showToast('Przepis został dodany', 'success');
-showToast('Nie udało się usunąć przepisu', 'error');
+showToast("Przepis został dodany", "success");
+showToast("Nie udało się usunąć przepisu", "error");
 ```
 
 ### Krok 17: Testowanie manualne
 
 17.1. Scenariusze testowe:
+
 - [ ] Wyświetlenie listy przepisów
 - [ ] Wyszukiwanie przepisów (search)
 - [ ] Filtrowanie (źródło, trudność, tagi, czas)
@@ -1918,7 +2060,8 @@ showToast('Nie udało się usunąć przepisu', 'error');
 - [ ] Keyboard navigation (tab, enter, esc)
 - [ ] Accessibility (screen reader, focus management)
 
-17.2. Edge cases:
+  17.2. Edge cases:
+
 - [ ] Bardzo długi tytuł przepisu (truncate)
 - [ ] Przepis bez składników (błąd walidacji)
 - [ ] Przepis z wieloma składnikami (scrollable)
@@ -1928,26 +2071,32 @@ showToast('Nie udało się usunąć przepisu', 'error');
 ### Krok 18: Optymalizacja wydajności
 
 18.1. React.memo dla komponentów:
+
 - RecipeCard (memo po recipe.id)
 - PaginationControls (memo po pagination)
 
-18.2. useCallback dla handlers:
+  18.2. useCallback dla handlers:
+
 - fetchRecipes, setSearch, setSort, setFilters
 
-18.3. Debouncing:
+  18.3. Debouncing:
+
 - Search input (300ms)
 
-18.4. Lazy loading:
+  18.4. Lazy loading:
+
 - RecipeFormModal (React.lazy)
 - DeleteConfirmDialog (React.lazy)
 
 ### Krok 19: Dokumentacja
 
 19.1. JSDoc dla komponentów:
+
 - Props interfaces
 - Przykłady użycia
 
-19.2. README dla widoku:
+  19.2. README dla widoku:
+
 - Opis struktury
 - Diagram komponentów
 - Instrukcje development
@@ -1955,6 +2104,7 @@ showToast('Nie udało się usunąć przepisu', 'error');
 ### Krok 20: Code review i refactoring
 
 20.1. Review checklist:
+
 - [ ] Typy poprawne i kompletne
 - [ ] Error handling wszędzie
 - [ ] Loading states wszędzie
@@ -1964,7 +2114,8 @@ showToast('Nie udało się usunąć przepisu', 'error');
 - [ ] Komponenty reużywalne
 - [ ] Performance (memo, callbacks)
 
-20.2. Refactoring:
+  20.2. Refactoring:
+
 - Wydzielenie wspólnych utility functions
 - Optymalizacja re-renders
 - Cleanup console.logs
@@ -1974,4 +2125,3 @@ showToast('Nie udało się usunąć przepisu', 'error');
 ## Podsumowanie
 
 Ten plan implementacji szczegółowo opisuje wszystkie aspekty widoku Przepisy, od architektury komponentów, przez typy i zarządzanie stanem, po integrację API i obsługę błędów. Implementacja powinna być wykonywana krok po kroku, testując każdy element przed przejściem do następnego. Kluczowe jest zachowanie spójności z architekturą Astro Islands, PRD oraz wytycznymi accessibility i UX opisanymi w `ui-plan.md`.
-

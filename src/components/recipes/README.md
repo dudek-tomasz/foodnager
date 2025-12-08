@@ -5,22 +5,27 @@ Kompletny zestaw komponentów dla widoku Przepisy w aplikacji Foodnager.
 ## Struktura Komponentów
 
 ### Główny Komponent
+
 - **RecipeListView** - główny kontener widoku, zarządza stanem i integruje wszystkie subkomponenty
 
 ### Komponenty Layout
+
 - **RecipeListHeader** - nagłówek z tytułem, statystykami i przyciskiem dodawania
 - **RecipeToolbar** - pasek narzędzi z wyszukiwaniem, sortowaniem i filtrowaniem
 - **RecipeGrid** - responsywny grid wyświetlający karty przepisów
 
 ### Komponenty Kart i Lista
+
 - **RecipeCard** - karta pojedynczego przepisu
 - **SourceBadge** - badge pokazujący źródło przepisu (USER/API/AI)
 
 ### Komponenty Formularzy
+
 - **RecipeFormModal** - modal dodawania/edycji przepisu
 - **RecipeIngredientsSection** - sekcja składników w formularzu (dynamiczna lista)
 
 ### Komponenty Narzędziowe
+
 - **SearchBar** - wyszukiwarka z debouncing
 - **SortDropdown** - dropdown sortowania
 - **FilterMultiSelect** - multi-select filtrów
@@ -31,11 +36,13 @@ Kompletny zestaw komponentów dla widoku Przepisy w aplikacji Foodnager.
 ## Responsywność
 
 ### Breakpoints (zgodnie z Tailwind)
+
 - **Mobile**: < 768px (sm)
 - **Tablet**: 768px - 1023px (md)
 - **Desktop**: >= 1024px (lg)
 
 ### RecipeGrid Layout
+
 ```
 Mobile (< md):    1 kolumna
 Tablet (md-lg):   2 kolumny
@@ -43,24 +50,28 @@ Desktop (>= lg):  3 kolumny
 ```
 
 ### RecipeToolbar
+
 ```
 Mobile:   Pełna szerokość, vertical stack, "Dodaj przepis" widoczny
 Desktop:  Horizontal layout, "Dodaj przepis" ukryty (jest w header)
 ```
 
 ### RecipeListHeader
+
 ```
 Mobile:   Vertical stack
 Desktop:  Horizontal space-between
 ```
 
 ### RecipeFormModal
+
 ```
 Mobile:   Full-screen modal (max-h-90vh)
 Desktop:  Centered 600px modal
 ```
 
 ### RecipeIngredientsSection
+
 ```
 Mobile:   Vertical stack dla składników
 Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
@@ -69,17 +80,20 @@ Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
 ## Accessibility (WCAG AA)
 
 ### Semantic HTML
+
 - Proper heading hierarchy (h1 → h2 → h3)
 - `<main>`, `<header>`, `<nav>` landmarks
 - `<button>` dla akcji, `<a>` dla nawigacji
 
 ### ARIA Attributes
+
 - `aria-label` na icon buttons
 - `aria-expanded` na dropdowns
 - `aria-current` na active page w paginacji
 - `role="combobox"` na autocomplete
 
 ### Keyboard Navigation
+
 - Tab order logiczny
 - Focus trap w modalach
 - ESC zamyka modaly
@@ -87,6 +101,7 @@ Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
 - Arrow keys w dropdownach
 
 ### Focus Management
+
 - Custom focus rings: `focus:ring-2 focus:ring-amber-500`
 - Focus visible na wszystkich interaktywnych elementach
 - Auto-focus na first input w modalach
@@ -94,6 +109,7 @@ Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
 ## Integracja API
 
 ### Endpointy
+
 - `GET /api/recipes` - lista przepisów (z query params)
 - `POST /api/recipes` - dodanie przepisu
 - `PATCH /api/recipes/:id` - edycja przepisu
@@ -105,6 +121,7 @@ Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
 - `POST /api/cooking-history` - ugotowanie przepisu
 
 ### Query Parameters (GET /api/recipes)
+
 ```typescript
 {
   search?: string;
@@ -122,7 +139,9 @@ Desktop:  Horizontal layout (Product | Quantity | Unit | Delete)
 ## Zarządzanie Stanem
 
 ### useRecipeList Hook
+
 Custom hook zarządzający stanem listy przepisów:
+
 - Fetching z API
 - Debounced search (300ms)
 - Filtrowanie, sortowanie, paginacja
@@ -130,6 +149,7 @@ Custom hook zarządzający stanem listy przepisów:
 - Error handling
 
 ### Local State (RecipeListView)
+
 - Modal state (open/close, add/edit mode)
 - Delete dialog state
 - Editing recipe reference
@@ -137,6 +157,7 @@ Custom hook zarządzający stanem listy przepisów:
 ## Error Handling
 
 ### API Errors
+
 - **401**: Redirect do `/login`
 - **403**: Toast "Brak uprawnień"
 - **404**: Toast "Nie znaleziono"
@@ -146,6 +167,7 @@ Custom hook zarządzający stanem listy przepisów:
 - **Network**: Toast "Brak połączenia"
 
 ### UI Errors
+
 - Empty state dla braku danych
 - Error state z retry button
 - Validation errors inline w formularzu
@@ -154,6 +176,7 @@ Custom hook zarządzający stanem listy przepisów:
 ## Performance
 
 ### Optimizations Implemented
+
 - React.memo nie jest jeszcze zastosowany (TODO w kroku 18)
 - useCallback w useRecipeList hook
 - Debouncing dla search (300ms)
@@ -161,6 +184,7 @@ Custom hook zarządzający stanem listy przepisów:
 - Skeleton loading states
 
 ### Future Optimizations (Krok 18)
+
 - React.memo dla RecipeCard, PaginationControls
 - React.lazy dla RecipeFormModal, DeleteConfirmDialog
 - Virtualization dla bardzo długich list (opcjonalnie)
@@ -182,4 +206,3 @@ Custom hook zarządzający stanem listy przepisów:
 - [ ] Responsywność (mobile/tablet/desktop)
 - [ ] Keyboard navigation
 - [ ] Screen reader compatibility
-

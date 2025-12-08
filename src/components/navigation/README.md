@@ -9,6 +9,7 @@ Ten folder zawiera komponenty nawigacji dla aplikacji Foodnager, zaprojektowane 
 Persistent sidebar nawigacji dla desktop (≥1024px).
 
 **Features:**
+
 - Logo Foodnager na górze
 - Główne linki nawigacyjne:
   - 🧊 Lodówka (`/fridge`)
@@ -20,9 +21,11 @@ Persistent sidebar nawigacji dla desktop (≥1024px).
 - Ukryty na mobile/tablet (<1024px)
 
 **Props:**
+
 - `currentPath: string` - aktualny URL path do określenia aktywnego linku
 
 **Styling:**
+
 - Amber (#f59e0b) dla aktywnego stanu
 - Smooth transitions dla hover effects
 - Focus rings dla accessibility
@@ -32,6 +35,7 @@ Persistent sidebar nawigacji dla desktop (≥1024px).
 Bottom navigation bar dla mobile/tablet (<1024px).
 
 **Features:**
+
 - 5 przycisków nawigacyjnych:
   1. 🧊 Lodówka (`/fridge`)
   2. 📖 Przepisy (`/recipes`)
@@ -43,9 +47,11 @@ Bottom navigation bar dla mobile/tablet (<1024px).
 - Ukryty na desktop (≥1024px)
 
 **Props:**
+
 - `currentPath: string` - aktualny URL path do określenia aktywnego linku
 
 **Styling:**
+
 - Amber gradient dla CTA button
 - Ikony i labele dla każdego przycisku
 - Active state z amber kolorem
@@ -68,11 +74,13 @@ Komponenty są zintegrowane w `Layout.astro`:
 **Layout Responsive Behavior:**
 
 ### Desktop (≥1024px):
+
 - Sidebar widoczny (fixed left, 240px)
 - Main content ma `margin-left: 240px`
 - Bottom navigation ukryty
 
 ### Mobile/Tablet (<1024px):
+
 - Sidebar ukryty
 - Main content pełna szerokość z `padding-bottom: 64px`
 - Bottom navigation widoczny (fixed bottom)
@@ -117,13 +125,7 @@ Zgodnie z ui-plan.md:
 
 ```css
 /* Mobile */
-@media (max-width: 767px)
-
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1023px)
-
-/* Desktop */
-@media (min-width: 1024px)
+@media (max-width: 767px) /* Tablet */ @media (min-width: 768px) and (max-width: 1023px) /* Desktop */ @media (min-width: 1024px);
 ```
 
 Navigation switch point: **1024px**
@@ -148,4 +150,3 @@ Navigation switch point: **1024px**
 - Search bar w sidebar
 - Collapsible sidebar na desktop
 - Swipe gestures dla mobile navigation
-

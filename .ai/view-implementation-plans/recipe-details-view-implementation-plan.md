@@ -13,13 +13,16 @@ Kluczową funkcjonalnością jest wizualizacja dostępności składników poprze
 **Ścieżka:** `/recipes/:id`
 
 **Parametry URL:**
+
 - `id` (number) - identyfikator przepisu
 
 **Query params (opcjonalne):**
+
 - `from` (string) - informacja o źródle nawigacji (np. "search", "list", "history") dla customizacji back button
 - `matchScore` (number) - wynik dopasowania z wyszukiwania (jeśli przyszło z search)
 
 **Przykłady:**
+
 - `/recipes/123` - podstawowy widok przepisu
 - `/recipes/123?from=search&matchScore=85` - widok przepisu z wyników wyszukiwania
 
@@ -79,10 +82,12 @@ RecipeDetailsPage (Astro page)
 **Opis:** Główny komponent React zarządzający stanem całego widoku, fetchowaniem danych z API, koordynacją wszystkich podkomponentów oraz obsługą akcji użytkownika.
 
 **Główne elementy:**
+
 - Kontener `<div>` z odpowiednimi klasami Tailwind dla layoutu
 - Warunkowo renderowane: LoadingSpinner (podczas ładowania), ErrorState (przy błędzie), lub pełna treść przepisu
 
 **Obsługiwane interakcje:**
+
 - Inicjalne załadowanie danych przepisu i lodówki
 - Obsługa akcji "Ugotuj to" z confirmation dialog
 - Obsługa akcji "Usuń przepis" z confirmation dialog
@@ -91,16 +96,19 @@ RecipeDetailsPage (Astro page)
 - Nawigacja powrotna
 
 **Obsługiwana walidacja:**
+
 - Weryfikacja, czy użytkownik ma wystarczające składniki do ugotowania (walidacja przed wywołaniem POST /api/cooking-history)
 - Weryfikacja uprawnień do edycji/usunięcia (tylko źródło 'user')
 
 **Typy:**
+
 - `RecipeViewModel` - główny model danych przepisu z dodatkowymi polami
 - `IngredientWithAvailability` - składnik z informacją o dostępności
 - `FridgeItemDTO` - dane z lodówki
 - `RecipeDTO` - bazowy typ z API
 
 **Propsy:**
+
 - `recipeId: number` - ID przepisu (z URL params)
 - `initialFrom?: string` - źródło nawigacji (z query params)
 - `initialMatchScore?: number` - wynik dopasowania (z query params)
@@ -110,25 +118,30 @@ RecipeDetailsPage (Astro page)
 **Opis:** Nagłówek przepisu zawierający back button, tytuł, badges (źródło, match score) oraz dropdown menu z akcjami.
 
 **Główne elementy:**
+
 - `<header>` z klasami Tailwind dla flexbox layout
 - `<h1>` dla tytułu przepisu
 - BackButton, SourceBadge, MatchScoreBadge (conditional)
 - RecipeActionsDropdown
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie back button - nawigacja wstecz
 - Otwarcie dropdown menu
 - Wybór akcji z menu: edytuj, usuń, zapisz, udostępnij (out of scope)
 
 **Obsługiwana walidacja:**
+
 - Walidacja czy source === 'user' dla pokazania opcji "Edytuj" i "Usuń"
 - Walidacja czy source === 'api' || source === 'ai' dla pokazania opcji "Zapisz do moich przepisów"
 
 **Typy:**
+
 - `RecipeViewModel`
 - `SourceEnum` ('user' | 'api' | 'ai')
 
 **Propsy:**
+
 ```typescript
 interface RecipeHeaderProps {
   title: string;
@@ -147,19 +160,24 @@ interface RecipeHeaderProps {
 **Opis:** Przycisk nawigacji powrotnej z dynamicznym tekstem zależnie od źródła.
 
 **Główne elementy:**
+
 - `<button>` lub `<a>` z ikoną strzałki w lewo
 - Tekst: "Wróć do przepisów" / "Wróć do wyników" / "Wróć" (zależnie od `from`)
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie - nawigacja wstecz (history.back() lub navigate)
 
 **Obsługiwana walidacja:**
+
 - Brak specyficznej walidacji
 
 **Typy:**
+
 - Brak złożonych typów
 
 **Propsy:**
+
 ```typescript
 interface BackButtonProps {
   from?: string;
@@ -172,20 +190,25 @@ interface BackButtonProps {
 **Opis:** Badge wizualizujący źródło przepisu.
 
 **Główne elementy:**
+
 - `<span>` lub komponent Badge z Shadcn/ui
 - Tekst: "Mój przepis" (user), "Zewnętrzne API" (api), "Wygenerowane AI" (ai)
 - Różne kolory dla każdego źródła
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `SourceEnum`
 
 **Propsy:**
+
 ```typescript
 interface SourceBadgeProps {
   source: SourceEnum;
@@ -197,20 +220,25 @@ interface SourceBadgeProps {
 **Opis:** Badge pokazujący wynik dopasowania z wyszukiwania (conditional - tylko gdy przyszło z search).
 
 **Główne elementy:**
+
 - `<span>` lub komponent Badge z Shadcn/ui
 - Tekst: "Dopasowanie: {score}%"
 - Kolor zależny od score (zielony ≥80%, pomarańczowy 50-79%, czerwony <50%)
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Renderowanie warunkowe: tylko gdy matchScore !== undefined
 
 **Typy:**
+
 - `number` dla score
 
 **Propsy:**
+
 ```typescript
 interface MatchScoreBadgeProps {
   matchScore: number;
@@ -222,6 +250,7 @@ interface MatchScoreBadgeProps {
 **Opis:** Dropdown menu z dostępnymi akcjami dla przepisu (edytuj, usuń, zapisz).
 
 **Główne elementy:**
+
 - DropdownMenu (Shadcn/ui)
 - DropdownMenuTrigger - przycisk z ikoną trzech kropek
 - DropdownMenuContent
@@ -232,19 +261,23 @@ interface MatchScoreBadgeProps {
   - "Udostępnij" (out of scope, disabled/hidden w MVP)
 
 **Obsługiwane interakcje:**
+
 - Otwarcie/zamknięcie dropdown
 - Kliknięcie na "Edytuj" - wywołanie onEdit
 - Kliknięcie na "Usuń" - wywołanie onDelete
 - Kliknięcie na "Zapisz" - wywołanie onSave
 
 **Obsługiwana walidacja:**
+
 - Warunki renderowania: source === 'user' dla Edit/Delete
 - Warunki renderowania: source !== 'user' dla Save
 
 **Typy:**
+
 - `SourceEnum`
 
 **Propsy:**
+
 ```typescript
 interface RecipeActionsDropdownProps {
   source: SourceEnum;
@@ -259,22 +292,27 @@ interface RecipeActionsDropdownProps {
 **Opis:** Sekcja prezentująca metadane przepisu: czas gotowania, trudność, tagi.
 
 **Główne elementy:**
+
 - `<section>` z flexbox layout
 - MetaItem dla czasu gotowania (ikona zegara + wartość w min)
 - MetaItem dla trudności (ikona + wartość: "Łatwy", "Średni", "Trudny")
 - Lista TagBadge dla tagów
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji (tylko prezentacja)
 
 **Obsługiwana walidacja:**
+
 - Warunki renderowania: czas gotowania i trudność są opcjonalne (null)
 
 **Typy:**
+
 - `DifficultyEnum` ('easy' | 'medium' | 'hard')
 - `TagDTO[]`
 
 **Propsy:**
+
 ```typescript
 interface RecipeMetaSectionProps {
   cookingTime: number | null;
@@ -288,20 +326,25 @@ interface RecipeMetaSectionProps {
 **Opis:** Pojedynczy element metadanych z ikoną i wartością.
 
 **Główne elementy:**
+
 - `<div>` z ikoną (z biblioteki ikon, np. lucide-react)
 - `<span>` z tekstową wartością
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `React.ReactNode` dla ikony
 - `string` dla wartości
 
 **Propsy:**
+
 ```typescript
 interface MetaItemProps {
   icon: React.ReactNode;
@@ -315,19 +358,24 @@ interface MetaItemProps {
 **Opis:** Badge pojedynczego tagu.
 
 **Główne elementy:**
+
 - `<span>` lub komponent Badge z Shadcn/ui
 - Tekst tagu
 
 **Obsługiwane interakcje:**
+
 - Opcjonalnie kliknięcie dla filtrowania (out of scope dla MVP)
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `TagDTO`
 
 **Propsy:**
+
 ```typescript
 interface TagBadgeProps {
   tag: TagDTO;
@@ -339,20 +387,25 @@ interface TagBadgeProps {
 **Opis:** Sekcja prezentująca listę składników z checklistą i color coding dostępności. Pod listą opcjonalny przycisk generowania listy zakupów.
 
 **Główne elementy:**
+
 - `<section>` z nagłówkiem "Składniki"
 - IngredientsList - lista składników
 - GenerateShoppingListButton (conditional - tylko gdy są brakujące składniki)
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie na przycisk "Generuj listę zakupów" - wywołanie API i nawigacja
 
 **Obsługiwana walidacja:**
+
 - Warunki renderowania przycisku: hasMissingIngredients === true
 
 **Typy:**
+
 - `IngredientWithAvailability[]`
 
 **Propsy:**
+
 ```typescript
 interface RecipeIngredientsSectionProps {
   ingredients: IngredientWithAvailability[];
@@ -365,19 +418,24 @@ interface RecipeIngredientsSectionProps {
 **Opis:** Lista składników jako semantic checklist.
 
 **Główne elementy:**
+
 - `<ul role="list">` lub `<div role="list">`
 - Wielokrotne IngredientItem
 
 **Obsługiwane interakcje:**
+
 - Przekazuje interakcje do IngredientItem
 
 **Obsługiwana walidacja:**
+
 - Brak specyficznej walidacji
 
 **Typy:**
+
 - `IngredientWithAvailability[]`
 
 **Propsy:**
+
 ```typescript
 interface IngredientsListProps {
   ingredients: IngredientWithAvailability[];
@@ -389,6 +447,7 @@ interface IngredientsListProps {
 **Opis:** Pojedynczy składnik z checkboxem, ikoną dostępności, nazwą, ilością i color coding.
 
 **Główne elementy:**
+
 - `<li>` lub `<div role="listitem">`
 - Checkbox (Shadcn/ui) - disabled, używany tylko do wizualizacji
 - AvailabilityIcon - ikona statusu (checkmark, warning, x)
@@ -396,21 +455,26 @@ interface IngredientsListProps {
 - AvailabilityLabel (conditional) - pokazuje dostępne/wymagane dla partial availability
 
 **Color coding:**
+
 - Zielony: `availabilityStatus === 'full'` - produkt w pełnej ilości
 - Pomarańczowy: `availabilityStatus === 'partial'` - produkt w częściowej ilości
 - Czerwony: `availabilityStatus === 'none'` - produkt niedostępny
 
 **Obsługiwane interakcje:**
+
 - Checkbox czysto wizualny (disabled), brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `IngredientWithAvailability`
 - `AvailabilityStatus` ('full' | 'partial' | 'none')
 
 **Propsy:**
+
 ```typescript
 interface IngredientItemProps {
   ingredient: IngredientWithAvailability;
@@ -422,19 +486,24 @@ interface IngredientItemProps {
 **Opis:** Przycisk generujący listę zakupów (secondary button).
 
 **Główne elementy:**
+
 - Button (Shadcn/ui) z wariantem secondary
 - Ikona listy + tekst "Generuj listę zakupów"
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie - wywołanie onClick handler
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - Brak złożonych typów
 
 **Propsy:**
+
 ```typescript
 interface GenerateShoppingListButtonProps {
   onClick: () => void;
@@ -447,21 +516,26 @@ interface GenerateShoppingListButtonProps {
 **Opis:** Sekcja prezentująca instrukcje przygotowania jako numerowaną listę kroków.
 
 **Główne elementy:**
+
 - `<section>` z nagłówkiem "Instrukcje"
 - `<ol>` - numerowana lista
 - Wielokrotne InstructionStep (`<li>`)
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji (tylko prezentacja)
 
 **Obsługiwana walidacja:**
+
 - Parsowanie instrukcji: split przez \n lub wykrywanie numeracji w tekście
 
 **Typy:**
+
 - `string` - surowy tekst instrukcji
 - `string[]` - parsowana lista kroków
 
 **Propsy:**
+
 ```typescript
 interface RecipeInstructionsSectionProps {
   instructions: string;
@@ -473,18 +547,23 @@ interface RecipeInstructionsSectionProps {
 **Opis:** Pojedynczy krok instrukcji.
 
 **Główne elementy:**
+
 - `<li>` z tekstem kroku
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `string` dla tekstu
 
 **Propsy:**
+
 ```typescript
 interface InstructionStepProps {
   step: string;
@@ -497,23 +576,28 @@ interface InstructionStepProps {
 **Opis:** Sticky bar z akcjami "Ugotuj to" i "Zapisz przepis", pojawia się po zescrollowaniu poniżej fold.
 
 **Główne elementy:**
+
 - `<div>` z klasami sticky (fixed bottom)
 - CookButton (primary)
 - SaveRecipeButton (secondary, conditional - tylko dla api/ai source)
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie "Ugotuj to" - wywołanie onCook
 - Kliknięcie "Zapisz przepis" - wywołanie onSave
 - Pojawienie się/znikanie na podstawie scroll position
 
 **Obsługiwana walidacja:**
+
 - Warunki renderowania: isVisible zależne od scroll position
 - Warunki renderowania SaveButton: source !== 'user'
 
 **Typy:**
+
 - `SourceEnum`
 
 **Propsy:**
+
 ```typescript
 interface StickyBottomBarProps {
   source: SourceEnum;
@@ -528,19 +612,24 @@ interface StickyBottomBarProps {
 **Opis:** Primary button dla akcji "Ugotuj to".
 
 **Główne elementy:**
+
 - Button (Shadcn/ui) z wariantem primary
 - Ikona + tekst "Ugotuj to"
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie - wywołanie onClick
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji (walidacja odbywa się w parent component)
 
 **Typy:**
+
 - Brak złożonych typów
 
 **Propsy:**
+
 ```typescript
 interface CookButtonProps {
   onClick: () => void;
@@ -553,19 +642,24 @@ interface CookButtonProps {
 **Opis:** Secondary button dla akcji "Zapisz przepis".
 
 **Główne elementy:**
+
 - Button (Shadcn/ui) z wariantem secondary
 - Ikona + tekst "Zapisz przepis"
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie - wywołanie onClick
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - Brak złożonych typów
 
 **Propsy:**
+
 ```typescript
 interface SaveRecipeButtonProps {
   onClick: () => void;
@@ -578,6 +672,7 @@ interface SaveRecipeButtonProps {
 **Opis:** Dialog potwierdzenia przed ugotowaniem przepisu, pokazuje składniki które zostaną odjęte z lodówki.
 
 **Główne elementy:**
+
 - Dialog (Shadcn/ui)
 - DialogHeader z tytułem "Potwierdź ugotowanie"
 - DialogContent:
@@ -588,16 +683,20 @@ interface SaveRecipeButtonProps {
   - Przycisk "Potwierdź" (primary)
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie "Anuluj" - zamknięcie dialogu
 - Kliknięcie "Potwierdź" - wywołanie onConfirm i zamknięcie
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji (walidacja wcześniej)
 
 **Typy:**
+
 - `IngredientWithAvailability[]`
 
 **Propsy:**
+
 ```typescript
 interface CookConfirmationDialogProps {
   isOpen: boolean;
@@ -612,19 +711,24 @@ interface CookConfirmationDialogProps {
 **Opis:** Lista składników które zostaną odjęte z lodówki po ugotowaniu.
 
 **Główne elementy:**
+
 - `<ul>` - lista składników
 - Każdy element: nazwa + ilość do odjęcia
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji (tylko prezentacja)
 
 **Obsługiwana walidacja:**
+
 - Filtrowanie: pokazuje tylko składniki dostępne (full lub partial)
 
 **Typy:**
+
 - `IngredientWithAvailability[]`
 
 **Propsy:**
+
 ```typescript
 interface IngredientsDeductionPreviewProps {
   ingredients: IngredientWithAvailability[];
@@ -636,6 +740,7 @@ interface IngredientsDeductionPreviewProps {
 **Opis:** Dialog potwierdzenia przed usunięciem przepisu.
 
 **Główne elementy:**
+
 - Dialog (Shadcn/ui)
 - DialogHeader z tytułem "Usuń przepis"
 - DialogContent:
@@ -645,16 +750,20 @@ interface IngredientsDeductionPreviewProps {
   - Przycisk "Usuń" (destructive)
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie "Anuluj" - zamknięcie dialogu
 - Kliknięcie "Usuń" - wywołanie onConfirm i zamknięcie
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `string` dla tytułu
 
 **Propsy:**
+
 ```typescript
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -669,19 +778,24 @@ interface DeleteConfirmationDialogProps {
 **Opis:** Komponent wyświetlany podczas ładowania danych.
 
 **Główne elementy:**
+
 - Spinner (ikona lub animacja)
 - Opcjonalny tekst "Ładowanie przepisu..."
 
 **Obsługiwane interakcje:**
+
 - Brak interakcji
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - Brak złożonych typów
 
 **Propsy:**
+
 - Brak propsów lub opcjonalnie `message: string`
 
 ### 4.23 ErrorState
@@ -689,20 +803,25 @@ interface DeleteConfirmationDialogProps {
 **Opis:** Komponent wyświetlany przy błędzie ładowania.
 
 **Główne elementy:**
+
 - Ikona błędu
 - Tekst błędu
 - Przycisk "Spróbuj ponownie"
 
 **Obsługiwane interakcje:**
+
 - Kliknięcie "Spróbuj ponownie" - ponowne wywołanie fetch
 
 **Obsługiwana walidacja:**
+
 - Brak walidacji
 
 **Typy:**
+
 - `string` dla komunikatu błędu
 
 **Propsy:**
+
 ```typescript
 interface ErrorStateProps {
   error: string;
@@ -786,7 +905,7 @@ ShoppingListResponseDTO {
 /**
  * Status dostępności składnika w lodówce
  */
-export type AvailabilityStatus = 'full' | 'partial' | 'none';
+export type AvailabilityStatus = "full" | "partial" | "none";
 
 /**
  * Składnik z informacją o dostępności w lodówce
@@ -925,10 +1044,10 @@ export function useRecipeDetails(recipeId: number, initialMatchScore?: number) {
   };
 
   // UI handlers
-  const openCookDialog = () => setUiState(prev => ({ ...prev, showCookDialog: true }));
-  const closeCookDialog = () => setUiState(prev => ({ ...prev, showCookDialog: false }));
-  const openDeleteDialog = () => setUiState(prev => ({ ...prev, showDeleteDialog: true }));
-  const closeDeleteDialog = () => setUiState(prev => ({ ...prev, showDeleteDialog: false }));
+  const openCookDialog = () => setUiState((prev) => ({ ...prev, showCookDialog: true }));
+  const closeCookDialog = () => setUiState((prev) => ({ ...prev, showCookDialog: false }));
+  const openDeleteDialog = () => setUiState((prev) => ({ ...prev, showDeleteDialog: true }));
+  const closeDeleteDialog = () => setUiState((prev) => ({ ...prev, showDeleteDialog: false }));
 
   return {
     uiState,
@@ -960,8 +1079,8 @@ export function useScrollVisibility(threshold: number = 300) {
       setIsVisible(scrolled);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [threshold]);
 
   return isVisible;
@@ -997,6 +1116,7 @@ export function useScrollVisibility(threshold: number = 300) {
 **Cel:** Pobranie szczegółowych danych przepisu.
 
 **Request:**
+
 - Method: `GET`
 - URL: `/api/recipes/${recipeId}`
 - Headers: `Authorization: Bearer {token}`
@@ -1004,6 +1124,7 @@ export function useScrollVisibility(threshold: number = 300) {
 **Response Type:** `RecipeDTO`
 
 **Success (200):**
+
 ```typescript
 {
   id: number;
@@ -1022,24 +1143,26 @@ export function useScrollVisibility(threshold: number = 300) {
 ```
 
 **Error responses:**
+
 - `401 Unauthorized` - brak autoryzacji
 - `404 Not Found` - przepis nie istnieje
 - `500 Internal Error` - błąd serwera
 
 **Implementacja:**
+
 ```typescript
 async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
   const response = await fetch(`/api/recipes/${recipeId}`, {
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
   });
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('Przepis nie został znaleziony');
+      throw new Error("Przepis nie został znaleziony");
     }
-    throw new Error('Błąd podczas pobierania przepisu');
+    throw new Error("Błąd podczas pobierania przepisu");
   }
 
   return response.json();
@@ -1051,6 +1174,7 @@ async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
 **Cel:** Pobranie wszystkich produktów z lodówki użytkownika do sprawdzenia dostępności.
 
 **Request:**
+
 - Method: `GET`
 - URL: `/api/fridge`
 - Headers: `Authorization: Bearer {token}`
@@ -1058,6 +1182,7 @@ async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
 **Response Type:** `FridgeListResponseDTO`
 
 **Success (200):**
+
 ```typescript
 {
   data: FridgeItemDTO[];
@@ -1066,16 +1191,17 @@ async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
 ```
 
 **Implementacja:**
+
 ```typescript
 async function fetchFridgeItems(): Promise<FridgeItemDTO[]> {
-  const response = await fetch('/api/fridge?limit=1000', {
+  const response = await fetch("/api/fridge?limit=1000", {
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error('Błąd podczas pobierania lodówki');
+    throw new Error("Błąd podczas pobierania lodówki");
   }
 
   const data = await response.json();
@@ -1088,14 +1214,16 @@ async function fetchFridgeItems(): Promise<FridgeItemDTO[]> {
 **Cel:** Rejestracja ugotowania przepisu i automatyczna aktualizacja lodówki.
 
 **Request:**
+
 - Method: `POST`
 - URL: `/api/cooking-history`
-- Headers: 
+- Headers:
   - `Authorization: Bearer {token}`
   - `Content-Type: application/json`
 - Body: `CreateCookingHistoryDTO`
 
 **Request Type:** `CreateCookingHistoryDTO`
+
 ```typescript
 {
   recipe_id: number;
@@ -1105,6 +1233,7 @@ async function fetchFridgeItems(): Promise<FridgeItemDTO[]> {
 **Response Type:** `CreateCookingHistoryResponseDTO`
 
 **Success (201):**
+
 ```typescript
 {
   id: number;
@@ -1117,28 +1246,30 @@ async function fetchFridgeItems(): Promise<FridgeItemDTO[]> {
 ```
 
 **Error responses:**
+
 - `400 Bad Request` - nieprawidłowe dane
 - `401 Unauthorized` - brak autoryzacji
 - `404 Not Found` - przepis nie istnieje
 - `422 Unprocessable Entity` - brak wystarczających składników
 
 **Implementacja:**
+
 ```typescript
 async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryResponseDTO> {
-  const response = await fetch('/api/cooking-history', {
-    method: 'POST',
+  const response = await fetch("/api/cooking-history", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ recipe_id: recipeId }),
   });
 
   if (!response.ok) {
     if (response.status === 422) {
-      throw new Error('Brak wystarczających składników w lodówce');
+      throw new Error("Brak wystarczających składników w lodówce");
     }
-    throw new Error('Błąd podczas rejestracji gotowania');
+    throw new Error("Błąd podczas rejestracji gotowania");
   }
 
   return response.json();
@@ -1150,6 +1281,7 @@ async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryRespons
 **Cel:** Wygenerowanie listy zakupów dla brakujących składników.
 
 **Request:**
+
 - Method: `POST`
 - URL: `/api/shopping-list/generate`
 - Headers:
@@ -1158,6 +1290,7 @@ async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryRespons
 - Body: `GenerateShoppingListDTO`
 
 **Request Type:** `GenerateShoppingListDTO`
+
 ```typescript
 {
   recipe_id: number;
@@ -1167,6 +1300,7 @@ async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryRespons
 **Response Type:** `ShoppingListResponseDTO`
 
 **Success (200):**
+
 ```typescript
 {
   recipe: RecipeReferenceDTO;
@@ -1176,19 +1310,20 @@ async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryRespons
 ```
 
 **Implementacja:**
+
 ```typescript
 async function generateShoppingList(recipeId: number): Promise<ShoppingListResponseDTO> {
-  const response = await fetch('/api/shopping-list/generate', {
-    method: 'POST',
+  const response = await fetch("/api/shopping-list/generate", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ recipe_id: recipeId }),
   });
 
   if (!response.ok) {
-    throw new Error('Błąd podczas generowania listy zakupów');
+    throw new Error("Błąd podczas generowania listy zakupów");
   }
 
   return response.json();
@@ -1200,6 +1335,7 @@ async function generateShoppingList(recipeId: number): Promise<ShoppingListRespo
 **Cel:** Usunięcie przepisu użytkownika.
 
 **Request:**
+
 - Method: `DELETE`
 - URL: `/api/recipes/${recipeId}`
 - Headers: `Authorization: Bearer {token}`
@@ -1207,24 +1343,26 @@ async function generateShoppingList(recipeId: number): Promise<ShoppingListRespo
 **Response:** `204 No Content` (puste body)
 
 **Error responses:**
+
 - `401 Unauthorized` - brak autoryzacji
 - `404 Not Found` - przepis nie istnieje lub nie należy do użytkownika
 
 **Implementacja:**
+
 ```typescript
 async function deleteRecipe(recipeId: number): Promise<void> {
   const response = await fetch(`/api/recipes/${recipeId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
   });
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('Przepis nie został znaleziony');
+      throw new Error("Przepis nie został znaleziony");
     }
-    throw new Error('Błąd podczas usuwania przepisu');
+    throw new Error("Błąd podczas usuwania przepisu");
   }
 }
 ```
@@ -1234,6 +1372,7 @@ async function deleteRecipe(recipeId: number): Promise<void> {
 **Cel:** Utworzenie kopii przepisu z zewnętrznego źródła jako przepis użytkownika.
 
 **Request:**
+
 - Method: `POST`
 - URL: `/api/recipes`
 - Headers:
@@ -1244,6 +1383,7 @@ async function deleteRecipe(recipeId: number): Promise<void> {
 **Request Type:** `CreateRecipeDTO` (transformowany z RecipeDTO)
 
 **Implementacja:**
+
 ```typescript
 async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
   // Transform RecipeDTO to CreateRecipeDTO
@@ -1253,25 +1393,25 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
     instructions: recipe.instructions,
     cooking_time: recipe.cooking_time,
     difficulty: recipe.difficulty,
-    ingredients: recipe.ingredients.map(ing => ({
+    ingredients: recipe.ingredients.map((ing) => ({
       product_id: ing.product.id,
       quantity: ing.quantity,
       unit_id: ing.unit.id,
     })),
-    tag_ids: recipe.tags.map(tag => tag.id),
+    tag_ids: recipe.tags.map((tag) => tag.id),
   };
 
-  const response = await fetch('/api/recipes', {
-    method: 'POST',
+  const response = await fetch("/api/recipes", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${getToken()}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(createDto),
   });
 
   if (!response.ok) {
-    throw new Error('Błąd podczas zapisywania przepisu');
+    throw new Error("Błąd podczas zapisywania przepisu");
   }
 
   return response.json();
@@ -1285,6 +1425,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Kliknięcie na przepis z listy, wyników wyszukiwania lub historii
 
 **Akcja:**
+
 1. Nawigacja do `/recipes/:id`
 2. Opcjonalnie przekazanie query params: `from`, `matchScore`
 3. Hook useRecipeDetails inicjalizuje fetch
@@ -1296,6 +1437,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Kliknięcie przycisku "Wróć"
 
 **Akcja:**
+
 1. Wywołanie `navigate(-1)` lub `history.back()`
 2. Lub navigacja do `/recipes` jeśli history jest puste
 
@@ -1306,6 +1448,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Kliknięcie przycisku "Ugotuj to"
 
 **Akcja:**
+
 1. Walidacja dostępności składników frontendowa
 2. Jeśli nie wszystkie składniki dostępne → pokazanie error toast
 3. Jeśli składniki dostępne → otwarcie confirmation dialog
@@ -1314,7 +1457,8 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 6. Success → toast "Przepis ugotowany!" + redirect do `/history`
 7. Error → toast z komunikatem błędu
 
-**Rezultat:** 
+**Rezultat:**
+
 - Sukces: przepis zarejestrowany, lodówka zaktualizowana, redirect do historii
 - Błąd: komunikat dla użytkownika, pozostanie na widoku
 
@@ -1323,11 +1467,13 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Kliknięcie przycisku "Generuj listę zakupów"
 
 **Akcja:**
+
 1. Wywołanie POST /api/shopping-list/generate
 2. Success → pokazanie listy w modal/toast lub redirect do dedykowanego widoku
 3. Error → toast z komunikatem błędu
 
-**Rezultat:** 
+**Rezultat:**
+
 - Sukces: wyświetlenie listy brakujących produktów
 - Błąd: komunikat dla użytkownika
 
@@ -1336,6 +1482,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Wybór "Usuń przepis" z dropdown menu
 
 **Akcja:**
+
 1. Otwarcie confirmation dialog
 2. User klika "Usuń"
 3. Wywołanie DELETE /api/recipes/:id
@@ -1343,6 +1490,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 5. Error → toast z komunikatem błędu + zamknięcie dialogu
 
 **Rezultat:**
+
 - Sukces: przepis usunięty, redirect do listy przepisów
 - Błąd: komunikat dla użytkownika, pozostanie na widoku
 
@@ -1351,12 +1499,14 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Wybór "Zapisz do moich przepisów" z dropdown menu (tylko dla source !== 'user')
 
 **Akcja:**
+
 1. Transformacja RecipeDTO do CreateRecipeDTO
 2. Wywołanie POST /api/recipes
 3. Success → toast "Przepis zapisany!" + opcjonalnie redirect do nowego przepisu
 4. Error → toast z komunikatem błędu
 
 **Rezultat:**
+
 - Sukces: nowy przepis utworzony jako kopia
 - Błąd: komunikat dla użytkownika
 
@@ -1365,6 +1515,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** Wybór "Edytuj" z dropdown menu (tylko dla source === 'user')
 
 **Akcja:**
+
 1. Nawigacja do `/recipes/:id/edit` (widok edycji - out of scope dla tego planu)
 
 **Rezultat:** Przekierowanie do widoku edycji
@@ -1374,6 +1525,7 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Trigger:** User scrolluje stronę w dół
 
 **Akcja:**
+
 1. useScrollVisibility hook monitoruje pozycję scrolla
 2. Gdy scrollY > threshold (np. 300px) → sticky bar staje się widoczny
 3. Gdy scrollY <= threshold → sticky bar ukryty
@@ -1387,23 +1539,25 @@ async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
 **Gdzie:** RecipeDetailsView, przed wywołaniem API cooking-history
 
 **Warunek:**
+
 ```typescript
 // Dla każdego składnika sprawdź dostępność w lodówce
-ingredients.every(ing => ing.availabilityStatus === 'full')
+ingredients.every((ing) => ing.availabilityStatus === "full");
 ```
 
 **Wpływ na UI:**
+
 - Jeśli false: przycisk "Ugotuj to" może pokazać warning lub error toast po kliknięciu
 - Color coding składników (zielony/pomarańczowy/czerwony)
 
 **Implementacja:**
+
 ```typescript
-function validateIngredientsAvailability(
-  ingredients: IngredientWithAvailability[]
-): { canCook: boolean; missingIngredients: IngredientWithAvailability[] } {
-  const missingIngredients = ingredients.filter(
-    ing => ing.availabilityStatus !== 'full'
-  );
+function validateIngredientsAvailability(ingredients: IngredientWithAvailability[]): {
+  canCook: boolean;
+  missingIngredients: IngredientWithAvailability[];
+} {
+  const missingIngredients = ingredients.filter((ing) => ing.availabilityStatus !== "full");
 
   return {
     canCook: missingIngredients.length === 0,
@@ -1417,15 +1571,18 @@ function validateIngredientsAvailability(
 **Gdzie:** RecipeHeader, RecipeActionsDropdown
 
 **Warunek:**
+
 ```typescript
-recipe.source === 'user'
+recipe.source === "user";
 ```
 
 **Wpływ na UI:**
+
 - Opcje "Edytuj" i "Usuń" w dropdown są widoczne tylko dla source === 'user'
 - Dla source === 'api' lub 'ai' pokazuje się opcja "Zapisz do moich przepisów"
 
 **Implementacja:**
+
 ```typescript
 {source === 'user' && (
   <>
@@ -1443,17 +1600,20 @@ recipe.source === 'user'
 **Gdzie:** RecipeIngredientsSection
 
 **Warunek:**
+
 ```typescript
-ingredients.some(ing => ing.availabilityStatus !== 'full')
+ingredients.some((ing) => ing.availabilityStatus !== "full");
 // lub
-recipe.hasMissingIngredients === true
+recipe.hasMissingIngredients === true;
 ```
 
 **Wpływ na UI:**
+
 - Przycisk "Generuj listę zakupów" jest widoczny tylko gdy są brakujące składniki
 - Jeśli wszystkie składniki dostępne, przycisk ukryty
 
 **Implementacja:**
+
 ```typescript
 {hasMissingIngredients && (
   <GenerateShoppingListButton onClick={handleGenerateShoppingList} />
@@ -1465,15 +1625,18 @@ recipe.hasMissingIngredients === true
 **Gdzie:** RecipeHeader
 
 **Warunek:**
+
 ```typescript
-matchScore !== undefined && matchScore !== null
+matchScore !== undefined && matchScore !== null;
 ```
 
 **Wpływ na UI:**
+
 - MatchScoreBadge renderowany tylko gdy matchScore jest dostępny (przyszło z search)
 - W innych przypadkach badge ukryty
 
 **Implementacja:**
+
 ```typescript
 {matchScore !== undefined && <MatchScoreBadge matchScore={matchScore} />}
 ```
@@ -1483,33 +1646,36 @@ matchScore !== undefined && matchScore !== null
 **Gdzie:** RecipeMetaSection
 
 **Warunek:**
+
 ```typescript
 // Czas gotowania
-cookingTime !== null && cookingTime > 0
+cookingTime !== null && cookingTime > 0;
 
 // Trudność
-difficulty !== null
+difficulty !== null;
 ```
 
 **Wpływ na UI:**
+
 - MetaItem dla czasu gotowania renderowany tylko gdy cookingTime !== null
 - MetaItem dla trudności renderowany tylko gdy difficulty !== null
 - Tagi zawsze renderowane (może być pusta lista)
 
 **Implementacja:**
+
 ```typescript
 {cookingTime !== null && (
-  <MetaItem 
-    icon={<Clock />} 
-    label="Czas" 
-    value={`${cookingTime} min`} 
+  <MetaItem
+    icon={<Clock />}
+    label="Czas"
+    value={`${cookingTime} min`}
   />
 )}
 {difficulty !== null && (
-  <MetaItem 
-    icon={<ChefHat />} 
-    label="Trudność" 
-    value={getDifficultyLabel(difficulty)} 
+  <MetaItem
+    icon={<ChefHat />}
+    label="Trudność"
+    value={getDifficultyLabel(difficulty)}
   />
 )}
 ```
@@ -1519,15 +1685,18 @@ difficulty !== null
 **Gdzie:** StickyBottomBar
 
 **Warunek:**
+
 ```typescript
 isVisible === true (z useScrollVisibility hook)
 ```
 
 **Wpływ na UI:**
+
 - Sticky bar widoczny tylko po przekroczeniu threshold scrolla
 - Smooth transition (opacity + transform)
 
 **Implementacja:**
+
 ```typescript
 <div className={cn(
   "fixed bottom-0 left-0 right-0 transition-all duration-300",
@@ -1544,15 +1713,17 @@ isVisible === true (z useScrollVisibility hook)
 **Scenariusz:** GET /api/recipes/:id zwraca 404
 
 **Obsługa:**
+
 1. Hook useRecipeDetails ustawia `error: 'Przepis nie został znaleziony'`
 2. Renderowanie ErrorState z komunikatem
 3. ErrorState zawiera przycisk "Wróć do przepisów" → redirect do `/recipes`
 
 **UI:**
+
 ```typescript
 if (error) {
   return (
-    <ErrorState 
+    <ErrorState
       error={error}
       onRetry={fetchRecipeAndFridge}
       showBackButton={true}
@@ -1566,14 +1737,16 @@ if (error) {
 **Scenariusz:** Brak tokenu lub token wygasł
 
 **Obsługa:**
+
 1. Middleware/interceptor złapie 401
 2. Redirect do `/login` z query param `redirect=/recipes/:id`
 3. Po zalogowaniu user wraca do przepisu
 
 **Implementacja:**
+
 ```typescript
 if (response.status === 401) {
-  localStorage.removeItem('token');
+  localStorage.removeItem("token");
   navigate(`/login?redirect=${window.location.pathname}`);
   return;
 }
@@ -1584,12 +1757,14 @@ if (response.status === 401) {
 **Scenariusz:** POST /api/cooking-history zwraca 422 (insufficient ingredients)
 
 **Obsługa:**
+
 1. Backend wykrył niewystarczające składniki (frontendowa walidacja nie wystarczyła)
 2. Pokazanie error toast: "Brak wystarczających składników w lodówce"
 3. Highlight brakujących składników w liście (jeśli API zwraca details)
 4. Sugestia: "Wygeneruj listę zakupów" (przycisk w toast)
 
 **UI:**
+
 ```typescript
 catch (error) {
   if (error.status === 422) {
@@ -1612,11 +1787,13 @@ catch (error) {
 **Scenariusz:** DELETE /api/recipes/:id zwraca błąd
 
 **Obsługa:**
+
 1. Pokazanie error toast z komunikatem
 2. Zamknięcie confirmation dialog
 3. Użytkownik pozostaje na widoku przepisu
 
 **UI:**
+
 ```typescript
 catch (error) {
   showToast({
@@ -1633,10 +1810,12 @@ catch (error) {
 **Scenariusz:** POST /api/shopping-list/generate zwraca błąd
 
 **Obsługa:**
+
 1. Pokazanie error toast
 2. Użytkownik pozostaje na widoku przepisu
 
 **UI:**
+
 ```typescript
 catch (error) {
   showToast({
@@ -1652,10 +1831,12 @@ catch (error) {
 **Scenariusz:** POST /api/recipes zwraca błąd przy zapisywaniu kopii
 
 **Obsługa:**
+
 1. Pokazanie error toast
 2. Użytkownik pozostaje na widoku przepisu
 
 **UI:**
+
 ```typescript
 catch (error) {
   showToast({
@@ -1671,17 +1852,19 @@ catch (error) {
 **Scenariusz:** Brak połączenia z internetem
 
 **Obsługa:**
+
 1. Pokazanie error toast: "Brak połączenia z internetem"
 2. ErrorState z przyciskiem "Spróbuj ponownie"
 3. Opcjonalnie: offline indicator w UI
 
 **UI:**
+
 ```typescript
 if (navigator.onLine === false) {
   showToast({
-    variant: 'warning',
-    title: 'Brak połączenia',
-    description: 'Sprawdź połączenie z internetem i spróbuj ponownie.',
+    variant: "warning",
+    title: "Brak połączenia",
+    description: "Sprawdź połączenie z internetem i spróbuj ponownie.",
   });
 }
 ```
@@ -1691,11 +1874,13 @@ if (navigator.onLine === false) {
 **Scenariusz:** Request trwa zbyt długo
 
 **Obsługa:**
+
 1. Po np. 30 sekundach abort request
 2. Pokazanie error: "Przekroczono czas oczekiwania"
 3. Przycisk "Spróbuj ponownie"
 
 **Implementacja:**
+
 ```typescript
 const controller = new AbortController();
 const timeout = setTimeout(() => controller.abort(), 30000);
@@ -1705,11 +1890,11 @@ try {
   clearTimeout(timeout);
   // ...
 } catch (error) {
-  if (error.name === 'AbortError') {
+  if (error.name === "AbortError") {
     showToast({
-      variant: 'error',
-      title: 'Przekroczono czas oczekiwania',
-      description: 'Spróbuj ponownie później.',
+      variant: "error",
+      title: "Przekroczono czas oczekiwania",
+      description: "Spróbuj ponownie później.",
     });
   }
 }
@@ -1720,6 +1905,7 @@ try {
 ### Krok 1: Utworzenie struktury plików
 
 1. Utworzyć strukturę katalogów:
+
    ```
    src/pages/recipes/
    src/components/recipe-details/
@@ -1752,51 +1938,77 @@ try {
 ### Krok 3: Implementacja utility functions
 
 1. Utworzyć `src/lib/utils/recipe-utils.ts`:
+
    ```typescript
    // Funkcja sprawdzająca dostępność składnika
    export function checkIngredientAvailability(
      ingredient: RecipeIngredientDTO,
      fridgeItems: FridgeItemDTO[]
-   ): IngredientAvailabilityCheckResult { /* ... */ }
+   ): IngredientAvailabilityCheckResult {
+     /* ... */
+   }
 
    // Funkcja obliczająca dostępność dla całego przepisu
    export function calculateRecipeAvailability(
      recipe: RecipeDTO,
      fridgeItems: FridgeItemDTO[]
-   ): RecipeAvailabilityResult { /* ... */ }
+   ): RecipeAvailabilityResult {
+     /* ... */
+   }
 
    // Funkcja parsująca instrukcje
-   export function parseInstructions(instructions: string): ParsedInstructions { /* ... */ }
+   export function parseInstructions(instructions: string): ParsedInstructions {
+     /* ... */
+   }
 
    // Funkcja transformująca difficulty enum na label
-   export function getDifficultyLabel(difficulty: DifficultyEnum): string { /* ... */ }
+   export function getDifficultyLabel(difficulty: DifficultyEnum): string {
+     /* ... */
+   }
 
    // Funkcja transformująca RecipeDTO do CreateRecipeDTO (dla copy)
-   export function recipeToCreateDto(recipe: RecipeDTO): CreateRecipeDTO { /* ... */ }
+   export function recipeToCreateDto(recipe: RecipeDTO): CreateRecipeDTO {
+     /* ... */
+   }
    ```
 
 ### Krok 4: Implementacja API client functions
 
 1. Utworzyć `src/lib/api/recipes-api.ts` (jeśli jeszcze nie istnieje):
+
    ```typescript
-   export async function fetchRecipe(recipeId: number): Promise<RecipeDTO> { /* ... */ }
-   export async function deleteRecipe(recipeId: number): Promise<void> { /* ... */ }
-   export async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> { /* ... */ }
+   export async function fetchRecipe(recipeId: number): Promise<RecipeDTO> {
+     /* ... */
+   }
+   export async function deleteRecipe(recipeId: number): Promise<void> {
+     /* ... */
+   }
+   export async function saveRecipeAsCopy(recipe: RecipeDTO): Promise<RecipeDTO> {
+     /* ... */
+   }
    ```
 
 2. Utworzyć `src/lib/api/fridge-api.ts`:
+
    ```typescript
-   export async function fetchFridgeItems(): Promise<FridgeItemDTO[]> { /* ... */ }
+   export async function fetchFridgeItems(): Promise<FridgeItemDTO[]> {
+     /* ... */
+   }
    ```
 
 3. Utworzyć `src/lib/api/cooking-history-api.ts`:
+
    ```typescript
-   export async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryResponseDTO> { /* ... */ }
+   export async function cookRecipe(recipeId: number): Promise<CreateCookingHistoryResponseDTO> {
+     /* ... */
+   }
    ```
 
 4. Utworzyć `src/lib/api/shopping-list-api.ts`:
    ```typescript
-   export async function generateShoppingList(recipeId: number): Promise<ShoppingListResponseDTO> { /* ... */ }
+   export async function generateShoppingList(recipeId: number): Promise<ShoppingListResponseDTO> {
+     /* ... */
+   }
    ```
 
 ### Krok 5: Implementacja custom hooks
@@ -1854,10 +2066,11 @@ Implementować komponenty od najmniejszych do największych:
 ### Krok 10: Implementacja Astro page
 
 1. **[id].astro** - strona Astro:
+
    ```astro
    ---
-   import Layout from '../../layouts/Layout.astro';
-   import RecipeDetailsView from '../../components/recipe-details/RecipeDetailsView';
+   import Layout from "../../layouts/Layout.astro";
+   import RecipeDetailsView from "../../components/recipe-details/RecipeDetailsView";
 
    export const prerender = false;
    ---
@@ -1992,4 +2205,3 @@ Ten plan implementacji obejmuje kompletny widok Recipe Details zgodny z PRD i wy
 - **Walidacja** - warunki na poziomie UI i API
 
 Implementacja powinna przebiegać iteracyjnie, od najmniejszych komponentów do największych, z testowaniem na każdym etapie.
-

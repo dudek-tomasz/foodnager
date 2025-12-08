@@ -24,27 +24,34 @@ Jeśli Tier 1 nie znalazł dobrych wyników (score < 0.7), powinno się pojawić
 **Przyczyny braku działania Tier 2:**
 
 #### A. Brak klucza API
+
 ```
 🌐 [SPOONACULAR] ⚠️ API key not configured, skipping external API search
 ```
+
 **Rozwiązanie:** Dodaj `EXTERNAL_RECIPE_API_KEY` do `.env`
 
 #### B. Tier 1 zwraca dobre wyniki (score >= 0.7)
+
 ```
 🔍 [TIER 1] Has good matches (>=0.7)? true
 🔍 [TIER 1] ✅ Returning X user recipes (good matches found)
 ```
+
 **To normalne zachowanie** - system używa najpierw przepisów użytkownika
 
 #### C. Błąd API Spoonacular
+
 ```
 🌐 [SPOONACULAR] API Error: 402 - Payment Required
 ```
+
 **Rozwiązanie:** Przekroczono limit requestów - czekaj na reset lub upgrade plan
 
 ```
 🌐 [SPOONACULAR] API Error: 401 - Unauthorized
 ```
+
 **Rozwiązanie:** Nieprawidłowy klucz API - sprawdź `EXTERNAL_RECIPE_API_KEY`
 
 ### Krok 3: Testuj z produktami angielskimi
@@ -52,6 +59,7 @@ Jeśli Tier 1 nie znalazł dobrych wyników (score < 0.7), powinno się pojawić
 **⚠️ WAŻNE:** Spoonacular działa najlepiej z angielskimi nazwami produktów!
 
 **Dobrze:**
+
 - tomato
 - pasta
 - chicken
@@ -59,6 +67,7 @@ Jeśli Tier 1 nie znalazł dobrych wyników (score < 0.7), powinno się pojawić
 - onion
 
 **Źle (mogą nie zwrócić wyników):**
+
 - pomidor
 - makaron
 - kurczak
@@ -69,6 +78,7 @@ Jeśli Tier 1 nie znalazł dobrych wyników (score < 0.7), powinno się pojawić
 
 1. Otwórz plik `.env`
 2. Sprawdź czy istnieją linie:
+
 ```bash
 EXTERNAL_RECIPE_API_URL=https://api.spoonacular.com
 EXTERNAL_RECIPE_API_KEY=twój-klucz-tutaj
@@ -79,6 +89,7 @@ EXTERNAL_RECIPE_API_KEY=twój-klucz-tutaj
 ### Test 2: Wymuś użycie Tier 2
 
 Aby przetestować Spoonacular, musisz upewnić się, że:
+
 - Tier 1 NIE zwraca dobrych wyników (match_score < 0.7)
 - Masz produkty z angielskimi nazwami
 
@@ -99,6 +110,7 @@ Aby przetestować Spoonacular, musisz upewnić się, że:
    - Kliknij "Wyszukaj"
 
 4. **Sprawdź logi w konsoli:**
+
 ```
 🔍 [TIER 1] Found 0 user recipes
 🔍 [TIER 2] No good matches in Tier 1, trying external API...
@@ -135,6 +147,7 @@ curl "https://api.spoonacular.com/recipes/654959/information?apiKey=TWOJ_KLUCZ"
 ```
 
 **Oczekiwany wynik testu 1:**
+
 ```json
 [
   {
@@ -155,6 +168,7 @@ curl "https://api.spoonacular.com/recipes/654959/information?apiKey=TWOJ_KLUCZ"
 **Powód:** Brak klucza w `.env`
 
 **Rozwiązanie:**
+
 ```bash
 # 1. Dodaj do .env
 EXTERNAL_RECIPE_API_KEY=twoj-klucz-tutaj
@@ -169,6 +183,7 @@ npm run dev
 **Powód:** Nieprawidłowy klucz API
 
 **Rozwiązanie:**
+
 1. Sprawdź klucz na [Spoonacular Dashboard](https://spoonacular.com/food-api/console#Dashboard)
 2. Upewnij się, że skopiowałeś cały klucz (bez spacji)
 3. Sprawdź czy w `.env` nie ma cudzysłowów wokół klucza
@@ -178,6 +193,7 @@ npm run dev
 **Powód:** Przekroczono dzienny limit (150 punktów)
 
 **Rozwiązanie:**
+
 - Poczekaj do następnego dnia (reset o północy UTC)
 - Lub upgrade na płatny plan
 - Sprawdź zużycie na Dashboard
@@ -185,6 +201,7 @@ npm run dev
 ### Problem: "No recipes found" mimo klucza API
 
 **Powody:**
+
 1. **Produkty po polsku** - Spoonacular wymaga angielskich nazw
    - ❌ pomidor → ✅ tomato
    - ❌ makaron → ✅ pasta
@@ -200,6 +217,7 @@ npm run dev
 **Powód:** Tier 1 zwraca dobre wyniki (score >= 0.7)
 
 **Rozwiązanie:**
+
 - To jest **normalne zachowanie**
 - System używa hierarchii: najpierw Tier 1, potem Tier 2, na końcu Tier 3
 - Aby przetestować Tier 2:
@@ -211,6 +229,7 @@ npm run dev
 ### Przykładowe produkty do dodania (angielskie):
 
 **Włoskie dania:**
+
 - tomato (pomidor)
 - pasta (makaron)
 - olive oil (oliwa)
@@ -219,12 +238,14 @@ npm run dev
 - mozzarella (mozzarella)
 
 **Amerykańskie:**
+
 - chicken breast (pierś z kurczaka)
 - potato (ziemniak)
 - butter (masło)
 - onion (cebula)
 
 **Azjatyckie:**
+
 - rice (ryż)
 - soy sauce (sos sojowy)
 - ginger (imbiir)
@@ -235,6 +256,7 @@ npm run dev
 ### Zużycie punktów Spoonacular:
 
 **Jedno wyszukiwanie (Tier 2):**
+
 - 1 punkt: `findByIngredients` (wyszukanie)
 - 5 x 1 punkt: `recipes/{id}/information` (szczegóły dla 5 przepisów)
 - **Razem: ~6 punktów**
@@ -252,12 +274,14 @@ npm run dev
 ### Włącz szczegółowe logi
 
 Wszystkie logi są już włączone w kodzie. Sprawdź:
+
 - **Konsolę przeglądarki** (F12 → Console)
 - **Terminal** gdzie działa `npm run dev`
 
 ### Co powinieneś zobaczyć:
 
 **Prawidłowe działanie:**
+
 ```
 🔍 [TIER 1] Found 0 user recipes
 🔍 [TIER 2] No good matches in Tier 1, trying external API...
@@ -277,4 +301,3 @@ Jeśli problem nadal występuje:
 2. **Sprawdź Dashboard Spoonacular** - czy punkty się odejmują
 3. **Przetestuj API ręcznie** - użyj cURL z powyższych przykładów
 4. **Sprawdź status Spoonacular** - [status.spoonacular.com](https://status.spoonacular.com)
-

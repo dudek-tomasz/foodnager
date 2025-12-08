@@ -83,7 +83,7 @@ flowchart TD
     REGISTER --> AUTHLAYOUT
     FORGOT --> AUTHLAYOUT
     RESET --> AUTHLAYOUT
-    
+
     PROFILE --> MAINLAYOUT
     FRIDGE --> MAINLAYOUT
     RECIPES --> MAINLAYOUT
@@ -94,7 +94,7 @@ flowchart TD
     REGISTER --> REGISTERFORM
     FORGOT --> FORGOTFORM
     RESET --> RESETFORM
-    
+
     PROFILE --> PROFILEVIEW
     PROFILEVIEW --> USERINFOCARD
     PROFILEVIEW --> LOGOUTBTN
@@ -157,11 +157,11 @@ flowchart TD
     classDef newComponent fill:#4ade80,stroke:#16a34a,stroke-width:2px,color:#000
     classDef modifiedComponent fill:#fbbf24,stroke:#f59e0b,stroke-width:2px,color:#000
     classDef existingComponent fill:#94a3b8,stroke:#64748b,stroke-width:1px,color:#000
-    
+
     class AUTHLAYOUT,LOGINFORM,REGISTERFORM,FORGOTFORM,RESETFORM,FORGOT,RESET,PROFILE,PROFILEVIEW,USERINFOCARD,LOGOUTBTN,USERINFODISPLAY,API_LOGIN,API_REGISTER,API_LOGOUT,API_FORGOT,API_RESET,API_VERIFY,API_SESSION,AUTHSERVICE,AUTHVALIDATION,AUTHERROR newComponent
-    
+
     class LOGIN,REGISTER,MAINLAYOUT,SIDEBAR,BOTTOMNAV,MIDDLEWARE,FRIDGE,RECIPES,HISTORY modifiedComponent
-    
+
     class SUPABASEAUTH,SUPABASECLIENT,RLS existingComponent
 ```
 
@@ -170,32 +170,39 @@ flowchart TD
 ### Strony Publiczne (AuthLayout)
 
 **Nowe strony:**
+
 - `forgot-password.astro` - formularz odzyskiwania hasła
 - `reset-password.astro` - formularz resetowania hasła z tokenem
 
 **Refaktoryzowane z mock do produkcji:**
+
 - `login.astro` - strona logowania z integracją Supabase Auth
 - `register.astro` - strona rejestracji z integracją Supabase Auth
 
 ### Strony Chronione (Layout)
 
 **Nowa strona:**
+
 - `profile.astro` - profil użytkownika z informacjami i przyciskiem wylogowania
 
 **Modyfikowane strony:**
+
 - `fridge.astro`, `recipes.astro`, `history.astro` - dodanie sprawdzenia sesji z `Astro.locals.user`
 
 ### Layouts
 
 **Nowy:**
+
 - `AuthLayout.astro` - dedykowany layout dla stron auth bez nawigacji, fullscreen, gradient background
 
 **Modyfikowany:**
+
 - `Layout.astro` - dodanie props `user`, przekazywanie danych użytkownika do Sidebar
 
 ### Komponenty React - Auth
 
 Wszystkie nowe komponenty formularzy z walidacją Zod:
+
 - `LoginForm.tsx` - email, hasło
 - `RegisterForm.tsx` - email, hasło, potwierdzenie hasła
 - `ForgotPasswordForm.tsx` - email
@@ -210,15 +217,18 @@ Wszystkie nowe komponenty formularzy z walidacją Zod:
 ### Komponenty Nawigacji
 
 **Nowy:**
+
 - `UserInfoDisplay.tsx` - wyświetlanie avatara (inicjały), email, przycisk wylogowania
 
 **Modyfikowane:**
+
 - `Sidebar.astro` - dodanie sekcji user info na dole
 - `BottomNavigation.astro` - zmiana linku z `/login` na `/profile`
 
 ### API Endpoints
 
 Wszystkie nowe endpointy w `/api/auth/`:
+
 - `login.ts` (POST) - logowanie użytkownika
 - `register.ts` (POST) - rejestracja użytkownika
 - `logout.ts` (POST) - wylogowanie użytkownika
@@ -230,6 +240,7 @@ Wszystkie nowe endpointy w `/api/auth/`:
 ### Serwisy i Walidacje
 
 **Nowe:**
+
 - `auth.service.ts` - centralna logika autentykacji z Supabase (login, register, logout, forgotPassword, resetPassword, getSession, getUser)
 - `auth.validation.ts` - schematy Zod dla wszystkich formularzy auth
 - `auth.error.ts` - klasy błędów specyficzne dla autentykacji
@@ -237,6 +248,7 @@ Wszystkie nowe endpointy w `/api/auth/`:
 ### Middleware
 
 **Modyfikowany:**
+
 - `middleware/index.ts` - rozszerzenie o:
   - Sprawdzanie sesji użytkownika
   - Dodawanie `session` i `user` do `Astro.locals`
@@ -246,6 +258,7 @@ Wszystkie nowe endpointy w `/api/auth/`:
 ### Supabase
 
 **Wykorzystywane:**
+
 - `Supabase Auth` - zarządzanie użytkownikami w tabeli `auth.users`
 - `supabaseClient` - klient Supabase z konfiguracją auth
 - `RLS Policies` - zabezpieczenie tabel używając `auth.uid()`
@@ -253,18 +266,21 @@ Wszystkie nowe endpointy w `/api/auth/`:
 ## Przepływy Danych
 
 ### 1. Rejestracja
+
 ```
 User → RegisterForm → POST /api/auth/register → authService.register()
 → Supabase Auth → Email verification (opcjonalnie) → Success → Redirect /login
 ```
 
 ### 2. Logowanie
+
 ```
 User → LoginForm → POST /api/auth/login → authService.login()
 → Supabase Auth → Set cookies → Redirect /fridge (lub redirectTo)
 ```
 
 ### 3. Protected Route Access
+
 ```
 User → /fridge → Middleware → Check session
 → If session: Add to locals → Render page
@@ -272,12 +288,14 @@ User → /fridge → Middleware → Check session
 ```
 
 ### 4. Wylogowanie
+
 ```
 User → LogoutButton → POST /api/auth/logout → authService.logout()
 → Supabase Auth → Clear cookies → Redirect /login
 ```
 
 ### 5. Reset Hasła
+
 ```
 User → ForgotPasswordForm → POST /api/auth/forgot-password
 → authService.forgotPassword() → Supabase sends email
@@ -298,6 +316,7 @@ User → ForgotPasswordForm → POST /api/auth/forgot-password
 ## Zgodność z PRD
 
 Implementacja spełnia wszystkie wymagania US-001:
+
 - ✅ Rejestracja z email i hasłem (US-001.1)
 - ✅ Walidacja i bezpieczne przechowywanie (US-001.2)
 - ✅ Potwierdzenie rejestracji i reset hasła (US-001.3, US-001.7)
@@ -308,6 +327,7 @@ Implementacja spełnia wszystkie wymagania US-001:
 ## Uproszczenia MVP
 
 Zgodnie z auth-spec.md:
+
 - ❌ Email verification NIE blokuje logowania
 - ❌ BRAK tabeli `profiles` - dane z `auth.users`
 - ❌ BRAK "Remember Me" checkbox - auto persist
@@ -319,4 +339,3 @@ Zgodnie z auth-spec.md:
 **Data utworzenia:** 2025-11-03  
 **Zgodny z:** PRD v1.0, auth-spec.md  
 **Stack:** Astro 5, React 19, TypeScript 5, Supabase Auth
-

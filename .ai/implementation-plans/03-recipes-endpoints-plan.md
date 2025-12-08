@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Recipes Management
 
 ## Spis treści
+
 1. [GET /api/recipes - List Recipes](#1-get-apirecipes---list-recipes)
 2. [GET /api/recipes/:id - Get Recipe by ID](#2-get-apirecipesid---get-recipe-by-id)
 3. [POST /api/recipes - Create Recipe](#3-post-apirecipes---create-recipe)
@@ -12,6 +13,7 @@
 ## 1. GET /api/recipes - List Recipes
 
 ### 1.1 Przegląd punktu końcowego
+
 Endpoint pobiera listę przepisów użytkownika z zaawansowanymi opcjami filtrowania i wyszukiwania. Obsługuje full-text search, filtrowanie według źródła, trudności, tagów, czasu gotowania oraz sortowanie i paginację. Zwraca przepisy z zagnieżdżonymi składnikami i tagami.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami), US-004 (Wyszukiwanie przepisu)
@@ -23,6 +25,7 @@ Endpoint pobiera listę przepisów użytkownika z zaawansowanymi opcjami filtrow
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **Query Parameters:**
+
 - **Opcjonalne:**
   - `search` (string) - Full-text search w tytule i instrukcjach
   - `source` (enum: `user`, `api`, `ai`) - Filtruj według źródła przepisu
@@ -35,6 +38,7 @@ Endpoint pobiera listę przepisów użytkownika z zaawansowanymi opcjami filtrow
   - `limit` (integer) - Liczba elementów na stronę, domyślnie `20`, max `100`
 
 **Przykładowe żądania:**
+
 ```
 GET /api/recipes?search=tomato&difficulty=easy&page=1
 GET /api/recipes?source=user&tags=1,2&max_cooking_time=30&sort=cooking_time&order=asc
@@ -43,6 +47,7 @@ GET /api/recipes?source=user&tags=1,2&max_cooking_time=30&sort=cooking_time&orde
 ### 1.3 Wykorzystywane typy
 
 **Query DTO:**
+
 ```typescript
 ListRecipesQueryDTO {
   search?: string;
@@ -58,6 +63,7 @@ ListRecipesQueryDTO {
 ```
 
 **Response DTOs:**
+
 ```typescript
 RecipesListResponseDTO {
   data: RecipeSummaryDTO[];
@@ -93,6 +99,7 @@ TagDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "data": [
@@ -138,6 +145,7 @@ TagDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `422 Unprocessable Entity` - Nieprawidłowe parametry zapytania
 
@@ -169,70 +177,83 @@ TagDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy: `WHERE user_id = auth.uid()`
 - Użytkownik widzi tylko swoje przepisy
 
 **Walidacja:**
+
 - Walidacja wszystkich query params
 - Sanityzacja search query (parametryzowane zapytanie)
 - Walidacja arrays (tags) - parse i validate integers
 - Zakresy: page >= 1, limit <= 100, max_cooking_time >= 0
 
 **Data Exposure:**
+
 - Nie zwracamy metadata w listingu (tylko w szczegółach)
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy source | 422 | VALIDATION_ERROR | Zwróć dozwolone wartości |
-| Nieprawidłowy difficulty | 422 | VALIDATION_ERROR | Zwróć dozwolone wartości |
-| Nieprawidłowy sort field | 422 | VALIDATION_ERROR | Zwróć dozwolone wartości |
-| tags nie są liczbami | 422 | VALIDATION_ERROR | Zwróć: tags must be array of integers |
-| max_cooking_time < 0 | 422 | VALIDATION_ERROR | Zwróć: must be positive |
-| page < 1 | 422 | VALIDATION_ERROR | Zwróć: page must be >= 1 |
-| limit > 100 | 422 | VALIDATION_ERROR | Zwróć: limit cannot exceed 100 |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz               | Kod HTTP | Error Code       | Akcja                                    |
+| ------------------------ | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu              | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token      | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy source     | 422      | VALIDATION_ERROR | Zwróć dozwolone wartości                 |
+| Nieprawidłowy difficulty | 422      | VALIDATION_ERROR | Zwróć dozwolone wartości                 |
+| Nieprawidłowy sort field | 422      | VALIDATION_ERROR | Zwróć dozwolone wartości                 |
+| tags nie są liczbami     | 422      | VALIDATION_ERROR | Zwróć: tags must be array of integers    |
+| max_cooking_time < 0     | 422      | VALIDATION_ERROR | Zwróć: must be positive                  |
+| page < 1                 | 422      | VALIDATION_ERROR | Zwróć: page must be >= 1                 |
+| limit > 100              | 422      | VALIDATION_ERROR | Zwróć: limit cannot exceed 100           |
+| Błąd bazy danych         | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - Indeks GIN dla full-text search: `to_tsvector('english', title || ' ' || instructions)`
 - Indeks na `recipes(source)` dla filtrowania
 - Indeks na `recipes(user_id, created_at)` composite
 - N+1 query prevention: batch loading ingredients i tags
 
 **Batch Loading Strategy:**
+
 ```typescript
 // Po pobraniu recipes (IDs)
-const recipeIds = recipes.map(r => r.id);
+const recipeIds = recipes.map((r) => r.id);
 
 // Batch fetch ingredients
-const ingredients = await db.query(`
+const ingredients = await db.query(
+  `
   SELECT ri.recipe_id, ri.quantity, p.id, p.name, u.id, u.name, u.abbreviation
   FROM recipe_ingredients ri
   JOIN products p ON ri.product_id = p.id
   JOIN units u ON ri.unit_id = u.id
   WHERE ri.recipe_id = ANY($1)
-`, [recipeIds]);
+`,
+  [recipeIds]
+);
 
 // Batch fetch tags
-const tags = await db.query(`
+const tags = await db.query(
+  `
   SELECT rt.recipe_id, t.id, t.name
   FROM recipe_tags rt
   JOIN tags t ON rt.tag_id = t.id
   WHERE rt.recipe_id = ANY($1)
-`, [recipeIds]);
+`,
+  [recipeIds]
+);
 
 // Group by recipe_id and merge
 ```
 
 **Caching:**
+
 - Cache per user: `recipes:{userId}:page:{page}:params:{hash}` na 10 minut
 - Invalidacja przy: POST, PATCH, DELETE
 
@@ -240,18 +261,22 @@ const tags = await db.query(`
 
 1. **Zod schema walidacji**
    - Schema dla ListRecipesQueryDTO:
+
    ```typescript
    z.object({
      search: z.string().trim().optional(),
-     source: z.enum(['user', 'api', 'ai']).optional(),
-     difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
-     tags: z.string().transform(val => val.split(',').map(Number)).optional(),
+     source: z.enum(["user", "api", "ai"]).optional(),
+     difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+     tags: z
+       .string()
+       .transform((val) => val.split(",").map(Number))
+       .optional(),
      max_cooking_time: z.coerce.number().int().positive().optional(),
-     sort: z.enum(['title', 'cooking_time', 'difficulty', 'created_at']).default('created_at'),
-     order: z.enum(['asc', 'desc']).default('desc'),
+     sort: z.enum(["title", "cooking_time", "difficulty", "created_at"]).default("created_at"),
+     order: z.enum(["asc", "desc"]).default("desc"),
      page: z.coerce.number().int().min(1).default(1),
-     limit: z.coerce.number().int().min(1).max(100).default(20)
-   })
+     limit: z.coerce.number().int().min(1).max(100).default(20),
+   });
    ```
 
 2. **Utworzenie RecipeService**
@@ -295,6 +320,7 @@ const tags = await db.query(`
 ## 2. GET /api/recipes/:id - Get Recipe by ID
 
 ### 2.1 Przegląd punktu końcowego
+
 Endpoint pobiera szczegółowe informacje o pojedynczym przepisie, włączając wszystkie składniki, tagi oraz metadata (dla przepisów z API/AI). Użytkownik może pobrać tylko swoje przepisy.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami)
@@ -306,10 +332,12 @@ Endpoint pobiera szczegółowe informacje o pojedynczym przepisie, włączając 
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID przepisu
 
 **Przykładowe żądanie:**
+
 ```
 GET /api/recipes/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -318,6 +346,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 2.3 Wykorzystywane typy
 
 **Response DTO:**
+
 ```typescript
 RecipeDTO {
   id: number;
@@ -338,6 +367,7 @@ RecipeDTO {
 ### 2.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -374,6 +404,7 @@ RecipeDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Przepis nie istnieje lub nie należy do użytkownika
 
@@ -405,37 +436,43 @@ RecipeDTO {
 ### 2.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy: `WHERE id = $id AND user_id = auth.uid()`
 - 404 zamiast 403 (information disclosure prevention)
 
 **Walidacja:**
+
 - Walidacja ID: integer, positive
 
 **Metadata Exposure:**
+
 - Metadata może zawierać wrażliwe dane z AI/API
 - Dostępne tylko dla właściciela przepisu
 
 ### 2.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid recipe ID |
-| Przepis nie istnieje | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis innego użytkownika | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid recipe ID                 |
+| Przepis nie istnieje       | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| Przepis innego użytkownika | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 2.8 Wydajność
 
 **Optymalizacje:**
+
 - PRIMARY KEY lookup (id) - bardzo szybkie
 - Parallel fetch: ingredients i tags równocześnie (Promise.all)
 
 **Caching:**
+
 - Cache recipe: `recipe:{recipeId}` na 10 minut
 - Invalidacja przy UPDATE/DELETE
 
@@ -471,6 +508,7 @@ RecipeDTO {
 ## 3. POST /api/recipes - Create Recipe
 
 ### 3.1 Przegląd punktu końcowego
+
 Endpoint tworzy nowy przepis użytkownika. Wymaga tytułu, instrukcji oraz przynajmniej jednego składnika. Opcjonalnie: opis, czas gotowania, trudność, tagi. Automatycznie tworzy powiązania w tabelach recipe_ingredients i recipe_tags.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami)
@@ -484,6 +522,7 @@ Endpoint tworzy nowy przepis użytkownika. Wymaga tytułu, instrukcji oraz przyn
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `title` (string) - Tytuł przepisu, min 1 znak, max 255
   - `instructions` (string) - Instrukcje przygotowania, min 1 znak
@@ -498,6 +537,7 @@ Endpoint tworzy nowy przepis użytkownika. Wymaga tytułu, instrukcji oraz przyn
   - `tag_ids` (array of integers) - IDs tagów
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/recipes
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -528,6 +568,7 @@ Content-Type: application/json
 ### 3.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 CreateRecipeDTO {
   title: string;
@@ -547,13 +588,15 @@ CreateRecipeIngredientDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
-RecipeDTO // Pełny przepis ze składnikami i tagami
+RecipeDTO; // Pełny przepis ze składnikami i tagami
 ```
 
 ### 3.4 Szczegóły odpowiedzi
 
 **Sukces (201 Created):**
+
 ```json
 {
   "id": 1,
@@ -589,6 +632,7 @@ RecipeDTO // Pełny przepis ze składnikami i tagami
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane (brak wymaganych pól, quantity <= 0, cooking_time <= 0)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Produkt, jednostka lub tag nie istnieją
@@ -616,14 +660,17 @@ RecipeDTO // Pełny przepis ze składnikami i tagami
 ### 3.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla INSERT: `WITH CHECK (user_id = auth.uid())`
 - user_id automatycznie ustawiany
 - source automatycznie ustawiany na 'user'
 
 **Walidacja:**
+
 - Głęboka walidacja: title, instructions (nie puste po trim)
 - cooking_time > 0 (jeśli podane)
 - ingredients: minimum 1, każdy z quantity > 0
@@ -631,38 +678,41 @@ RecipeDTO // Pełny przepis ze składnikami i tagami
 - Zapobieganie duplicate ingredients (same product_id w ramach przepisu)
 
 **Transaction Safety:**
+
 - Cała operacja w transakcji
 - Rollback przy błędzie w którymkolwiek kroku
 
 ### 3.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak title | 400 | VALIDATION_ERROR | Zwróć: title is required |
-| Brak instructions | 400 | VALIDATION_ERROR | Zwróć: instructions are required |
-| Brak ingredients | 400 | VALIDATION_ERROR | Zwróć: at least one ingredient required |
-| cooking_time <= 0 | 400 | VALIDATION_ERROR | Zwróć: cooking_time must be positive |
-| quantity <= 0 | 400 | VALIDATION_ERROR | Zwróć: ingredient quantity must be positive |
-| Nieprawidłowy difficulty | 400 | VALIDATION_ERROR | Zwróć dozwolone wartości |
-| product_id nie istnieje | 404 | NOT_FOUND | Zwróć: Product not found (ID) |
-| unit_id nie istnieje | 404 | NOT_FOUND | Zwróć: Unit not found (ID) |
-| tag_id nie istnieje | 404 | NOT_FOUND | Zwróć: Tag not found (ID) |
-| Duplicate ingredients | 400 | VALIDATION_ERROR | Zwróć: Duplicate product in ingredients |
-| Błąd transakcji | 500 | INTERNAL_ERROR | Rollback, loguj, zwróć ogólny komunikat |
+| Scenariusz               | Kod HTTP | Error Code       | Akcja                                       |
+| ------------------------ | -------- | ---------------- | ------------------------------------------- |
+| Brak tokenu              | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji     |
+| Nieprawidłowy token      | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie    |
+| Brak title               | 400      | VALIDATION_ERROR | Zwróć: title is required                    |
+| Brak instructions        | 400      | VALIDATION_ERROR | Zwróć: instructions are required            |
+| Brak ingredients         | 400      | VALIDATION_ERROR | Zwróć: at least one ingredient required     |
+| cooking_time <= 0        | 400      | VALIDATION_ERROR | Zwróć: cooking_time must be positive        |
+| quantity <= 0            | 400      | VALIDATION_ERROR | Zwróć: ingredient quantity must be positive |
+| Nieprawidłowy difficulty | 400      | VALIDATION_ERROR | Zwróć dozwolone wartości                    |
+| product_id nie istnieje  | 404      | NOT_FOUND        | Zwróć: Product not found (ID)               |
+| unit_id nie istnieje     | 404      | NOT_FOUND        | Zwróć: Unit not found (ID)                  |
+| tag_id nie istnieje      | 404      | NOT_FOUND        | Zwróć: Tag not found (ID)                   |
+| Duplicate ingredients    | 400      | VALIDATION_ERROR | Zwróć: Duplicate product in ingredients     |
+| Błąd transakcji          | 500      | INTERNAL_ERROR   | Rollback, loguj, zwróć ogólny komunikat     |
 
 ### 3.8 Wydajność
 
 **Optymalizacje:**
+
 - Batch verification: wszystkie products, units, tags w single queries
 - Batch INSERT dla ingredients i tags (multi-row INSERT)
 - Transaction dla atomowości
 
 **Przykład batch INSERT:**
+
 ```sql
 INSERT INTO recipe_ingredients (recipe_id, product_id, quantity, unit_id)
-VALUES 
+VALUES
   ($1, $2, $3, $4),
   ($1, $5, $6, $7),
   ...
@@ -672,28 +722,31 @@ VALUES
 
 1. **Zod schema walidacji**
    - Schema dla CreateRecipeDTO:
+
    ```typescript
    z.object({
      title: z.string().trim().min(1).max(255),
      description: z.string().trim().nullable().optional(),
      instructions: z.string().trim().min(1),
      cooking_time: z.number().int().positive().nullable().optional(),
-     difficulty: z.enum(['easy', 'medium', 'hard']).nullable().optional(),
-     ingredients: z.array(
-       z.object({
-         product_id: z.number().int().positive(),
-         quantity: z.number().positive(),
-         unit_id: z.number().int().positive()
-       })
-     ).min(1),
-     tag_ids: z.array(z.number().int().positive()).optional()
+     difficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
+     ingredients: z
+       .array(
+         z.object({
+           product_id: z.number().int().positive(),
+           quantity: z.number().positive(),
+           unit_id: z.number().int().positive(),
+         })
+       )
+       .min(1),
+     tag_ids: z.array(z.number().int().positive()).optional(),
    }).refine(
-     data => {
-       const productIds = data.ingredients.map(i => i.product_id);
+     (data) => {
+       const productIds = data.ingredients.map((i) => i.product_id);
        return new Set(productIds).size === productIds.length;
      },
      { message: "Duplicate products in ingredients" }
-   )
+   );
    ```
 
 2. **Verification helpers**
@@ -744,6 +797,7 @@ VALUES
 ## 4. PATCH /api/recipes/:id - Update Recipe
 
 ### 4.1 Przegląd punktu końcowego
+
 Endpoint aktualizuje istniejący przepis użytkownika. Wszystkie pola są opcjonalne. Aktualizacja ingredients lub tags zastępuje całe listy (nie merguje). Operacja w transakcji dla spójności danych.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami)
@@ -757,10 +811,12 @@ Endpoint aktualizuje istniejący przepis użytkownika. Wszystkie pola są opcjon
   - `Content-Type: application/json`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID przepisu do aktualizacji
 
 **Request Body:**
+
 - **Opcjonalne (przynajmniej jedno wymagane):**
   - `title` (string) - Nowy tytuł
   - `description` (string | null) - Nowy opis
@@ -771,6 +827,7 @@ Endpoint aktualizuje istniejący przepis użytkownika. Wszystkie pola są opcjon
   - `tag_ids` (array) - Nowa lista tagów (zastępuje całkowicie)
 
 **Przykładowe żądanie:**
+
 ```json
 PATCH /api/recipes/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -793,6 +850,7 @@ Content-Type: application/json
 ### 4.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 UpdateRecipeDTO {
   title?: string;
@@ -806,13 +864,15 @@ UpdateRecipeDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
-RecipeDTO // Pełny zaktualizowany przepis
+RecipeDTO; // Pełny zaktualizowany przepis
 ```
 
 ### 4.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -848,6 +908,7 @@ RecipeDTO // Pełny zaktualizowany przepis
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane (puste body, walidacja)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Przepis nie istnieje, nie należy do użytkownika, lub foreign key nie istnieje
@@ -881,47 +942,53 @@ RecipeDTO // Pełny zaktualizowany przepis
 ### 4.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla UPDATE: `USING (user_id = auth.uid())`
 - Użytkownik może aktualizować tylko swoje przepisy
 
 **Walidacja:**
+
 - Walidacja wszystkich przekazanych pól
 - Wymóg przynajmniej jednego pola
 - Jeśli ingredients: minimum 1, każdy z quantity > 0
 - Duplicate ingredients check
 
 **Business Rules:**
+
 - source nie może być zmienione (locked)
 - metadata nie może być zmienione przez user (tylko AI/API)
 
 ### 4.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid recipe ID |
-| Puste body | 400 | VALIDATION_ERROR | Zwróć: At least one field required |
-| Nieprawidłowe pola | 400 | VALIDATION_ERROR | Zwróć szczegóły walidacji |
-| Przepis nie istnieje | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis innego użytkownika | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| product_id nie istnieje | 404 | NOT_FOUND | Zwróć: Product not found |
-| unit_id nie istnieje | 404 | NOT_FOUND | Zwróć: Unit not found |
-| tag_id nie istnieje | 404 | NOT_FOUND | Zwróć: Tag not found |
-| Błąd transakcji | 500 | INTERNAL_ERROR | Rollback, loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid recipe ID                 |
+| Puste body                 | 400      | VALIDATION_ERROR | Zwróć: At least one field required       |
+| Nieprawidłowe pola         | 400      | VALIDATION_ERROR | Zwróć szczegóły walidacji                |
+| Przepis nie istnieje       | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| Przepis innego użytkownika | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| product_id nie istnieje    | 404      | NOT_FOUND        | Zwróć: Product not found                 |
+| unit_id nie istnieje       | 404      | NOT_FOUND        | Zwróć: Unit not found                    |
+| tag_id nie istnieje        | 404      | NOT_FOUND        | Zwróć: Tag not found                     |
+| Błąd transakcji            | 500      | INTERNAL_ERROR   | Rollback, loguj, zwróć ogólny komunikat  |
 
 ### 4.8 Wydajność
 
 **Optymalizacje:**
+
 - UPDATE tylko przekazane pola (dynamic SQL)
 - DELETE + INSERT dla ingredients/tags (prostsze niż diff)
 - Batch operations
 - Transaction dla atomowości
 
 **Cache Invalidation:**
+
 - Invalidacja `recipe:{recipeId}`
 - Invalidacja `recipes:{userId}:*`
 
@@ -929,6 +996,7 @@ RecipeDTO // Pełny zaktualizowany przepis
 
 1. **Zod schema walidacji**
    - Schema dla UpdateRecipeDTO (wszystkie pola optional):
+
    ```typescript
    z.object({
      title: z.string().trim().min(1).max(255).optional(),
@@ -992,6 +1060,7 @@ RecipeDTO // Pełny zaktualizowany przepis
 ## 5. DELETE /api/recipes/:id - Delete Recipe
 
 ### 5.1 Przegląd punktu końcowego
+
 Endpoint usuwa przepis użytkownika. Operacja jest trwała. CASCADE automatycznie usuwa powiązane recipe_ingredients, recipe_tags oraz cooking_history.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami)
@@ -1003,10 +1072,12 @@ Endpoint usuwa przepis użytkownika. Operacja jest trwała. CASCADE automatyczni
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID przepisu do usunięcia
 
 **Przykładowe żądanie:**
+
 ```
 DELETE /api/recipes/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -1019,9 +1090,11 @@ Brak body w request i response (204 No Content).
 ### 5.4 Szczegóły odpowiedzi
 
 **Sukces (204 No Content):**
+
 - Puste body
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Przepis nie istnieje lub nie należy do użytkownika
 
@@ -1046,44 +1119,52 @@ Brak body w request i response (204 No Content).
 ### 5.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla DELETE: `USING (user_id = auth.uid())`
 - Użytkownik może usuwać tylko swoje przepisy
 
 **Cascade Effects:**
+
 - CASCADE usuwa: recipe_ingredients, recipe_tags, cooking_history
 - Nie usuwa products (shared resource)
 - Warning: historia gotowania zostanie utracona
 
 **Walidacja:**
+
 - Walidacja ID
 
 ### 5.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid recipe ID |
-| Przepis nie istnieje | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis innego użytkownika | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid recipe ID                 |
+| Przepis nie istnieje       | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| Przepis innego użytkownika | 404      | NOT_FOUND        | Zwróć: Recipe not found                  |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 5.8 Wydajność
 
 **Optymalizacje:**
+
 - DELETE WHERE id + user_id używa indeksów
 - CASCADE efektywnie obsługiwane przez PostgreSQL
 
 **Monitoring:**
+
 - Log cascade count (ile powiązanych rekordów usunięto)
 
 **Considerations:**
+
 - Soft delete zamiast hard delete? (opcjonalnie dla audytu)
 
 **Cache Invalidation:**
+
 - Invalidacja `recipe:{recipeId}`
 - Invalidacja `recipes:{userId}:*`
 
@@ -1122,6 +1203,7 @@ Brak body w request i response (204 No Content).
 ## Podsumowanie implementacji Recipes API
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -1144,9 +1226,11 @@ src/
 ### Kluczowe funkcjonalności
 
 **Batch Loading Pattern:**
+
 ```typescript
 async function loadRecipeIngredients(recipeIds: number[]) {
-  const rows = await db.query(`
+  const rows = await db.query(
+    `
     SELECT ri.recipe_id, ri.quantity,
            p.id as product_id, p.name as product_name,
            u.id as unit_id, u.name as unit_name, u.abbreviation as unit_abbr
@@ -1154,26 +1238,27 @@ async function loadRecipeIngredients(recipeIds: number[]) {
     JOIN products p ON ri.product_id = p.id
     JOIN units u ON ri.unit_id = u.id
     WHERE ri.recipe_id = ANY($1)
-  `, [recipeIds]);
-  
+  `,
+    [recipeIds]
+  );
+
   // Group by recipe_id
-  return groupBy(rows, 'recipe_id');
+  return groupBy(rows, "recipe_id");
 }
 ```
 
 **Transaction Helper:**
+
 ```typescript
-async function withTransaction<T>(
-  callback: (client: DatabaseClient) => Promise<T>
-): Promise<T> {
+async function withTransaction<T>(callback: (client: DatabaseClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
     const result = await callback(client);
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
@@ -1182,20 +1267,17 @@ async function withTransaction<T>(
 ```
 
 **Dynamic Query Builder:**
+
 ```typescript
-function buildUpdateQuery(
-  tableName: string,
-  fields: Record<string, any>,
-  whereClause: string
-) {
+function buildUpdateQuery(tableName: string, fields: Record<string, any>, whereClause: string) {
   const updates = Object.keys(fields)
     .map((key, i) => `${key} = $${i + 1}`)
-    .join(', ');
+    .join(", ");
   const values = Object.values(fields);
-  
+
   return {
     query: `UPDATE ${tableName} SET ${updates} WHERE ${whereClause}`,
-    values
+    values,
   };
 }
 ```
@@ -1203,6 +1285,7 @@ function buildUpdateQuery(
 ### Complex Queries
 
 **Full-text search z filtrami:**
+
 ```sql
 SELECT r.*, COUNT(*) OVER() as total_count
 FROM recipes r
@@ -1214,7 +1297,7 @@ WHERE r.user_id = $1
   AND ($6::int[] IS NULL OR EXISTS (
     SELECT 1 FROM recipe_tags WHERE recipe_id = r.id AND tag_id = ANY($6)
   ))
-ORDER BY 
+ORDER BY
   CASE WHEN $7 = 'title' THEN r.title END,
   CASE WHEN $7 = 'cooking_time' THEN r.cooking_time END,
   CASE WHEN $7 = 'created_at' THEN r.created_at END
@@ -1223,6 +1306,7 @@ LIMIT $9 OFFSET $10
 ```
 
 ### Kolejność implementacji
+
 1. Setup: Transaction helper, query builder, transformers
 2. RecipeService: Wszystkie metody z batch loading
 3. Validation schemas: Complex nested validation
@@ -1232,13 +1316,13 @@ LIMIT $9 OFFSET $10
    - GET /api/recipes/:id (get by id)
    - PATCH /api/recipes/:id (update with transaction)
    - DELETE /api/recipes/:id (delete with cascade)
-<!-- 5. Testing: Szczególnie testy transakcji i rollback -->
+   <!-- 5. Testing: Szczególnie testy transakcji i rollback -->
 
 ### Uwagi implementacyjne
+
 - **Transactional Integrity**: CREATE i UPDATE w transakcjach
 - **Batch Operations**: Wszystkie multi-row operations jako batch
 - **N+1 Prevention**: Batch loading dla related data
 - **Full-text Search**: Użycie ts_vector indexes
 - **Cascade Handling**: Świadomość CASCADE effects przy DELETE
 - **Validation Complexity**: Głęboka walidacja nested structures (ingredients array)
-

@@ -11,7 +11,9 @@ Pełna implementacja widoku szczegółów przepisu (Recipe Details View) zgodnie
 ## 🏗️ Architektura
 
 ### Podejście Bottom-Up
+
 Implementacja została wykonana od najmniejszych komponentów do największych:
+
 1. **Typy i utility functions** → fundamenty
 2. **API client functions** → warstwa komunikacji
 3. **Custom hooks** → logika biznesowa i state management
@@ -131,60 +133,70 @@ src/
 ## 🔑 Kluczowe Funkcjonalności
 
 ### 1. Color Coding Dostępności Składników
+
 **Problem:** Użytkownik musi szybko zobaczyć które składniki ma w lodówce.
 
 **Rozwiązanie:**
+
 - 🟢 **Zielony** - składnik w pełni dostępny (full)
 - 🟡 **Żółty** - składnik częściowo dostępny (partial)
 - 🔴 **Czerwony** - składnik niedostępny (none)
 
 **Implementacja:**
+
 - `checkIngredientAvailability()` - sprawdza dostępność vs. lodówka
 - `calculateRecipeAvailability()` - oblicza dla całego przepisu
 - `getAvailabilityColors()` - zwraca klasy Tailwind
 
 ### 2. Inteligentna Walidacja Gotowania
+
 **Problem:** Użytkownik nie powinien móc ugotować bez składników.
 
 **Rozwiązanie:**
+
 - Walidacja frontendowa przed otwarciem dialogu
 - Error toast z akcją "Generuj listę zakupów"
 - Confirmation dialog z preview odjęcia składników
 - Warning dla składników częściowo dostępnych
 
 ### 3. Sticky Bottom Bar
+
 **Problem:** Akcje główne niedostępne po scrollu.
 
 **Rozwiązanie:**
+
 - Hook `useScrollVisibility()` z throttled scroll handler
 - Smooth transitions (opacity + translate-y)
 - Pojawia się po przekroczeniu 300px
 - Zawiera kluczowe akcje (Ugotuj to, Zapisz)
 
 ### 4. Contextual Actions
+
 **Problem:** Różne akcje dla różnych źródeł przepisów.
 
 **Rozwiązanie:**
+
 - **User recipes:** Edit + Delete
 - **External recipes (API/AI):** Save to My Recipes
 - Dropdown menu warunkowo renderuje opcje
 - Ikony i kolory różnicują akcje
 
 ### 5. Parallel Data Fetching
+
 **Problem:** Wolne ładowanie danych.
 
 **Rozwiązanie:**
+
 ```typescript
-const [recipeData, fridgeData] = await Promise.all([
-  fetchRecipe(recipeId),
-  fetchAllFridgeItems(),
-]);
+const [recipeData, fridgeData] = await Promise.all([fetchRecipe(recipeId), fetchAllFridgeItems()]);
 ```
 
 ### 6. Comprehensive Error Handling
+
 **Problem:** Różne typy błędów wymagają różnych reakcji.
 
 **Rozwiązanie:**
+
 - 404 - "Przepis nie został znaleziony" + back button
 - 401 - "Musisz być zalogowany" + login prompt
 - 422 - "Brak składników" + shopping list action
@@ -194,14 +206,17 @@ const [recipeData, fridgeData] = await Promise.all([
 ## 🎯 State Management
 
 ### useRecipeDetails Hook
+
 Centralny hook zarządzający całym stanem widoku:
 
 **State:**
+
 - `RecipeDetailsUIState` - stan UI (loading, error, dialogi, akcje)
 - `recipe` - RecipeViewModel z danymi o dostępności
 - `fridgeItems` - produkty z lodówki
 
 **Funkcje API:**
+
 - `fetchRecipeAndFridge()` - parallel fetch + transform
 - `handleCook()` - walidacja + confirmation + POST /api/cooking-history
 - `handleDelete()` - confirmation + DELETE /api/recipes/:id
@@ -209,10 +224,12 @@ Centralny hook zarządzający całym stanem widoku:
 - `handleGenerateShoppingList()` - POST /api/shopping-list/generate
 
 **Dialog Controls:**
+
 - `openCookDialog()`, `closeCookDialog()`, `confirmCook()`
 - `openDeleteDialog()`, `closeDeleteDialog()`, `confirmDelete()`
 
 **Benefits:**
+
 - Enkapsulacja logiki biznesowej
 - Separation of concerns
 - Łatwe testowanie
@@ -221,12 +238,14 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🎨 UI/UX Decisions
 
 ### 1. Visual Hierarchy
+
 - **H1** - Tytuł przepisu
 - **H2** - Sekcje (Składniki, Instrukcje)
 - Bold dla nazw składników
 - Color coding dla statusów
 
 ### 2. Responsive Design
+
 - **Mobile-first** approach
 - Breakpoints: 640px (sm), 1024px (lg)
 - Full-width buttons na mobile
@@ -234,12 +253,14 @@ Centralny hook zarządzający całym stanem widoku:
 - Flexbox layout z wrap
 
 ### 3. Loading & Error States
+
 - Dedicated LoadingSpinner component
 - Dedicated ErrorState component
 - Inline loading states (buttons)
 - Toast notifications dla feedback
 
 ### 4. Accessibility
+
 - Semantic HTML (`<header>`, `<section>`, `<ul>`, `<ol>`)
 - ARIA attributes (role, aria-label, aria-hidden)
 - Keyboard navigation support
@@ -248,6 +269,7 @@ Centralny hook zarządzający całym stanem widoku:
 - Color + icon (nie tylko kolor)
 
 ### 5. Animations & Transitions
+
 - Smooth sticky bar (300ms)
 - Dialog fade-in
 - Button hover states
@@ -256,6 +278,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🔌 API Integration
 
 ### Endpoints Used
+
 1. **GET /api/recipes/:id** - pobiera przepis
 2. **GET /api/fridge** - pobiera lodówkę
 3. **POST /api/cooking-history** - rejestruje gotowanie
@@ -264,6 +287,7 @@ Centralny hook zarządzający całym stanem widoku:
 6. **POST /api/recipes** - tworzy przepis (kopia)
 
 ### Client Functions
+
 - Wrapper functions w `src/lib/api/`
 - Type-safe z DTOs
 - Error handling z ApiError
@@ -272,6 +296,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🧪 Testing Strategy
 
 ### Manual Testing Areas
+
 1. **Navigation** - routing, back button, query params
 2. **Display** - wszystkie sekcje, warunkowe renderowanie
 3. **Actions** - cook, delete, save, shopping list, edit
@@ -284,6 +309,7 @@ Centralny hook zarządzający całym stanem widoku:
 10. **Edge Cases** - brak danych, długie nazwy, rapid clicking
 
 ### Test Data Scenarios
+
 - User recipe z wszystkimi składnikami
 - External recipe z brakującymi składnikami
 - AI recipe z częściowymi składnikami
@@ -293,6 +319,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 📊 Performance Considerations
 
 ### Optimizations
+
 1. **Parallel API Calls** - recipe + fridge simultaneously
 2. **Throttled Scroll Handler** - requestAnimationFrame
 3. **Memoization Ready** - hook structure supports useMemo/useCallback
@@ -300,6 +327,7 @@ Centralny hook zarządzający całym stanem widoku:
 5. **Code Splitting Ready** - dynamic imports możliwe
 
 ### Metrics to Track
+
 - Initial load time: target < 2s
 - Time to interactive: target < 3s
 - Scroll performance: target 60fps
@@ -308,11 +336,13 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🔒 Security & Validation
 
 ### Client-Side Validation
+
 - Recipe ID must be numeric
 - Availability check before cooking
 - Permissions check (user can only edit/delete own recipes)
 
 ### Server-Side Validation (API)
+
 - Authentication required (via middleware)
 - Recipe ownership verification
 - Ingredient availability verification (422 on insufficient)
@@ -321,6 +351,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🚀 Future Enhancements
 
 ### Możliwe Rozszerzenia
+
 1. **Zdjęcia przepisów** - upload i display
 2. **Oceny i komentarze** - user feedback
 3. **Udostępnianie** - share recipe link
@@ -333,6 +364,7 @@ Centralny hook zarządzający całym stanem widoku:
 10. **Similar Recipes** - recommendations
 
 ### Technical Improvements
+
 1. **Caching** - React Query dla cache
 2. **Optimistic Updates** - UI update before API
 3. **Offline Support** - Service Worker
@@ -345,6 +377,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 📝 Lessons Learned
 
 ### What Went Well
+
 - ✅ Bottom-up approach zapewnił solidne fundamenty
 - ✅ Custom hooks enkapsulują logikę czysto
 - ✅ Type-safe API calls zapobiegają błędom
@@ -352,12 +385,14 @@ Centralny hook zarządzający całym stanem widoku:
 - ✅ Shadcn/ui przyspiesza development
 
 ### Challenges
+
 - ⚠️ Synchronizacja wielu stanów loading (rozwiązane przez UIState)
 - ⚠️ Parsowanie instrukcji (różne formaty)
 - ⚠️ Kompleksowa walidacja dostępności składników
 - ⚠️ Responsive design dla długich nazw
 
 ### Best Practices Applied
+
 - 🎯 Single Responsibility Principle
 - 🎯 Separation of Concerns
 - 🎯 DRY (Don't Repeat Yourself)
@@ -369,17 +404,20 @@ Centralny hook zarządzający całym stanem widoku:
 ## 🔗 Dependencies
 
 ### Core
+
 - React 19
 - Astro 5
 - TypeScript 5
 
 ### UI Libraries
+
 - Shadcn/ui (Dialog, DropdownMenu, Button, Badge, Checkbox)
 - Tailwind CSS 4
 - Lucide React (icons)
 - Sonner (toasts)
 
 ### Custom
+
 - API Client (api-client.ts)
 - Recipe Utils (recipe-utils.ts)
 - Type Definitions (types.ts, recipe-view-models.ts)
@@ -387,6 +425,7 @@ Centralny hook zarządzający całym stanem widoku:
 ## 📞 Support & Maintenance
 
 ### Documentation
+
 - ✅ README.md - overview i struktura
 - ✅ TESTING.md - comprehensive testing guide
 - ✅ IMPLEMENTATION_SUMMARY.md - ta dokumentacja
@@ -394,15 +433,18 @@ Centralny hook zarządzający całym stanem widoku:
 - ✅ Type definitions - pełne TypeScript types
 
 ### Monitoring Points
+
 - Error tracking (toast notifications, console.error)
 - API response times
 - User action success rates
 - Accessibility compliance
 
 ### Known Issues
+
 - Brak (na dzień implementacji)
 
 ### Contribution Guidelines
+
 1. Follow existing component structure
 2. Maintain type safety
 3. Add JSDoc comments
@@ -434,4 +476,3 @@ Centralny hook zarządzający całym stanem widoku:
 **Data:** 2025-01-XX  
 **Autor:** AI Assistant  
 **Review:** Pending
-

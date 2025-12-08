@@ -3,6 +3,7 @@
 ## 1. Resources
 
 ### Core Resources
+
 - **Users** - User profiles and authentication (managed by Supabase Auth, extended with custom fields)
 - **Products** - Global and user-specific products (linked to `public.products`)
 - **User Products** - Virtual fridge items (linked to `public.user_products`)
@@ -139,6 +140,7 @@
 ### 2.2 Products
 
 #### List Products
+
 - **Method:** `GET`
 - **Path:** `/api/products`
 - **Description:** Get list of global and user's private products
@@ -149,6 +151,7 @@
   - `page` (integer, optional, default: 1) - Page number
   - `limit` (integer, optional, default: 20, max: 100) - Items per page
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -175,16 +178,19 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `422 Unprocessable Entity` - Invalid query parameters
 
 #### Get Product by ID
+
 - **Method:** `GET`
 - **Path:** `/api/products/:id`
 - **Description:** Get single product details
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -194,22 +200,27 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Product not found or not accessible
 
 #### Create Product
+
 - **Method:** `POST`
 - **Path:** `/api/products`
 - **Description:** Create a new private product
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "name": "My Custom Product"
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "id": 123,
@@ -219,23 +230,28 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
   - `409 Conflict` - Product name already exists (case-insensitive)
 
 #### Update Product
+
 - **Method:** `PATCH`
 - **Path:** `/api/products/:id`
 - **Description:** Update user's private product
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "name": "Updated Product Name"
 }
 ```
+
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 123,
@@ -245,6 +261,7 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
@@ -253,6 +270,7 @@
   - `409 Conflict` - Product name already exists
 
 #### Delete Product
+
 - **Method:** `DELETE`
 - **Path:** `/api/products/:id`
 - **Description:** Delete user's private product
@@ -266,6 +284,7 @@
 ### 2.3 Virtual Fridge (User Products)
 
 #### List Fridge Items
+
 - **Method:** `GET`
 - **Path:** `/api/fridge`
 - **Description:** Get user's virtual fridge contents
@@ -279,6 +298,7 @@
   - `page` (integer, optional, default: 1)
   - `limit` (integer, optional, default: 20, max: 100)
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -306,16 +326,19 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `422 Unprocessable Entity` - Invalid query parameters
 
 #### Get Fridge Item by ID
+
 - **Method:** `GET`
 - **Path:** `/api/fridge/:id`
 - **Description:** Get single fridge item details
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -333,16 +356,19 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Fridge item not found
 
 #### Add Item to Fridge
+
 - **Method:** `POST`
 - **Path:** `/api/fridge`
 - **Description:** Add product to user's virtual fridge
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "product_id": 10,
@@ -351,7 +377,9 @@
   "expiry_date": "2025-10-25"
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "id": 1,
@@ -369,17 +397,20 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input (e.g., quantity < 0)
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Product or unit not found
 
 #### Update Fridge Item
+
 - **Method:** `PATCH`
 - **Path:** `/api/fridge/:id`
 - **Description:** Update quantity, unit, or expiry date of fridge item
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "quantity": 3,
@@ -387,7 +418,9 @@
   "expiry_date": "2025-10-28"
 }
 ```
+
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -405,12 +438,14 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Fridge item or unit not found
 
 #### Delete Fridge Item
+
 - **Method:** `DELETE`
 - **Path:** `/api/fridge/:id`
 - **Description:** Remove item from virtual fridge
@@ -423,6 +458,7 @@
 ### 2.4 Recipes
 
 #### List Recipes
+
 - **Method:** `GET`
 - **Path:** `/api/recipes`
 - **Description:** Get user's recipes with filtering and pagination
@@ -438,6 +474,7 @@
   - `page` (integer, optional, default: 1)
   - `limit` (integer, optional, default: 20, max: 100)
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -481,16 +518,19 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `422 Unprocessable Entity` - Invalid query parameters
 
 #### Get Recipe by ID
+
 - **Method:** `GET`
 - **Path:** `/api/recipes/:id`
 - **Description:** Get detailed recipe information
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -525,16 +565,19 @@
   "updated_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Recipe not found
 
 #### Create Recipe
+
 - **Method:** `POST`
 - **Path:** `/api/recipes`
 - **Description:** Create a new recipe
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "title": "Tomato Soup",
@@ -552,7 +595,9 @@
   "tag_ids": [1, 2]
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "id": 1,
@@ -586,17 +631,20 @@
   "updated_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input (missing title, ingredients, or instructions; cooking_time <= 0; quantity <= 0)
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Product, unit, or tag not found
 
 #### Update Recipe
+
 - **Method:** `PATCH`
 - **Path:** `/api/recipes/:id`
 - **Description:** Update existing recipe
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "title": "Updated Tomato Soup",
@@ -613,7 +661,9 @@
   "tag_ids": [1, 3]
 }
 ```
+
 - **Success Response:** `200 OK`
+
 ```json
 {
   "id": 1,
@@ -647,12 +697,14 @@
   "updated_at": "2025-10-18T13:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
   - `404 Not Found` - Recipe, product, unit, or tag not found
 
 #### Delete Recipe
+
 - **Method:** `DELETE`
 - **Path:** `/api/recipes/:id`
 - **Description:** Delete a recipe
@@ -665,11 +717,13 @@
 ### 2.5 Recipe Discovery & AI Integration
 
 #### Search Recipes by Fridge Contents
+
 - **Method:** `POST`
 - **Path:** `/api/recipes/search-by-fridge`
 - **Description:** Find recipes matching user's fridge contents using hierarchical search (user recipes → external API → AI generation)
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "use_all_fridge_items": true,
@@ -682,7 +736,9 @@
   }
 }
 ```
+
 - **Success Response:** `200 OK`
+
 ```json
 {
   "results": [
@@ -730,17 +786,20 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `422 Unprocessable Entity` - Invalid input
   - `500 Internal Server Error` - External API or AI service error
 
 #### Generate Recipe with AI
+
 - **Method:** `POST`
 - **Path:** `/api/recipes/generate`
 - **Description:** Generate a new recipe using AI based on available ingredients
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "product_ids": [10, 15, 20],
@@ -753,7 +812,9 @@
   "save_to_recipes": true
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "recipe": {
@@ -787,6 +848,7 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
@@ -796,17 +858,21 @@
 ### 2.6 Shopping List
 
 #### Generate Shopping List
+
 - **Method:** `POST`
 - **Path:** `/api/shopping-list/generate`
 - **Description:** Generate shopping list for missing ingredients of a recipe
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "recipe_id": 1
 }
 ```
+
 - **Success Response:** `200 OK`
+
 ```json
 {
   "recipe": {
@@ -846,6 +912,7 @@
   "total_items": 2
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid recipe ID
   - `401 Unauthorized` - Invalid token
@@ -854,6 +921,7 @@
 ### 2.7 Cooking History
 
 #### List Cooking History
+
 - **Method:** `GET`
 - **Path:** `/api/cooking-history`
 - **Description:** Get user's cooking history with pagination
@@ -865,6 +933,7 @@
   - `page` (integer, optional, default: 1)
   - `limit` (integer, optional, default: 20, max: 100)
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -905,22 +974,27 @@
   }
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
   - `422 Unprocessable Entity` - Invalid query parameters
 
 #### Create Cooking History Entry
+
 - **Method:** `POST`
 - **Path:** `/api/cooking-history`
 - **Description:** Record that a recipe was cooked and update fridge inventory
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "recipe_id": 1
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "id": 1,
@@ -959,6 +1033,7 @@
   ]
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Insufficient ingredients in fridge
   - `401 Unauthorized` - Invalid token
@@ -967,11 +1042,13 @@
 ### 2.8 Units (Dictionary)
 
 #### List Units
+
 - **Method:** `GET`
 - **Path:** `/api/units`
 - **Description:** Get list of available measurement units
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -990,12 +1067,14 @@
   ]
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
 
 ### 2.9 Tags (Dictionary)
 
 #### List Tags
+
 - **Method:** `GET`
 - **Path:** `/api/tags`
 - **Description:** Get list of available recipe tags
@@ -1003,6 +1082,7 @@
 - **Query Parameters:**
   - `search` (string, optional) - Search in tag names
 - **Success Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -1019,21 +1099,26 @@
   ]
 }
 ```
+
 - **Error Responses:**
   - `401 Unauthorized` - Invalid token
 
 #### Create Tag
+
 - **Method:** `POST`
 - **Path:** `/api/tags`
 - **Description:** Create a new recipe tag
 - **Headers:** `Authorization: Bearer {access_token}`
 - **Request Body:**
+
 ```json
 {
   "name": "gluten-free"
 }
 ```
+
 - **Success Response:** `201 Created`
+
 ```json
 {
   "id": 10,
@@ -1041,6 +1126,7 @@
   "created_at": "2025-10-18T12:00:00Z"
 }
 ```
+
 - **Error Responses:**
   - `400 Bad Request` - Invalid input
   - `401 Unauthorized` - Invalid token
@@ -1049,6 +1135,7 @@
 ## 3. Authentication & Authorization
 
 ### Authentication Method
+
 The API uses **Supabase Auth** with JWT (JSON Web Tokens) for authentication:
 
 - **Token Type:** Bearer tokens
@@ -1057,6 +1144,7 @@ The API uses **Supabase Auth** with JWT (JSON Web Tokens) for authentication:
 - **Refresh Flow:** Clients should use the refresh token to obtain new access tokens when expired
 
 ### Authorization Strategy
+
 Authorization is enforced at multiple levels:
 
 1. **Row-Level Security (RLS)** in PostgreSQL ensures data isolation at the database level
@@ -1064,11 +1152,14 @@ Authorization is enforced at multiple levels:
 3. **Resource ownership** is verified through the `user_id` field on protected resources
 
 ### Protected Endpoints
+
 All endpoints require authentication except:
+
 - `/api/auth/register`
 - `/api/auth/login`
 
 ### Authorization Rules
+
 - Users can only access their own:
   - Fridge items (`user_products`)
   - Recipes (`recipes`)
@@ -1084,21 +1175,25 @@ All endpoints require authentication except:
 ### 4.1 Input Validation
 
 #### User Registration & Profile
+
 - `email`: Valid email format, unique
 - `password`: Minimum 8 characters, at least one uppercase, one lowercase, one number
 - `username`: Minimum 3 characters, unique, alphanumeric with underscores
 - `full_name`: Optional, max 255 characters
 
 #### Products
+
 - `name`: Required, non-empty string, case-insensitive uniqueness check using `LOWER(name)`
 
 #### User Products (Fridge)
+
 - `product_id`: Must reference existing product accessible to user
 - `quantity`: Required, decimal >= 0
 - `unit_id`: Must reference existing unit
 - `expiry_date`: Optional, valid date, cannot be in the past on creation
 
 #### Recipes
+
 - `title`: Required, non-empty string
 - `instructions`: Required, non-empty string
 - `cooking_time`: Optional, integer > 0 if provided
@@ -1110,11 +1205,13 @@ All endpoints require authentication except:
 - `tag_ids`: Optional array of existing tag IDs
 
 #### Tags
+
 - `name`: Required, non-empty string, unique
 
 ### 4.2 Business Logic
 
 #### Recipe Search Hierarchy (US-004)
+
 The `/api/recipes/search-by-fridge` endpoint implements a three-tier search strategy:
 
 1. **Tier 1: User Recipes**
@@ -1136,7 +1233,9 @@ The `/api/recipes/search-by-fridge` endpoint implements a three-tier search stra
    - Include generation metadata for auditing
 
 #### Shopping List Generation (US-005)
+
 The `/api/shopping-list/generate` endpoint:
+
 1. Retrieves recipe ingredients and required quantities
 2. Queries user's fridge for available quantities
 3. Calculates missing quantities by comparing required vs. available
@@ -1144,7 +1243,9 @@ The `/api/shopping-list/generate` endpoint:
 5. Returns detailed list with product info and missing amounts
 
 #### Cooking History & Fridge Update
+
 The `/api/cooking-history` POST endpoint:
+
 1. Captures current fridge state (before cooking)
 2. Validates that user has sufficient ingredients
 3. Deducts ingredient quantities from fridge items using a database transaction
@@ -1153,11 +1254,13 @@ The `/api/cooking-history` POST endpoint:
 6. Uses PostgreSQL function to ensure atomicity
 
 #### Product Name Uniqueness
+
 - Product names are validated for uniqueness using case-insensitive comparison
 - Uses the `products_lower_name_idx` index for performance
 - Prevents duplicate products like "Tomato" and "tomato"
 
 #### Expired Products Handling
+
 - Fridge listing endpoint supports filtering by expiration status
 - `expiring_soon` parameter allows proactive notification
 - Expired products are not automatically removed but can be filtered in queries
@@ -1179,6 +1282,7 @@ All API errors follow a consistent format:
 ```
 
 #### Common Error Codes
+
 - `UNAUTHORIZED`: Authentication required or token invalid
 - `FORBIDDEN`: User lacks permission for the resource
 - `NOT_FOUND`: Resource does not exist
@@ -1221,6 +1325,7 @@ To ensure fair usage and system stability:
 ## 6. Response Headers
 
 Standard headers included in all responses:
+
 - `Content-Type: application/json`
 - `X-Request-ID`: Unique identifier for request tracing
 - `X-Response-Time`: Response time in milliseconds
@@ -1231,4 +1336,3 @@ Standard headers included in all responses:
 - **Allowed Methods**: `GET`, `POST`, `PATCH`, `DELETE`, `OPTIONS`
 - **Allowed Headers**: `Authorization`, `Content-Type`
 - **Credentials**: Supported for authenticated requests
-

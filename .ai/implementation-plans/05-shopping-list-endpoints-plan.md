@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Shopping List Generation
 
 ## Spis treści
+
 1. [POST /api/shopping-list/generate - Generate Shopping List](#1-post-apishopping-listgenerate---generate-shopping-list)
 
 ---
@@ -8,6 +9,7 @@
 ## 1. POST /api/shopping-list/generate - Generate Shopping List
 
 ### 1.1 Przegląd punktu końcowego
+
 Endpoint generuje listę zakupów na podstawie przepisu i zawartości wirtualnej lodówki użytkownika. Porównuje wymagane składniki przepisu z dostępnymi produktami w lodówce, oblicza brakujące ilości i zwraca szczegółową listę zakupów. Wspiera User Story US-005.
 
 **Powiązane User Stories:** US-005 (Generowanie listy zakupów)
@@ -21,10 +23,12 @@ Endpoint generuje listę zakupów na podstawie przepisu i zawartości wirtualnej
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `recipe_id` (integer) - ID przepisu do przygotowania
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/shopping-list/generate
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -38,6 +42,7 @@ Content-Type: application/json
 ### 1.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 GenerateShoppingListDTO {
   recipe_id: number;
@@ -45,6 +50,7 @@ GenerateShoppingListDTO {
 ```
 
 **Response DTOs:**
+
 ```typescript
 ShoppingListResponseDTO {
   recipe: RecipeReferenceDTO;
@@ -80,6 +86,7 @@ UnitReferenceDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK) - Z brakującymi składnikami:**
+
 ```json
 {
   "recipe": {
@@ -121,6 +128,7 @@ UnitReferenceDTO {
 ```
 
 **Sukces (200 OK) - Wszystkie składniki dostępne:**
+
 ```json
 {
   "recipe": {
@@ -133,6 +141,7 @@ UnitReferenceDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowy recipe_id
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Przepis nie istnieje lub nie należy do użytkownika
@@ -193,33 +202,38 @@ UnitReferenceDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - Weryfikacja recipe_id: przepis musi należeć do użytkownika
 - Dostęp tylko do własnej lodówki
 
 **Walidacja:**
+
 - Walidacja recipe_id (integer, positive)
 
 **Data Privacy:**
+
 - Nie ujawniamy informacji o przepisach innych użytkowników
 - Zwracamy 404 dla przepisu innego użytkownika (nie 403)
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak recipe_id | 400 | VALIDATION_ERROR | Zwróć: recipe_id is required |
-| Nieprawidłowy recipe_id | 400 | VALIDATION_ERROR | Zwróć: recipe_id must be a positive integer |
-| Przepis nie istnieje | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis innego użytkownika | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis bez składników | 200 | - | Zwróć pustą listę (edge case) |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj szczegóły, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                       |
+| -------------------------- | -------- | ---------------- | ------------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji     |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie    |
+| Brak recipe_id             | 400      | VALIDATION_ERROR | Zwróć: recipe_id is required                |
+| Nieprawidłowy recipe_id    | 400      | VALIDATION_ERROR | Zwróć: recipe_id must be a positive integer |
+| Przepis nie istnieje       | 404      | NOT_FOUND        | Zwróć: Recipe not found                     |
+| Przepis innego użytkownika | 404      | NOT_FOUND        | Zwróć: Recipe not found                     |
+| Przepis bez składników     | 200      | -                | Zwróć pustą listę (edge case)               |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj szczegóły, zwróć ogólny komunikat     |
 
 **Format odpowiedzi błędu:**
+
 ```json
 {
   "error": {
@@ -235,6 +249,7 @@ UnitReferenceDTO {
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - **Batch queries**: Wszystkie dane w 3 zapytaniach:
   1. Recipe metadata
   2. Recipe ingredients (JOIN products + units)
@@ -243,9 +258,10 @@ UnitReferenceDTO {
 - **In-memory calculation**: Matching i missing quantity calculation w aplikacji (szybkie)
 
 **Query Optimization:**
+
 ```sql
 -- Efficient fridge query with aggregation
-SELECT 
+SELECT
   up.product_id,
   up.unit_id,
   SUM(up.quantity) as total_available
@@ -256,11 +272,13 @@ GROUP BY up.product_id, up.unit_id
 ```
 
 **Caching:**
+
 - Opcjonalnie: cache fridge contents na krótki czas (1 minuta)
 - Cache key: `fridge:summary:{userId}`
 - Invalidacja przy: POST/PATCH/DELETE na /api/fridge
 
 **Considerations:**
+
 - Dla receptur z wieloma składnikami (>20): optymalizacja JOIN
 - Parallel queries: recipe ingredients i fridge contents (Promise.all)
 
@@ -269,9 +287,10 @@ GROUP BY up.product_id, up.unit_id
 #### Phase 1: Validation & Types
 
 1. **Zod schema walidacji**
+
    ```typescript
    const GenerateShoppingListSchema = z.object({
-     recipe_id: z.number().int().positive()
+     recipe_id: z.number().int().positive(),
    });
    ```
 
@@ -282,44 +301,40 @@ GROUP BY up.product_id, up.unit_id
 #### Phase 2: Core Service
 
 3. **ShoppingListService - Core Methods**
+
    ```typescript
    class ShoppingListService {
-     async generateShoppingList(
-       userId: string,
-       recipeId: number
-     ): Promise<ShoppingListResponseDTO> {
+     async generateShoppingList(userId: string, recipeId: number): Promise<ShoppingListResponseDTO> {
        // 1. Fetch and verify recipe
        const recipe = await this.fetchRecipe(userId, recipeId);
-       
+
        // 2. Fetch recipe ingredients
        const requiredIngredients = await this.fetchRecipeIngredients(recipeId);
-       
+
        // 3. Fetch user's fridge contents
        const fridgeContents = await this.fetchFridgeContents(
          userId,
-         requiredIngredients.map(i => i.product_id)
+         requiredIngredients.map((i) => i.product_id)
        );
-       
+
        // 4. Calculate missing quantities
-       const missingIngredients = this.calculateMissingIngredients(
-         requiredIngredients,
-         fridgeContents
-       );
-       
+       const missingIngredients = this.calculateMissingIngredients(requiredIngredients, fridgeContents);
+
        // 5. Build response
        return {
          recipe: {
            id: recipe.id,
-           title: recipe.title
+           title: recipe.title,
          },
          missing_ingredients: missingIngredients,
-         total_items: missingIngredients.length
+         total_items: missingIngredients.length,
        };
      }
    }
    ```
 
 4. **Recipe Fetcher**
+
    ```typescript
    private async fetchRecipe(
      userId: string,
@@ -330,22 +345,23 @@ GROUP BY up.product_id, up.unit_id
        FROM recipes
        WHERE id = $1 AND user_id = $2
      `, [recipeId, userId]);
-     
+
      if (result.rows.length === 0) {
        throw new NotFoundError('Recipe not found');
      }
-     
+
      return result.rows[0];
    }
    ```
 
 5. **Recipe Ingredients Fetcher**
+
    ```typescript
    private async fetchRecipeIngredients(
      recipeId: number
    ): Promise<RequiredIngredient[]> {
      const result = await this.db.query(`
-       SELECT 
+       SELECT
          ri.product_id,
          ri.quantity as required_quantity,
          ri.unit_id,
@@ -357,10 +373,10 @@ GROUP BY up.product_id, up.unit_id
        JOIN units u ON ri.unit_id = u.id
        WHERE ri.recipe_id = $1
      `, [recipeId]);
-     
+
      return result.rows;
    }
-   
+
    interface RequiredIngredient {
      product_id: number;
      required_quantity: number;
@@ -372,13 +388,14 @@ GROUP BY up.product_id, up.unit_id
    ```
 
 6. **Fridge Contents Fetcher**
+
    ```typescript
    private async fetchFridgeContents(
      userId: string,
      productIds: number[]
    ): Promise<Map<string, AvailableItem>> {
      const result = await this.db.query(`
-       SELECT 
+       SELECT
          product_id,
          unit_id,
          SUM(quantity) as total_available
@@ -387,7 +404,7 @@ GROUP BY up.product_id, up.unit_id
          AND product_id = ANY($2)
        GROUP BY product_id, unit_id
      `, [userId, productIds]);
-     
+
      // Create map: "productId:unitId" -> available_quantity
      const map = new Map<string, AvailableItem>();
      for (const row of result.rows) {
@@ -398,10 +415,10 @@ GROUP BY up.product_id, up.unit_id
          available_quantity: parseFloat(row.total_available)
        });
      }
-     
+
      return map;
    }
-   
+
    interface AvailableItem {
      product_id: number;
      unit_id: number;
@@ -410,20 +427,21 @@ GROUP BY up.product_id, up.unit_id
    ```
 
 7. **Missing Ingredients Calculator**
+
    ```typescript
    private calculateMissingIngredients(
      required: RequiredIngredient[],
      available: Map<string, AvailableItem>
    ): ShoppingListItemDTO[] {
      const missingList: ShoppingListItemDTO[] = [];
-     
+
      for (const req of required) {
        const key = `${req.product_id}:${req.unit_id}`;
        const avail = available.get(key);
-       
+
        const availableQty = avail ? avail.available_quantity : 0;
        const missingQty = Math.max(0, req.required_quantity - availableQty);
-       
+
        if (missingQty > 0) {
          missingList.push({
            product: {
@@ -441,10 +459,10 @@ GROUP BY up.product_id, up.unit_id
          });
        }
      }
-     
+
      // Sort by missing_quantity DESC (most critical first)
      missingList.sort((a, b) => b.missing_quantity - a.missing_quantity);
-     
+
      return missingList;
    }
    ```
@@ -452,40 +470,38 @@ GROUP BY up.product_id, up.unit_id
 #### Phase 3: Advanced Features (Optional)
 
 8. **Unit Conversion Support**
+
    ```typescript
    class UnitConverter {
      // Conversion map: unit_id -> base_unit conversion
      private conversions = new Map<number, Conversion>();
-     
+
      canConvert(fromUnitId: number, toUnitId: number): boolean {
        // Check if units are compatible (e.g., grams <-> kilograms)
      }
-     
-     convert(
-       quantity: number,
-       fromUnitId: number,
-       toUnitId: number
-     ): number {
+
+     convert(quantity: number, fromUnitId: number, toUnitId: number): number {
        // Convert quantity between compatible units
      }
    }
    ```
 
 9. **Enhanced Calculator with Unit Conversion**
+
    ```typescript
    private calculateMissingIngredients(
      required: RequiredIngredient[],
      available: Map<string, AvailableItem>
    ): ShoppingListItemDTO[] {
      const missingList: ShoppingListItemDTO[] = [];
-     
+
      for (const req of required) {
        let availableQty = 0;
-       
+
        // Try exact match first
        const exactKey = `${req.product_id}:${req.unit_id}`;
        const exactMatch = available.get(exactKey);
-       
+
        if (exactMatch) {
          availableQty = exactMatch.available_quantity;
        } else {
@@ -503,9 +519,9 @@ GROUP BY up.product_id, up.unit_id
            }
          }
        }
-       
+
        const missingQty = Math.max(0, req.required_quantity - availableQty);
-       
+
        if (missingQty > 0) {
          missingList.push({
            product: {
@@ -523,7 +539,7 @@ GROUP BY up.product_id, up.unit_id
          });
        }
      }
-     
+
      return missingList;
    }
    ```
@@ -531,66 +547,56 @@ GROUP BY up.product_id, up.unit_id
 #### Phase 4: Endpoint Implementation
 
 10. **Endpoint handler**
+
     ```typescript
     // src/pages/api/shopping-list/generate.ts
-    import type { APIContext } from 'astro';
-    import { ShoppingListService } from '@/lib/services/shopping-list.service';
-    import { GenerateShoppingListSchema } from '@/lib/validations/shopping-list.validation';
-    import { errorResponse } from '@/lib/utils/api-response';
-    import { NotFoundError } from '@/lib/errors';
-    
+    import type { APIContext } from "astro";
+    import { ShoppingListService } from "@/lib/services/shopping-list.service";
+    import { GenerateShoppingListSchema } from "@/lib/validations/shopping-list.validation";
+    import { errorResponse } from "@/lib/utils/api-response";
+    import { NotFoundError } from "@/lib/errors";
+
     export const prerender = false;
-    
+
     export async function POST(context: APIContext) {
       try {
         // 1. Auth check
         const supabase = context.locals.supabase;
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+
         if (authError || !user) {
-          return errorResponse('UNAUTHORIZED', 'Authentication required', null, 401);
+          return errorResponse("UNAUTHORIZED", "Authentication required", null, 401);
         }
-        
+
         // 2. Parse and validate body
         const body = await context.request.json();
         const validatedData = GenerateShoppingListSchema.parse(body);
-        
+
         // 3. Generate shopping list
         const shoppingListService = new ShoppingListService(supabase);
-        const result = await shoppingListService.generateShoppingList(
-          user.id,
-          validatedData.recipe_id
-        );
-        
+        const result = await shoppingListService.generateShoppingList(user.id, validatedData.recipe_id);
+
         // 4. Return response
         return new Response(JSON.stringify(result), {
           status: 200,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         });
-        
       } catch (error) {
         if (error instanceof NotFoundError) {
-          return errorResponse('NOT_FOUND', error.message, null, 404);
+          return errorResponse("NOT_FOUND", error.message, null, 404);
         }
-        
-        if (error.name === 'ZodError') {
-          return errorResponse(
-            'VALIDATION_ERROR',
-            'Invalid request data',
-            { errors: error.errors },
-            400
-          );
+
+        if (error.name === "ZodError") {
+          return errorResponse("VALIDATION_ERROR", "Invalid request data", { errors: error.errors }, 400);
         }
-        
-        console.error('Shopping list generation error:', error);
-        return errorResponse(
-          'INTERNAL_ERROR',
-          'Failed to generate shopping list',
-          null,
-          500
-        );
+
+        console.error("Shopping list generation error:", error);
+        return errorResponse("INTERNAL_ERROR", "Failed to generate shopping list", null, 500);
       }
     }
     ```
@@ -608,13 +614,13 @@ GROUP BY up.product_id, up.unit_id
           const available = new Map([
             ['1:1', { product_id: 1, unit_id: 1, available_quantity: 3 }]
           ]);
-          
+
           const result = service.calculateMissingIngredients(required, available);
-          
+
           expect(result).toHaveLength(1);
           expect(result[0].missing_quantity).toBe(2);
         });
-        
+
         it('should return empty list when all ingredients available', () => {
           const required = [
             { product_id: 1, required_quantity: 3, unit_id: 1, ... }
@@ -622,20 +628,20 @@ GROUP BY up.product_id, up.unit_id
           const available = new Map([
             ['1:1', { product_id: 1, unit_id: 1, available_quantity: 5 }]
           ]);
-          
+
           const result = service.calculateMissingIngredients(required, available);
-          
+
           expect(result).toHaveLength(0);
         });
-        
+
         it('should handle completely missing ingredients', () => {
           const required = [
             { product_id: 1, required_quantity: 5, unit_id: 1, ... }
           ];
           const available = new Map();
-          
+
           const result = service.calculateMissingIngredients(required, available);
-          
+
           expect(result).toHaveLength(1);
           expect(result[0].available_quantity).toBe(0);
           expect(result[0].missing_quantity).toBe(5);
@@ -656,14 +662,14 @@ GROUP BY up.product_id, up.unit_id
           },
           body: JSON.stringify({ recipe_id: testRecipeId })
         });
-        
+
         expect(response.status).toBe(200);
         const data = await response.json();
         expect(data.recipe).toBeDefined();
         expect(data.missing_ingredients).toBeArray();
         expect(data.total_items).toBeNumber();
       });
-      
+
       it('should return 404 for non-existent recipe', async () => {
         const response = await fetch('/api/shopping-list/generate', {
           method: 'POST',
@@ -673,14 +679,14 @@ GROUP BY up.product_id, up.unit_id
           },
           body: JSON.stringify({ recipe_id: 99999 })
         });
-        
+
         expect(response.status).toBe(404);
       });
-      
+
       it('should return empty list when all ingredients available', async () => {
         // Setup: Add all required products to fridge
         await addProductsToFridge(userId, allRequiredProducts);
-        
+
         const response = await fetch('/api/shopping-list/generate', {
           method: 'POST',
           headers: {
@@ -689,7 +695,7 @@ GROUP BY up.product_id, up.unit_id
           },
           body: JSON.stringify({ recipe_id: testRecipeId })
         });
-        
+
         expect(response.status).toBe(200);
         const data = await response.json();
         expect(data.missing_ingredients).toHaveLength(0);
@@ -727,6 +733,7 @@ GROUP BY up.product_id, up.unit_id
    - One-click ordering
 
 **Implementation for Bulk Generation:**
+
 ```typescript
 interface BulkGenerateShoppingListDTO {
   recipe_ids: number[];
@@ -738,16 +745,16 @@ async generateBulkShoppingList(
 ): Promise<BulkShoppingListResponseDTO> {
   // Fetch all recipes and their ingredients
   const allIngredients = await this.fetchMultipleRecipeIngredients(recipeIds);
-  
+
   // Aggregate ingredients (sum quantities for same product+unit)
   const aggregated = this.aggregateIngredients(allIngredients);
-  
+
   // Fetch fridge once
   const fridge = await this.fetchFridgeContents(userId, allProductIds);
-  
+
   // Calculate missing for aggregated list
   const missing = this.calculateMissingIngredients(aggregated, fridge);
-  
+
   return {
     recipes: recipeInfos,
     missing_ingredients: missing,
@@ -761,6 +768,7 @@ async generateBulkShoppingList(
 ## Podsumowanie implementacji Shopping List API
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -779,6 +787,7 @@ src/
 ### Kluczowe algorytmy
 
 **Missing Quantity Calculation:**
+
 ```
 For each required ingredient:
   1. Find matching fridge item (product_id + unit_id)
@@ -788,6 +797,7 @@ For each required ingredient:
 ```
 
 **Aggregation (for same product in fridge):**
+
 ```sql
 SELECT product_id, unit_id, SUM(quantity) as total
 FROM user_products
@@ -819,11 +829,11 @@ GROUP BY product_id, unit_id
 ### Kolejność implementacji
 
 1. **Day 1**: Service skeleton + basic queries
-2. **Day 2**: Missing calculation logic 
+2. **Day 2**: Missing calculation logic
 <!-- + tests -->
 3. **Day 3**: Endpoint + error handling
 <!-- 4. **Day 4**: Integration tests + optimization -->
-5. **Day 5**: Optional: Unit conversion feature
+4. **Day 5**: Optional: Unit conversion feature
 
 ### Critical Success Factors
 
@@ -832,4 +842,3 @@ GROUP BY product_id, unit_id
 3. **Usability**: Clear, actionable shopping list
 4. **Reliability**: Proper error handling
 5. **Scalability**: Efficient queries for large recipes
-

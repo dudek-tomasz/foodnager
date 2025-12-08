@@ -22,7 +22,6 @@ Zaimplementowano kompletny system nawigacji dla aplikacji Foodnager zgodnie z `u
 
 3. **`src/components/navigation/index.ts`**
    - Barrel export dla łatwiejszego importu komponentów
-   
 4. **`src/components/navigation/README.md`**
    - Kompletna dokumentacja komponentów nawigacji
    - Instrukcje użycia, styling guide, accessibility notes
@@ -75,6 +74,7 @@ Aplikacja posiada następujące główne routes:
 ## Layout responsywny
 
 ### Desktop (≥1024px)
+
 ```
 ┌─────────┬──────────────────────┐
 │         │                      │
@@ -85,6 +85,7 @@ Aplikacja posiada następujące główne routes:
 ```
 
 ### Mobile/Tablet (<1024px)
+
 ```
 ┌─────────────────────────────┐
 │                             │
@@ -100,6 +101,7 @@ Aplikacja posiada następujące główne routes:
 ## Nawigacja
 
 ### Desktop Sidebar
+
 - **Lokalizacja:** Fixed left, 240px
 - **Elementy:**
   - Logo (link do /fridge)
@@ -109,6 +111,7 @@ Aplikacja posiada następujące główne routes:
   - CTA: "Znajdź przepis" (🔍)
 
 ### Mobile Bottom Nav
+
 - **Lokalizacja:** Fixed bottom, 64px height
 - **Elementy:**
   - Lodówka (🧊)
@@ -128,6 +131,7 @@ Każdy link nawigacyjny określa swój active state na podstawie `currentPath`:
 - `/login` - aktywny dla `/login`
 
 Active state styling:
+
 - **Sidebar:** Amber background (rgba), amber text, bold weight
 - **Bottom Nav:** Amber color, scale animation na ikonie
 
@@ -141,7 +145,7 @@ Wszystkie komponenty nawigacyjne implementują:
 ✅ Keyboard navigation (Tab, Enter, focus rings)  
 ✅ Screen reader friendly (aria-hidden dla ikon)  
 ✅ Color contrast (WCAG AA compliance)  
-✅ Focus visible states (outline + offset)  
+✅ Focus visible states (outline + offset)
 
 ## Styling
 
@@ -149,21 +153,21 @@ Wszystkie komponenty nawigacyjne implementują:
 
 ```css
 /* Primary (Amber) */
---color-primary: rgb(245 158 11);      /* Amber 500 */
---color-primary-dark: rgb(217 119 6);  /* Amber 600 */
+--color-primary: rgb(245 158 11); /* Amber 500 */
+--color-primary-dark: rgb(217 119 6); /* Amber 600 */
 --color-primary-light: rgb(251 191 36); /* Amber 400 */
 
 /* Active state */
-background: rgb(251 191 36 / 0.15);    /* Amber with opacity */
-color: rgb(245 158 11);                /* Amber 500 */
+background: rgb(251 191 36 / 0.15); /* Amber with opacity */
+color: rgb(245 158 11); /* Amber 500 */
 ```
 
 ### Transitions
 
 ```css
-transition: all 150ms ease;           /* Links hover */
-transition: background-color 150ms;   /* Background changes */
-transition: transform 150ms ease;     /* Icon scales */
+transition: all 150ms ease; /* Links hover */
+transition: background-color 150ms; /* Background changes */
+transition: transform 150ms ease; /* Icon scales */
 ```
 
 ### Shadows
@@ -190,11 +194,12 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 ✅ `/recipes/search` - RecipeSearchView  
 ✅ `/history` - CookingHistoryView  
 ✅ `/login` - LoginForm (nowy)  
-✅ `/register` - RegisterForm (nowy)  
+✅ `/register` - RegisterForm (nowy)
 
 ## MVP Limitations
 
 ### Authentication (Mock)
+
 - Login i rejestracja są zmockowane
 - Brak integracji z Supabase Auth
 - Client-side redirect bez prawdziwej walidacji
@@ -202,12 +207,14 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 - Brak protected routes
 
 **Dla produkcji:**
+
 - Integracja z Supabase Auth
 - Server-side session validation w middleware
 - Protected routes dla /fridge, /recipes, /history
 - Proper error handling dla auth errors
 
 ### Inne
+
 - Brak dark mode toggle
 - Brak user profile w sidebar
 - Brak notifications badge
@@ -218,6 +225,7 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 ### Checklist weryfikacji
 
 **Desktop (≥1024px):**
+
 - [ ] Sidebar widoczny po lewej stronie
 - [ ] Main content ma margin-left 240px
 - [ ] Bottom navigation ukryty
@@ -227,6 +235,7 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 - [ ] Hover effects są smooth
 
 **Mobile (<1024px):**
+
 - [ ] Sidebar ukryty
 - [ ] Bottom navigation widoczny na dole
 - [ ] Main content ma padding-bottom 64px
@@ -236,6 +245,7 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 - [ ] Navigation nie przesłania contentu
 
 **Accessibility:**
+
 - [ ] Tab navigation działa przez wszystkie linki
 - [ ] Focus rings są widoczne
 - [ ] Enter aktywuje linki
@@ -243,6 +253,7 @@ Wszystkie istniejące strony już używają `Layout.astro`, więc automatycznie 
 - [ ] aria-current="page" ustawiony dla aktywnego linku
 
 **Routes:**
+
 - [ ] `/` redirectuje do `/fridge`
 - [ ] `/fridge` ładuje FridgeView
 - [ ] `/recipes` ładuje RecipeListView
@@ -273,6 +284,7 @@ npm run dev
 ### Testowanie responsywności
 
 W Dev Tools:
+
 1. Toggle device toolbar (Cmd/Ctrl + Shift + M)
 2. Testuj breakpointy:
    - Mobile: 375px, 414px
@@ -300,11 +312,10 @@ W Dev Tools:
 ✅ **Sekcja 4.5** - Responsive Breakpoints (1024px)  
 ✅ **Sekcja 5.1** - Layout Components (Astro - statyczne)  
 ✅ **Sekcja 5.7** - Accessibility Considerations  
-✅ **Sekcja 5.9** - Styling System (Tailwind, color palette)  
+✅ **Sekcja 5.9** - Styling System (Tailwind, color palette)
 
 ## Podsumowanie
 
 System nawigacji jest w pełni funkcjonalny i zgodny z wymaganiami z ui-plan.md. Aplikacja Foodnager ma teraz kompletny layout z adaptywną nawigacją, który działa na wszystkich breakpointach i jest dostępny dla wszystkich użytkowników.
 
 🎉 **Layout aplikacji gotowy do użytku!**
-

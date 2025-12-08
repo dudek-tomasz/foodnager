@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Cooking History Management
 
 ## Spis treści
+
 1. [GET /api/cooking-history - List Cooking History](#1-get-apicooking-history---list-cooking-history)
 2. [POST /api/cooking-history - Create Cooking History Entry](#2-post-apicooking-history---create-cooking-history-entry)
 
@@ -9,6 +10,7 @@
 ## 1. GET /api/cooking-history - List Cooking History
 
 ### 1.1 Przegląd punktu końcowego
+
 Endpoint pobiera historię gotowania użytkownika z opcjami filtrowania według przepisu i zakresu dat. Zwraca szczegółowe informacje o każdym zdarzeniu gotowania, włączając stany lodówki przed i po gotowaniu (dla audytu).
 
 **Powiązane User Stories:** US-003 (rozszerzenie - tracking), audyt
@@ -20,6 +22,7 @@ Endpoint pobiera historię gotowania użytkownika z opcjami filtrowania według 
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **Query Parameters:**
+
 - **Opcjonalne:**
   - `recipe_id` (integer) - Filtruj według konkretnego przepisu
   - `from_date` (string) - Data początkowa (ISO 8601: YYYY-MM-DD)
@@ -28,6 +31,7 @@ Endpoint pobiera historię gotowania użytkownika z opcjami filtrowania według 
   - `limit` (integer) - Liczba elementów na stronę, domyślnie `20`, max `100`
 
 **Przykładowe żądania:**
+
 ```
 GET /api/cooking-history?page=1&limit=20
 GET /api/cooking-history?recipe_id=5
@@ -37,6 +41,7 @@ GET /api/cooking-history?from_date=2025-10-01&to_date=2025-10-31
 ### 1.3 Wykorzystywane typy
 
 **Query DTO:**
+
 ```typescript
 ListCookingHistoryQueryDTO {
   recipe_id?: number;
@@ -48,6 +53,7 @@ ListCookingHistoryQueryDTO {
 ```
 
 **Response DTOs:**
+
 ```typescript
 CookingHistoryListResponseDTO {
   data: CookingHistoryDTO[];
@@ -82,6 +88,7 @@ FridgeStateItemDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "data": [
@@ -136,6 +143,7 @@ FridgeStateItemDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `422 Unprocessable Entity` - Nieprawidłowe parametry zapytania
 
@@ -149,7 +157,7 @@ FridgeStateItemDTO {
 5. [Handler] → Walidacja przez Zod
 6. [Service] → CookingHistoryService.listCookingHistory(userId, queryParams)
 7. [Database] → Query z filtrami:
-   SELECT ch.id, ch.recipe_id, ch.cooked_at, 
+   SELECT ch.id, ch.recipe_id, ch.cooked_at,
           ch.fridge_state_before, ch.fridge_state_after,
           r.title as recipe_title,
           COUNT(*) OVER() as total_count
@@ -169,71 +177,83 @@ FridgeStateItemDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy: `WHERE user_id = auth.uid()`
 - Użytkownik widzi tylko swoją historię
 
 **Walidacja:**
+
 - Walidacja date formats (ISO 8601)
 - Walidacja from_date <= to_date
 - Walidacja recipe_id (if provided)
 - Paginacja: page >= 1, limit <= 100
 
 **Data Privacy:**
+
 - Fridge states zawierają wrażliwe dane o przyzwyczajeniach użytkownika
 - Dostępne tylko dla właściciela
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy date format | 422 | VALIDATION_ERROR | Zwróć: Invalid date format (use YYYY-MM-DD) |
-| from_date > to_date | 422 | VALIDATION_ERROR | Zwróć: from_date must be before to_date |
-| Nieprawidłowy recipe_id | 422 | VALIDATION_ERROR | Zwróć: Invalid recipe_id |
-| page < 1 | 422 | VALIDATION_ERROR | Zwróć: page must be >= 1 |
-| limit > 100 | 422 | VALIDATION_ERROR | Zwróć: limit cannot exceed 100 |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                | Kod HTTP | Error Code       | Akcja                                       |
+| ------------------------- | -------- | ---------------- | ------------------------------------------- |
+| Brak tokenu               | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji     |
+| Nieprawidłowy token       | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie    |
+| Nieprawidłowy date format | 422      | VALIDATION_ERROR | Zwróć: Invalid date format (use YYYY-MM-DD) |
+| from_date > to_date       | 422      | VALIDATION_ERROR | Zwróć: from_date must be before to_date     |
+| Nieprawidłowy recipe_id   | 422      | VALIDATION_ERROR | Zwróć: Invalid recipe_id                    |
+| page < 1                  | 422      | VALIDATION_ERROR | Zwróć: page must be >= 1                    |
+| limit > 100               | 422      | VALIDATION_ERROR | Zwróć: limit cannot exceed 100              |
+| Błąd bazy danych          | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat               |
 
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - Indeks na `cooking_history(user_id, cooked_at DESC)` - composite dla sortowania
 - Indeks na `cooking_history(recipe_id)` - dla filtrowania
-- COUNT(*) OVER() - unikamy dodatkowego query
+- COUNT(\*) OVER() - unikamy dodatkowego query
 - JSONB fields są efektywne w PostgreSQL
 
 **Caching:**
+
 - Opcjonalnie: cache dla recent history (5 minut)
 - Cache key: `cooking-history:{userId}:page:{page}:params:{hash}`
 - Invalidacja przy: POST nowego entry
 
 **Query Optimization:**
+
 - Selective loading: tylko potrzebne kolumny
 - JOIN tylko recipes (dla title) - minimalne
 
 ### 1.9 Etapy wdrożenia
 
 1. **Zod schema walidacji**
+
    ```typescript
    z.object({
      recipe_id: z.coerce.number().int().positive().optional(),
      from_date: z.string().date().optional(),
      to_date: z.string().date().optional(),
      page: z.coerce.number().int().min(1).default(1),
-     limit: z.coerce.number().int().min(1).max(100).default(20)
-   }).refine(data => {
-     if (data.from_date && data.to_date) {
-       return new Date(data.from_date) <= new Date(data.to_date);
-     }
-     return true;
-   }, { message: "from_date must be before to_date" })
+     limit: z.coerce.number().int().min(1).max(100).default(20),
+   }).refine(
+     (data) => {
+       if (data.from_date && data.to_date) {
+         return new Date(data.from_date) <= new Date(data.to_date);
+       }
+       return true;
+     },
+     { message: "from_date must be before to_date" }
+   );
    ```
 
 2. **CookingHistoryService - List Method**
+
    ```typescript
    class CookingHistoryService {
      async listCookingHistory(
@@ -241,7 +261,8 @@ FridgeStateItemDTO {
        query: ListCookingHistoryQueryDTO
      ): Promise<CookingHistoryListResponseDTO> {
        // Build query with filters
-       const { rows } = await this.db.query(`
+       const { rows } = await this.db.query(
+         `
          SELECT 
            ch.id,
            ch.recipe_id,
@@ -258,34 +279,36 @@ FridgeStateItemDTO {
            AND ($4::timestamptz IS NULL OR ch.cooked_at <= $4)
          ORDER BY ch.cooked_at DESC
          LIMIT $5 OFFSET $6
-       `, [
-         userId,
-         query.recipe_id || null,
-         query.from_date || null,
-         query.to_date ? `${query.to_date}T23:59:59Z` : null,
-         query.limit,
-         (query.page - 1) * query.limit
-       ]);
-       
-       const data = rows.map(row => this.transformToDTO(row));
+       `,
+         [
+           userId,
+           query.recipe_id || null,
+           query.from_date || null,
+           query.to_date ? `${query.to_date}T23:59:59Z` : null,
+           query.limit,
+           (query.page - 1) * query.limit,
+         ]
+       );
+
+       const data = rows.map((row) => this.transformToDTO(row));
        const total = rows.length > 0 ? parseInt(rows[0].total_count) : 0;
-       
+
        return {
          data,
-         pagination: calculatePaginationMeta(query.page, query.limit, total)
+         pagination: calculatePaginationMeta(query.page, query.limit, total),
        };
      }
-     
+
      private transformToDTO(row: any): CookingHistoryDTO {
        return {
          id: row.id,
          recipe: {
            id: row.recipe_id,
-           title: row.recipe_title
+           title: row.recipe_title,
          },
          cooked_at: row.cooked_at,
          fridge_state_before: row.fridge_state_before, // Already JSONB
-         fridge_state_after: row.fridge_state_after
+         fridge_state_after: row.fridge_state_after,
        };
      }
    }
@@ -314,6 +337,7 @@ FridgeStateItemDTO {
 ## 2. POST /api/cooking-history - Create Cooking History Entry
 
 ### 2.1 Przegląd punktu końcowego
+
 Najbardziej złożony endpoint w grupie Cooking History. Rejestruje zdarzenie gotowania przepisu i **automatycznie aktualizuje zawartość lodówki** użytkownika, odejmując użyte składniki. Cała operacja wykonywana jest w transakcji database z wykorzystaniem PostgreSQL function dla atomowości.
 
 **Powiązane User Stories:** US-003 (rozszerzenie), automatyzacja zarządzania lodówką
@@ -327,10 +351,12 @@ Najbardziej złożony endpoint w grupie Cooking History. Rejestruje zdarzenie go
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `recipe_id` (integer) - ID przepisu, który został ugotowany
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/cooking-history
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -344,6 +370,7 @@ Content-Type: application/json
 ### 2.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 CreateCookingHistoryDTO {
   recipe_id: number;
@@ -351,6 +378,7 @@ CreateCookingHistoryDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 CreateCookingHistoryResponseDTO {
   id: number;
@@ -372,6 +400,7 @@ UpdatedFridgeItemDTO {
 ### 2.4 Szczegóły odpowiedzi
 
 **Sukces (201 Created):**
+
 ```json
 {
   "id": 1,
@@ -412,6 +441,7 @@ UpdatedFridgeItemDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane, niewystarczające składniki
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Przepis nie istnieje lub nie należy do użytkownika
@@ -460,7 +490,7 @@ UpdatedFridgeItemDTO {
       p_user_id := $userId,
       p_recipe_id := $recipeId
     )
-    
+
     -- Function does:
     -- 1. Captures current fridge state (JSONB)
     -- 2. Updates user_products quantities
@@ -479,46 +509,53 @@ UpdatedFridgeItemDTO {
 ### 2.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - Weryfikacja: przepis musi należeć do użytkownika
 - RLS zapewnia dostęp tylko do własnej lodówki
 
 **Walidacja:**
+
 - Walidacja recipe_id
 - **Critical**: Weryfikacja wystarczających składników przed transakcją
 - Prevent negative quantities
 
 **Transactional Integrity:**
+
 - **Atomowość**: Całość w transakcji - albo wszystko się powiedzie, albo nic
 - Rollback przy jakimkolwiek błędzie
 - Snapshot isolation dla consistency
 
 **Race Conditions:**
+
 - PostgreSQL transaction isolation zapobiega race conditions
 - Multiple concurrent cooking events są bezpieczne
 
 **Audit Trail:**
+
 - Fridge states przed i po (immutable JSONB)
 - Timestamp zdarzenia
 - Pełny audit trail dla compliance
 
 ### 2.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak recipe_id | 400 | VALIDATION_ERROR | Zwróć: recipe_id is required |
-| Nieprawidłowy recipe_id | 400 | VALIDATION_ERROR | Zwróć: recipe_id must be positive integer |
-| Przepis nie istnieje | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Przepis innego użytkownika | 404 | NOT_FOUND | Zwróć: Recipe not found |
-| Niewystarczające składniki | 400 | INSUFFICIENT_INGREDIENTS | Zwróć szczegóły: które produkty i ile brakuje |
-| Błąd transakcji | 500 | INTERNAL_ERROR | Rollback, loguj, zwróć ogólny komunikat |
-| Konflikt concurrency | 409 | CONFLICT | Zwróć: Please try again (optimistic lock) |
+| Scenariusz                 | Kod HTTP | Error Code               | Akcja                                         |
+| -------------------------- | -------- | ------------------------ | --------------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED             | Zwróć komunikat o wymaganej autoryzacji       |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED             | Zwróć komunikat o nieprawidłowym tokenie      |
+| Brak recipe_id             | 400      | VALIDATION_ERROR         | Zwróć: recipe_id is required                  |
+| Nieprawidłowy recipe_id    | 400      | VALIDATION_ERROR         | Zwróć: recipe_id must be positive integer     |
+| Przepis nie istnieje       | 404      | NOT_FOUND                | Zwróć: Recipe not found                       |
+| Przepis innego użytkownika | 404      | NOT_FOUND                | Zwróć: Recipe not found                       |
+| Niewystarczające składniki | 400      | INSUFFICIENT_INGREDIENTS | Zwróć szczegóły: które produkty i ile brakuje |
+| Błąd transakcji            | 500      | INTERNAL_ERROR           | Rollback, loguj, zwróć ogólny komunikat       |
+| Konflikt concurrency       | 409      | CONFLICT                 | Zwróć: Please try again (optimistic lock)     |
 
 **Szczegóły INSUFFICIENT_INGREDIENTS:**
+
 ```json
 {
   "error": {
@@ -542,17 +579,20 @@ UpdatedFridgeItemDTO {
 ### 2.8 Wydajność
 
 **Optymalizacje:**
+
 - Single PostgreSQL function call (minimalna network overhead)
 - Efficient JSONB operations
 - Batch updates w ramach transakcji
 - Indeksy na foreign keys
 
 **Transaction Optimization:**
+
 - Krótkie transakcje (< 100ms typically)
 - Minimalna lock time
 - Proper isolation level
 
 **Monitoring:**
+
 - Track transaction duration
 - Monitor rollback rate
 - Alert na długie transakcje (> 1s)
@@ -564,16 +604,17 @@ UpdatedFridgeItemDTO {
 1. **Zod schema walidacji**
    ```typescript
    const CreateCookingHistorySchema = z.object({
-     recipe_id: z.number().int().positive()
+     recipe_id: z.number().int().positive(),
    });
    ```
 
 #### Phase 2: PostgreSQL Function
 
 2. **Database Function - record_cooking_event**
+
    ```sql
    -- Create in migration: supabase/migrations/xxx_record_cooking_event.sql
-   
+
    CREATE OR REPLACE FUNCTION record_cooking_event(
      p_user_id UUID,
      p_recipe_id BIGINT
@@ -599,11 +640,11 @@ UpdatedFridgeItemDTO {
      SELECT title INTO v_recipe_title
      FROM recipes
      WHERE id = p_recipe_id AND user_id = p_user_id;
-     
+
      IF NOT FOUND THEN
        RAISE EXCEPTION 'Recipe not found';
      END IF;
-     
+
      -- Capture current fridge state
      SELECT JSONB_BUILD_OBJECT('items', JSONB_AGG(
        JSONB_BUILD_OBJECT(
@@ -617,10 +658,10 @@ UpdatedFridgeItemDTO {
      JOIN products p ON up.product_id = p.id
      JOIN units u ON up.unit_id = u.id
      WHERE up.user_id = p_user_id;
-     
+
      -- Initialize updated items array
      v_updated_items := '[]'::JSONB;
-     
+
      -- Process each ingredient
      FOR v_ingredient IN
        SELECT ri.product_id, ri.quantity as required_qty, ri.unit_id, u.abbreviation as unit
@@ -634,7 +675,7 @@ UpdatedFridgeItemDTO {
        WHERE user_id = p_user_id
          AND product_id = v_ingredient.product_id
          AND unit_id = v_ingredient.unit_id;
-       
+
        -- Check if sufficient
        IF v_available_qty IS NULL OR v_available_qty < v_ingredient.required_qty THEN
          RAISE EXCEPTION 'Insufficient ingredient: product_id=%, required=%, available=%',
@@ -642,7 +683,7 @@ UpdatedFridgeItemDTO {
            v_ingredient.required_qty,
            COALESCE(v_available_qty, 0);
        END IF;
-       
+
        -- Update fridge quantities
        -- Strategy: Deduct from oldest items first (FIFO)
        DECLARE
@@ -662,33 +703,33 @@ UpdatedFridgeItemDTO {
            IF v_remaining_to_deduct <= 0 THEN
              EXIT;
            END IF;
-           
+
            v_old_qty := v_fridge_item.quantity;
-           
+
            IF v_fridge_item.quantity >= v_remaining_to_deduct THEN
              -- This item has enough
              UPDATE user_products
              SET quantity = quantity - v_remaining_to_deduct
              WHERE id = v_fridge_item.id;
-             
+
              v_remaining_to_deduct := 0;
            ELSE
              -- Consume entire item
              UPDATE user_products
              SET quantity = 0
              WHERE id = v_fridge_item.id;
-             
+
              v_remaining_to_deduct := v_remaining_to_deduct - v_fridge_item.quantity;
            END IF;
          END LOOP;
        END;
-       
+
        -- Delete zero-quantity items
        DELETE FROM user_products
        WHERE user_id = p_user_id
          AND product_id = v_ingredient.product_id
          AND quantity = 0;
-       
+
        -- Record update
        SELECT v_updated_items || JSONB_BUILD_OBJECT(
          'product_id', v_ingredient.product_id,
@@ -697,7 +738,7 @@ UpdatedFridgeItemDTO {
          'unit', v_ingredient.unit
        ) INTO v_updated_items;
      END LOOP;
-     
+
      -- Capture new fridge state
      SELECT JSONB_BUILD_OBJECT('items', JSONB_AGG(
        JSONB_BUILD_OBJECT(
@@ -711,7 +752,7 @@ UpdatedFridgeItemDTO {
      JOIN products p ON up.product_id = p.id
      JOIN units u ON up.unit_id = u.id
      WHERE up.user_id = p_user_id;
-     
+
      -- Insert cooking history record
      INSERT INTO cooking_history (
        user_id, recipe_id, cooked_at,
@@ -720,7 +761,7 @@ UpdatedFridgeItemDTO {
        p_user_id, p_recipe_id, NOW(),
        v_fridge_before, v_fridge_after
      ) RETURNING id INTO v_history_id;
-     
+
      -- Return result
      RETURN QUERY SELECT
        v_history_id,
@@ -737,55 +778,55 @@ UpdatedFridgeItemDTO {
 #### Phase 3: Service Implementation
 
 3. **CookingHistoryService - Create Method**
+
    ```typescript
    class CookingHistoryService {
-     async createCookingHistoryEntry(
-       userId: string,
-       recipeId: number
-     ): Promise<CreateCookingHistoryResponseDTO> {
+     async createCookingHistoryEntry(userId: string, recipeId: number): Promise<CreateCookingHistoryResponseDTO> {
        try {
          // Call PostgreSQL function
-         const { rows } = await this.db.query(`
+         const { rows } = await this.db.query(
+           `
            SELECT * FROM record_cooking_event($1, $2)
-         `, [userId, recipeId]);
-         
+         `,
+           [userId, recipeId]
+         );
+
          if (rows.length === 0) {
-           throw new Error('Failed to record cooking event');
+           throw new Error("Failed to record cooking event");
          }
-         
+
          const result = rows[0];
-         
+
          // Transform to DTO
          return {
            id: result.history_id,
            recipe: {
              id: result.recipe_id,
-             title: result.recipe_title
+             title: result.recipe_title,
            },
            cooked_at: result.cooked_at,
            fridge_state_before: result.fridge_before,
            fridge_state_after: result.fridge_after,
-           updated_fridge_items: result.updated_items
+           updated_fridge_items: result.updated_items,
          };
-         
        } catch (error) {
          // Parse PostgreSQL exception
-         if (error.message.includes('Recipe not found')) {
-           throw new NotFoundError('Recipe not found');
+         if (error.message.includes("Recipe not found")) {
+           throw new NotFoundError("Recipe not found");
          }
-         
-         if (error.message.includes('Insufficient ingredient')) {
+
+         if (error.message.includes("Insufficient ingredient")) {
            // Parse details from error message
            throw new InsufficientIngredientsError(
-             'Not enough ingredients in fridge',
+             "Not enough ingredients in fridge",
              this.parseInsufficientDetails(error.message)
            );
          }
-         
+
          throw error;
        }
      }
-     
+
      private parseInsufficientDetails(errorMessage: string): any {
        // Parse "Insufficient ingredient: product_id=10, required=5, available=3"
        const match = errorMessage.match(/product_id=(\d+), required=([\d.]+), available=([\d.]+)/);
@@ -793,7 +834,7 @@ UpdatedFridgeItemDTO {
          return {
            product_id: parseInt(match[1]),
            required: parseFloat(match[2]),
-           available: parseFloat(match[3])
+           available: parseFloat(match[3]),
          };
        }
        return null;
@@ -813,7 +854,7 @@ UpdatedFridgeItemDTO {
        }
      ) {
        super(message);
-       this.name = 'InsufficientIngredientsError';
+       this.name = "InsufficientIngredientsError";
      }
    }
    ```
@@ -821,68 +862,53 @@ UpdatedFridgeItemDTO {
 #### Phase 4: Endpoint Implementation
 
 5. **Endpoint handler**
+
    ```typescript
    // src/pages/api/cooking-history/index.ts
    export async function POST(context: APIContext) {
      try {
        // 1. Auth
        const supabase = context.locals.supabase;
-       const { data: { user }, error: authError } = await supabase.auth.getUser();
-       
+       const {
+         data: { user },
+         error: authError,
+       } = await supabase.auth.getUser();
+
        if (authError || !user) {
-         return errorResponse('UNAUTHORIZED', 'Authentication required', null, 401);
+         return errorResponse("UNAUTHORIZED", "Authentication required", null, 401);
        }
-       
+
        // 2. Parse and validate
        const body = await context.request.json();
        const validatedData = CreateCookingHistorySchema.parse(body);
-       
+
        // 3. Create entry
        const service = new CookingHistoryService(supabase);
-       const result = await service.createCookingHistoryEntry(
-         user.id,
-         validatedData.recipe_id
-       );
-       
+       const result = await service.createCookingHistoryEntry(user.id, validatedData.recipe_id);
+
        // 4. Return with Location header
        return new Response(JSON.stringify(result), {
          status: 201,
          headers: {
-           'Content-Type': 'application/json',
-           'Location': `/api/cooking-history/${result.id}`
-         }
+           "Content-Type": "application/json",
+           Location: `/api/cooking-history/${result.id}`,
+         },
        });
-       
      } catch (error) {
        if (error instanceof NotFoundError) {
-         return errorResponse('NOT_FOUND', error.message, null, 404);
+         return errorResponse("NOT_FOUND", error.message, null, 404);
        }
-       
+
        if (error instanceof InsufficientIngredientsError) {
-         return errorResponse(
-           'INSUFFICIENT_INGREDIENTS',
-           error.message,
-           { missing: [error.details] },
-           400
-         );
+         return errorResponse("INSUFFICIENT_INGREDIENTS", error.message, { missing: [error.details] }, 400);
        }
-       
-       if (error.name === 'ZodError') {
-         return errorResponse(
-           'VALIDATION_ERROR',
-           'Invalid request data',
-           { errors: error.errors },
-           400
-         );
+
+       if (error.name === "ZodError") {
+         return errorResponse("VALIDATION_ERROR", "Invalid request data", { errors: error.errors }, 400);
        }
-       
-       console.error('Cooking history creation error:', error);
-       return errorResponse(
-         'INTERNAL_ERROR',
-         'Failed to record cooking event',
-         null,
-         500
-       );
+
+       console.error("Cooking history creation error:", error);
+       return errorResponse("INTERNAL_ERROR", "Failed to record cooking event", null, 500);
      }
    }
    ```
@@ -893,30 +919,30 @@ UpdatedFridgeItemDTO {
    ```sql
    -- Test in migration or separate test file
    BEGIN;
-   
+
    -- Setup test data
    INSERT INTO recipes (id, user_id, title, instructions, source)
    VALUES (1, 'test-user-id', 'Test Recipe', 'Instructions', 'user');
-   
+
    INSERT INTO recipe_ingredients (recipe_id, product_id, quantity, unit_id)
    VALUES (1, 10, 5, 1);
-   
+
    INSERT INTO user_products (user_id, product_id, quantity, unit_id)
    VALUES ('test-user-id', 10, 8, 1);
-   
+
    -- Test: Successful cooking
    SELECT * FROM record_cooking_event('test-user-id', 1);
-   
+
    -- Verify: Fridge updated
    SELECT quantity FROM user_products
    WHERE user_id = 'test-user-id' AND product_id = 10;
    -- Expected: 3
-   
+
    -- Verify: History created
    SELECT COUNT(*) FROM cooking_history
    WHERE user_id = 'test-user-id' AND recipe_id = 1;
    -- Expected: 1
-   
+
    ROLLBACK;
    ```
 
@@ -926,7 +952,7 @@ UpdatedFridgeItemDTO {
      it('should create cooking history and update fridge', async () => {
        // Setup: Add products to fridge
        await addToFridge(userId, { product_id: 10, quantity: 8, unit_id: 1 });
-       
+
        const response = await fetch('/api/cooking-history', {
          method: 'POST',
          headers: {
@@ -935,31 +961,31 @@ UpdatedFridgeItemDTO {
          },
          body: JSON.stringify({ recipe_id: testRecipeId })
        });
-       
+
        expect(response.status).toBe(201);
        const data = await response.json();
-       
+
        // Verify response structure
        expect(data.id).toBeDefined();
        expect(data.fridge_state_before.items).toHaveLength(1);
        expect(data.fridge_state_after.items).toHaveLength(1);
        expect(data.updated_fridge_items).toHaveLength(1);
-       
+
        // Verify quantity decreased
        const beforeItem = data.fridge_state_before.items[0];
        const afterItem = data.fridge_state_after.items[0];
        expect(afterItem.quantity).toBeLessThan(beforeItem.quantity);
-       
+
        // Verify database state
        const fridgeItem = await getFridgeItem(userId, 10);
        expect(fridgeItem.quantity).toBe(3); // 8 - 5
      });
-     
+
      it('should return 400 for insufficient ingredients', async () => {
        // Setup: Add insufficient products
        await addToFridge(userId, { product_id: 10, quantity: 2, unit_id: 1 });
        // Recipe requires 5
-       
+
        const response = await fetch('/api/cooking-history', {
          method: 'POST',
          headers: {
@@ -968,13 +994,13 @@ UpdatedFridgeItemDTO {
          },
          body: JSON.stringify({ recipe_id: testRecipeId })
        });
-       
+
        expect(response.status).toBe(400);
        const error = await response.json();
        expect(error.error.code).toBe('INSUFFICIENT_INGREDIENTS');
        expect(error.error.details.missing).toBeDefined();
      });
-     
+
      it('should handle FIFO deduction correctly', async () => {
        // Add same product multiple times with different dates
        await addToFridge(userId, {
@@ -989,7 +1015,7 @@ UpdatedFridgeItemDTO {
          unit_id: 1,
          created_at: '2025-10-10'
        });
-       
+
        // Recipe requires 5 (should consume first entry completely, none from second)
        const response = await fetch('/api/cooking-history', {
          method: 'POST',
@@ -999,27 +1025,27 @@ UpdatedFridgeItemDTO {
          },
          body: JSON.stringify({ recipe_id: testRecipeId })
        });
-       
+
        expect(response.status).toBe(201);
-       
+
        // Verify: First entry deleted (was 3, needed 5)
        // Second entry partially used (5 - (5-3) = 3)
        const remainingItems = await getFridgeItems(userId, 10);
        expect(remainingItems).toHaveLength(1);
        expect(remainingItems[0].quantity).toBe(3);
      });
-     
+
      it('should rollback on error', async () => {
        // Setup: Sufficient ingredients
        await addToFridge(userId, { product_id: 10, quantity: 10, unit_id: 1 });
-       
+
        // Simulate error (e.g., by dropping a constraint temporarily in test)
        // ... trigger error during transaction ...
-       
+
        // Verify: Fridge unchanged
        const fridgeItem = await getFridgeItem(userId, 10);
        expect(fridgeItem.quantity).toBe(10);
-       
+
        // Verify: No history entry
        const history = await getCookingHistory(userId);
        expect(history).toHaveLength(0);
@@ -1030,6 +1056,7 @@ UpdatedFridgeItemDTO {
 ### 2.10 Advanced Considerations
 
 **Concurrency Handling:**
+
 ```sql
 -- In function: Use FOR UPDATE to lock rows
 SELECT id, quantity
@@ -1041,6 +1068,7 @@ FOR UPDATE;  -- Prevents concurrent modifications
 ```
 
 **Partial Cooking (Future Enhancement):**
+
 ```typescript
 // Allow cooking with ingredient multiplier (e.g., half recipe)
 interface CreateCookingHistoryDTO {
@@ -1050,6 +1078,7 @@ interface CreateCookingHistoryDTO {
 ```
 
 **Undo Functionality (Future Enhancement):**
+
 ```typescript
 // Reverse a cooking event (if done in error)
 async undoCookingEvent(userId: string, historyId: number) {
@@ -1063,6 +1092,7 @@ async undoCookingEvent(userId: string, historyId: number) {
 ## Podsumowanie implementacji Cooking History API
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -1079,6 +1109,7 @@ src/
 ```
 
 ### Database Components
+
 ```
 supabase/migrations/
 └── xxx_record_cooking_event.sql           # PostgreSQL function
@@ -1087,6 +1118,7 @@ supabase/migrations/
 ### Kluczowe algorytmy
 
 **FIFO Deduction Strategy:**
+
 ```
 For each recipe ingredient:
   1. Find all fridge items matching product+unit (ordered by created_at ASC)
@@ -1097,6 +1129,7 @@ For each recipe ingredient:
 ```
 
 **State Capture:**
+
 ```
 Before transaction:
   - Snapshot current fridge → fridge_state_before (JSONB)
@@ -1133,9 +1166,9 @@ After updates:
 2. **Day 2**: Service wrapper + error handling
 3. **Day 3**: POST endpoint + validation
 4. **Day 4**: GET endpoint (simpler)
-<!-- 5. **Day 5**: Testing (unit + integration) -->
-<!-- 6. **Day 6**: Performance testing + optimization -->
-7. **Day 7**: Documentation + edge cases
+   <!-- 5. **Day 5**: Testing (unit + integration) -->
+   <!-- 6. **Day 6**: Performance testing + optimization -->
+5. **Day 7**: Documentation + edge cases
 
 <!-- ### Testing Checklist
 
@@ -1152,4 +1185,3 @@ After updates:
 - [ ] Empty fridge scenario
 - [ ] History listing with filters
 - [ ] Pagination -->
-

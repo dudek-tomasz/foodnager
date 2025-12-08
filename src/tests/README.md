@@ -67,10 +67,10 @@ npm run test:e2e:codegen
 ### Podstawowy test jednostkowy
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('myFunction', () => {
-  it('should return correct value', () => {
+describe("myFunction", () => {
+  it("should return correct value", () => {
     const result = myFunction(1, 2);
     expect(result).toBe(3);
   });
@@ -80,16 +80,16 @@ describe('myFunction', () => {
 ### Test z mockami
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from "vitest";
 
-describe('apiCall', () => {
-  it('should call fetch with correct URL', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ json: () => ({ data: 'test' }) });
+describe("apiCall", () => {
+  it("should call fetch with correct URL", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ json: () => ({ data: "test" }) });
     global.fetch = mockFetch;
 
-    await apiCall('/api/data');
-    
-    expect(mockFetch).toHaveBeenCalledWith('/api/data');
+    await apiCall("/api/data");
+
+    expect(mockFetch).toHaveBeenCalledWith("/api/data");
   });
 });
 ```
@@ -106,7 +106,7 @@ import { MyComponent } from '@/components/MyComponent';
 describe('MyComponent', () => {
   it('should render correctly', () => {
     render(<MyComponent title="Test" />);
-    
+
     expect(screen.getByText('Test')).toBeInTheDocument();
   });
 });
@@ -123,11 +123,11 @@ describe('Button', () => {
   it('should call onClick when clicked', async () => {
     const handleClick = vi.fn();
     const user = userEvent.setup();
-    
+
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     await user.click(screen.getByRole('button'));
-    
+
     expect(handleClick).toHaveBeenCalledOnce();
   });
 });
@@ -138,17 +138,17 @@ describe('Button', () => {
 ### Podstawowy test E2E
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Login Flow', () => {
-  test('user can log in', async ({ page }) => {
-    await page.goto('/login');
-    
-    await page.fill('[name="email"]', 'test@example.com');
-    await page.fill('[name="password"]', 'password');
+test.describe("Login Flow", () => {
+  test("user can log in", async ({ page }) => {
+    await page.goto("/login");
+
+    await page.fill('[name="email"]', "test@example.com");
+    await page.fill('[name="password"]', "password");
     await page.click('button[type="submit"]');
-    
-    await expect(page).toHaveURL('/dashboard');
+
+    await expect(page).toHaveURL("/dashboard");
   });
 });
 ```
@@ -159,11 +159,11 @@ test.describe('Login Flow', () => {
 // e2e/pages/login.page.ts
 export class LoginPage {
   constructor(private page: Page) {}
-  
+
   async goto() {
-    await this.page.goto('/login');
+    await this.page.goto("/login");
   }
-  
+
   async login(email: string, password: string) {
     await this.page.fill('[name="email"]', email);
     await this.page.fill('[name="password"]', password);
@@ -172,12 +172,12 @@ export class LoginPage {
 }
 
 // e2e/login.spec.ts
-test('user can log in with POM', async ({ page }) => {
+test("user can log in with POM", async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
-  await loginPage.login('test@example.com', 'password');
-  
-  await expect(page).toHaveURL('/dashboard');
+  await loginPage.login("test@example.com", "password");
+
+  await expect(page).toHaveURL("/dashboard");
 });
 ```
 
@@ -189,13 +189,11 @@ Edytuj `src/tests/mocks/handlers.ts`:
 
 ```typescript
 export const handlers = [
-  http.get('/api/products', () => {
-    return HttpResponse.json([
-      { id: 1, name: 'Product 1' },
-    ]);
+  http.get("/api/products", () => {
+    return HttpResponse.json([{ id: 1, name: "Product 1" }]);
   }),
-  
-  http.post('/api/products', async ({ request }) => {
+
+  http.post("/api/products", async ({ request }) => {
     const data = await request.json();
     return HttpResponse.json({ id: 2, ...data }, { status: 201 });
   }),
@@ -247,17 +245,17 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '22'
-      
+          node-version: "22"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit tests
         run: npm run test:run
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -304,7 +302,7 @@ resolve: {
 **Rozwiązanie**: Użyj `page.waitForSelector()` lub zwiększ timeout:
 
 ```typescript
-await page.waitForSelector('button', { timeout: 10000 });
+await page.waitForSelector("button", { timeout: 10000 });
 ```
 
 ## Dodatkowe Zasoby
@@ -313,4 +311,3 @@ await page.waitForSelector('button', { timeout: 10000 });
 - [Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 - [Playwright Documentation](https://playwright.dev/)
 - [MSW Documentation](https://mswjs.io/)
-

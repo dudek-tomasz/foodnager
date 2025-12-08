@@ -11,14 +11,18 @@ Zaimplementowano prosty endpoint słownikowy do pobierania wszystkich jednostek 
 ## Implemented Files
 
 ### 1. Service Layer
+
 **File:** `src/lib/services/units.service.ts`
+
 - `UnitsService` class with `listUnits()` method
 - Fetches all units from database
 - Sorts alphabetically by name
 - Returns array of `UnitDTO` objects
 
 ### 2. Cache Layer
+
 **File:** `src/lib/utils/cache.ts`
+
 - `CacheAdapter` interface for flexibility
 - `MemoryCache` implementation (in-memory storage)
 - TTL-based expiration
@@ -26,7 +30,9 @@ Zaimplementowano prosty endpoint słownikowy do pobierania wszystkich jednostek 
 - Ready for Redis implementation in production
 
 ### 3. API Endpoint
+
 **File:** `src/pages/api/units/index.ts`
+
 - GET endpoint handler
 - Cache-first strategy (1 hour TTL)
 - X-Cache header for monitoring (HIT/MISS)
@@ -34,19 +40,23 @@ Zaimplementowano prosty endpoint słownikowy do pobierania wszystkich jednostek 
 - Authentication check (currently using DEFAULT_USER_ID)
 
 ### 4. Testing & Documentation
+
 **Files:**
+
 - `test-units-api.md` - Manual testing guide with curl examples
 - `Foodnager-Dictionaries-API.postman_collection.json` - Postman collection
 
 ## Technical Details
 
 ### Request
+
 ```http
 GET /api/units
 Authorization: Bearer {token}
 ```
 
 ### Response (200 OK)
+
 ```json
 {
   "data": [
@@ -62,6 +72,7 @@ Authorization: Bearer {token}
 ```
 
 ### Cache Strategy
+
 - **Cache Key:** `units:all`
 - **TTL:** 3600 seconds (1 hour)
 - **Hit Rate:** Expected > 99%
@@ -70,6 +81,7 @@ Authorization: Bearer {token}
   - Cache MISS: < 50ms
 
 ### Headers
+
 - `Content-Type: application/json`
 - `X-Cache: HIT` or `MISS` - for monitoring cache performance
 
@@ -81,24 +93,28 @@ Authorization: Bearer {token}
 ✅ **Cache monitoring** via X-Cache header  
 ✅ **Error handling** with consistent format  
 ✅ **Authentication check** (temporary DEFAULT_USER_ID)  
-✅ **No pagination** (small, static dataset)  
+✅ **No pagination** (small, static dataset)
 
 ## Testing
 
 ### Seed Data
+
 17 units are seeded in migration `20251017100400_seed_initial_data.sql`:
+
 - Weight units: kilogram, gram, miligram
 - Volume units: litr, mililitr, łyżka, łyżeczka, szklanka, garść
 - Count units: sztuka, opakowanie, pęczek, plaster, ząbek, główka
 - Other: szczypta, do smaku
 
 ### Test Cases
+
 1. ✅ **List all units** - Returns all 17 units sorted alphabetically
 2. ✅ **Cache verification** - First request MISS, second HIT
 3. ✅ **Authentication** - Currently using DEFAULT_USER_ID
 4. ✅ **Error handling** - Database errors handled gracefully
 
 ### How to Test
+
 ```bash
 # Test endpoint
 curl http://localhost:4321/api/units
@@ -109,12 +125,12 @@ curl -i http://localhost:4321/api/units | grep X-Cache
 
 ## Performance Metrics
 
-| Metric | Target | Expected |
-|--------|--------|----------|
-| Response Time (cached) | < 5ms | ✅ ~1-2ms |
-| Response Time (DB) | < 50ms | ✅ ~10-20ms |
-| Response Size | < 2KB | ✅ ~1.5KB |
-| Cache Hit Rate | > 95% | ✅ > 99% |
+| Metric                 | Target | Expected    |
+| ---------------------- | ------ | ----------- |
+| Response Time (cached) | < 5ms  | ✅ ~1-2ms   |
+| Response Time (DB)     | < 50ms | ✅ ~10-20ms |
+| Response Size          | < 2KB  | ✅ ~1.5KB   |
+| Cache Hit Rate         | > 95%  | ✅ > 99%    |
 
 ## Code Quality
 
@@ -122,16 +138,14 @@ curl -i http://localhost:4321/api/units | grep X-Cache
 ✅ **Follows project patterns** (consistent with FridgeService, RecipeService)  
 ✅ **Type-safe** (TypeScript with proper DTOs)  
 ✅ **Error handling** (graceful degradation)  
-✅ **Documentation** (JSDoc comments)  
+✅ **Documentation** (JSDoc comments)
 
 ## Known Limitations
 
 1. **Authentication:** Currently uses DEFAULT_USER_ID for development
    - TODO: Implement real JWT validation when auth system is ready
-   
 2. **Cache:** In-memory implementation only
    - TODO: Add Redis adapter for production multi-instance deployments
-   
 3. **Cache Invalidation:** No automatic invalidation
    - Units are quasi-static, so not a priority
    - Manual cache clear on server restart
@@ -139,26 +153,31 @@ curl -i http://localhost:4321/api/units | grep X-Cache
 ## Future Enhancements
 
 ### Admin Endpoints (Low Priority)
+
 - POST `/api/admin/units` - Add new unit
 - PATCH `/api/admin/units/:id` - Update unit
 - DELETE `/api/admin/units/:id` - Delete unit
 
 ### Unit Conversions (Future)
+
 - GET `/api/units/conversions` - Conversion rules between units
 - Support for automatic unit conversion in recipes
 
 ### Localization (Future)
+
 - Multi-language support for unit names
 - Localized abbreviations
 
 ## Integration Points
 
 ### Used By
+
 - Fridge items (user_products.unit_id)
 - Recipe ingredients (recipe_ingredients.unit_id)
 - Frontend forms (unit selection dropdowns)
 
 ### Dependencies
+
 - Supabase client
 - Cache utilities
 - API response utilities
@@ -167,6 +186,7 @@ curl -i http://localhost:4321/api/units | grep X-Cache
 ## Deployment Notes
 
 ### Environment Variables
+
 ```env
 # Optional cache configuration
 CACHE_PROVIDER=memory  # or 'redis' for production
@@ -175,12 +195,15 @@ UNITS_CACHE_TTL=3600  # 1 hour (default)
 ```
 
 ### Monitoring
+
 Track these metrics in production:
+
 - Cache hit rate (should be > 95%)
 - Response times (cache HIT vs MISS)
 - Error rate (should be ~0%)
 
 ### Alerts
+
 - Cache hit rate < 90% → Investigate cache issues
 - Error rate > 1% → Check database connectivity
 
@@ -210,4 +233,3 @@ Track these metrics in production:
 **Implementation Time:** ~2 hours  
 **Complexity:** Low  
 **Confidence:** High ✅
-

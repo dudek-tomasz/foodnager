@@ -177,7 +177,9 @@ Test
 ## 📦 Enkapsulacja i odpowiedzialność
 
 ### FridgePage
+
 **Odpowiedzialność:**
+
 - Nawigacja do strony lodówki
 - Zarządzanie globalnym stanem strony (search, filters)
 - Delegowanie akcji modala do AddProductModal
@@ -185,35 +187,45 @@ Test
 - Operacje na produktach (edit, delete)
 
 **NIE zarządza:**
+
 - Wewnętrzną logiką modala
 - Szczegółami komponentów formularza
 
 ### AddProductModal
+
 **Odpowiedzialność:**
+
 - Zarządzanie stanem modala (open/close)
 - Koordynacja wypełniania formularza
 - Walidacja formularza
 - Delegowanie do sub-komponentów
 
 **NIE zarządza:**
+
 - Szczegółami autocomplete/select/datepicker
 - Nawigacją po stronie
 
 ### ProductAutocompleteComponent
+
 **Odpowiedzialność:**
+
 - Wyszukiwanie produktów
 - Wybór istniejącego produktu
 - Tworzenie nowego produktu
 - Zarządzanie stanem dropdown
 
 ### UnitSelectComponent
+
 **Odpowiedzialność:**
+
 - Wybór jednostki z listy
 - Dostęp do wszystkich jednostek
 - Stan dropdown
 
 ### DatePickerComponent
+
 **Odpowiedzialność:**
+
 - Wybór daty
 - Pomocnicze metody (today, tomorrow, daysFromNow)
 - Czyszczenie daty
@@ -221,12 +233,15 @@ Test
 ## 🎯 Wzorce projektowe
 
 ### 1. Page Object Pattern
+
 Każda strona/modal jest reprezentowany przez klasę enkapsulującą:
+
 - Locatory (private)
 - Akcje (public methods)
 - Asercje (public methods)
 
 ### 2. Composition over Inheritance
+
 ```typescript
 // AddProductModal zawiera komponenty jako właściwości
 public readonly productAutocomplete: ProductAutocompleteComponent;
@@ -234,6 +249,7 @@ public readonly unitSelect: UnitSelectComponent;
 ```
 
 ### 3. Facade Pattern
+
 ```typescript
 // Metoda quickAdd ukrywa szczegóły implementacji
 async quickAdd(name: string, qty: number, unit: string) {
@@ -242,6 +258,7 @@ async quickAdd(name: string, qty: number, unit: string) {
 ```
 
 ### 4. Builder Pattern (w fillAndSubmit)
+
 ```typescript
 interface FillData {
   productName?: string;
@@ -257,56 +274,59 @@ await modal.fillAndSubmit({ ... });
 ## 🧪 Przykłady użycia w testach
 
 ### Poziom 1: Wysokopoziomowy (Recommended)
+
 ```typescript
-test('add product', async ({ page }) => {
+test("add product", async ({ page }) => {
   const fridge = new FridgePage(page);
   await fridge.goto();
   await fridge.openAddProductModal();
-  await fridge.addProductModal.quickAdd('Mleko', 1, 'litr');
-  await fridge.assertProductExists('Mleko');
+  await fridge.addProductModal.quickAdd("Mleko", 1, "litr");
+  await fridge.assertProductExists("Mleko");
 });
 ```
 
 ### Poziom 2: Średniopoziomowy
+
 ```typescript
-test('add product with expiry', async ({ page }) => {
+test("add product with expiry", async ({ page }) => {
   const fridge = new FridgePage(page);
   await fridge.goto();
   await fridge.openAddProductModal();
-  
+
   const modal = fridge.addProductModal;
   await modal.fillAndSubmit({
-    productName: 'Jogurt',
+    productName: "Jogurt",
     quantity: 2,
-    unitText: 'szt',
-    expiryDate: '2025-12-31'
+    unitText: "szt",
+    expiryDate: "2025-12-31",
   });
-  
-  await fridge.assertProductExists('Jogurt');
+
+  await fridge.assertProductExists("Jogurt");
 });
 ```
 
 ### Poziom 3: Niskopoziomowy (dla specjalnych przypadków)
+
 ```typescript
-test('add product step by step', async ({ page }) => {
+test("add product step by step", async ({ page }) => {
   const fridge = new FridgePage(page);
   await fridge.goto();
   await fridge.openAddProductModal();
-  
+
   const modal = fridge.addProductModal;
-  
+
   // Pełna kontrola nad każdym krokiem
   await modal.productAutocomplete.open();
-  await modal.productAutocomplete.search('Ser');
+  await modal.productAutocomplete.search("Ser");
   await modal.productAutocomplete.selectProduct(5);
-  
+
   await modal.fillQuantity(0.5);
-  
+
   await modal.unitSelect.open();
   await modal.unitSelect.selectUnit(2);
-  
+
   await modal.expiryDatePicker.setDaysFromNow(14);
-  
+
   await modal.submit();
 });
 ```
@@ -322,14 +342,15 @@ test('add product step by step', async ({ page }) => {
 ## 🔮 Przyszłe rozszerzenia
 
 ### Planowane komponenty:
+
 - `EditProductModal.page.ts` - Modal edycji produktu
 - `ConfirmDialog.page.ts` - Dialog potwierdzenia usunięcia
 - `SearchBar.component.ts` - Komponent wyszukiwania (do reużycia)
 - `SortDropdown.component.ts` - Komponent sortowania (do reużycia)
 
 ### Planowane strony:
+
 - `RecipesPage.page.ts` - Strona przepisów
 - `RecipeDetailsPage.page.ts` - Szczegóły przepisu
 - `ShoppingListPage.page.ts` - Lista zakupów
 - `CookingHistoryPage.page.ts` - Historia gotowania
-

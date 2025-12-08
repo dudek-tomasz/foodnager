@@ -11,12 +11,14 @@ This document provides manual tests for the Tags API endpoints.
 ## Test 1: GET /api/tags - List All Tags
 
 ### Request
+
 ```bash
 curl -X GET "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### Expected Response (200 OK)
+
 ```json
 {
   "data": [
@@ -36,6 +38,7 @@ curl -X GET "http://localhost:4321/api/tags" \
 ```
 
 **Headers to check:**
+
 - `X-Cache: MISS` (first request)
 - `X-Cache: HIT` (subsequent requests within cache TTL)
 
@@ -44,12 +47,14 @@ curl -X GET "http://localhost:4321/api/tags" \
 ## Test 2: GET /api/tags - Search Tags (Case-Insensitive)
 
 ### Request
+
 ```bash
 curl -X GET "http://localhost:4321/api/tags?search=wegań" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### Expected Response (200 OK)
+
 ```json
 {
   "data": [
@@ -67,12 +72,14 @@ curl -X GET "http://localhost:4321/api/tags?search=wegań" \
 ## Test 3: GET /api/tags - Search with No Results
 
 ### Request
+
 ```bash
 curl -X GET "http://localhost:4321/api/tags?search=nonexistent" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### Expected Response (200 OK)
+
 ```json
 {
   "data": []
@@ -84,12 +91,14 @@ curl -X GET "http://localhost:4321/api/tags?search=nonexistent" \
 ## Test 4: GET /api/tags - Search Too Long
 
 ### Request
+
 ```bash
 curl -X GET "http://localhost:4321/api/tags?search=this_is_a_very_long_search_query_that_exceeds_the_maximum_allowed_length" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### Expected Response (422 Unprocessable Entity)
+
 ```json
 {
   "error": {
@@ -112,6 +121,7 @@ curl -X GET "http://localhost:4321/api/tags?search=this_is_a_very_long_search_qu
 ## Test 5: POST /api/tags - Create New Tag
 
 ### Request
+
 ```bash
 curl -X POST "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -122,6 +132,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (201 Created)
+
 ```json
 {
   "id": 31,
@@ -131,6 +142,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 **Headers to check:**
+
 - `Location: /api/tags/31`
 
 ---
@@ -138,6 +150,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 6: POST /api/tags - Create Tag with Uppercase (Normalization)
 
 ### Request
+
 ```bash
 curl -X POST "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -148,6 +161,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (201 Created)
+
 ```json
 {
   "id": 32,
@@ -163,6 +177,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 7: POST /api/tags - Duplicate Tag (Case-Insensitive)
 
 ### Request
+
 ```bash
 # First, create a tag
 curl -X POST "http://localhost:4321/api/tags" \
@@ -182,6 +197,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (409 Conflict)
+
 ```json
 {
   "error": {
@@ -200,6 +216,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 8: POST /api/tags - Name Too Short
 
 ### Request
+
 ```bash
 curl -X POST "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -210,6 +227,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (400 Bad Request)
+
 ```json
 {
   "error": {
@@ -232,6 +250,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 9: POST /api/tags - Name Too Long
 
 ### Request
+
 ```bash
 curl -X POST "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -242,6 +261,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (400 Bad Request)
+
 ```json
 {
   "error": {
@@ -264,6 +284,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 10: POST /api/tags - Missing Name
 
 ### Request
+
 ```bash
 curl -X POST "http://localhost:4321/api/tags" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
@@ -272,6 +293,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ```
 
 ### Expected Response (400 Bad Request)
+
 ```json
 {
   "error": {
@@ -294,6 +316,7 @@ curl -X POST "http://localhost:4321/api/tags" \
 ## Test 11: Cache Invalidation After POST
 
 ### Requests
+
 ```bash
 # 1. Get all tags (cache MISS)
 curl -X GET "http://localhost:4321/api/tags" \
@@ -323,6 +346,7 @@ curl -X GET "http://localhost:4321/api/tags" \
 ## Test 12: Search Cache Independence
 
 ### Requests
+
 ```bash
 # 1. Search for "szybkie" (cache MISS)
 curl -X GET "http://localhost:4321/api/tags?search=szybkie" \
@@ -350,6 +374,7 @@ curl -X GET "http://localhost:4321/api/tags" \
 ## Test Checklist
 
 ### GET /api/tags
+
 - [ ] Returns all tags
 - [ ] Search filtering works
 - [ ] Case-insensitive search
@@ -359,6 +384,7 @@ curl -X GET "http://localhost:4321/api/tags" \
 - [ ] Search validation (max 50 chars)
 
 ### POST /api/tags
+
 - [ ] Creates new tag successfully
 - [ ] Lowercase normalization works
 - [ ] Duplicate detection (case-insensitive)
@@ -370,6 +396,7 @@ curl -X GET "http://localhost:4321/api/tags" \
 - [ ] Returns 201 status code
 
 ### Cache Behavior
+
 - [ ] GET caches independently per search query
 - [ ] POST invalidates all tag caches
 - [ ] Cache TTL is 10 minutes (600 seconds)
@@ -388,4 +415,3 @@ curl -X GET "http://localhost:4321/api/tags" \
 4. **Global Tags**: Tags are visible to all authenticated users.
 
 5. **Community-Driven**: Any authenticated user can create tags (can be changed to admin-only if needed).
-

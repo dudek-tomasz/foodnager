@@ -45,12 +45,14 @@ Modal nie posiada dedykowanej ścieżki URL. Jest wywoływany programatycznie z 
 Główny komponent modalny zarządzający całym widokiem listy zakupów. Odpowiada za generowanie listy (wywołanie API), zarządzanie stanem edytowanych pozycji oraz obsługę akcji eksportu.
 
 **Główne elementy HTML i komponenty dzieci:**
+
 - `<Dialog>` z Shadcn/ui jako wrapper modalny
 - `<DialogHeader>` z tytułem i przyciskiem zamknięcia
 - `<ShoppingListContent>` - obszar przewijany z listą
 - `<DialogFooter>` - przyciski akcji
 
 **Obsługiwane zdarzenia:**
+
 - `onOpen` - wywołanie API POST `/api/shopping-list/generate` z `recipe_id`
 - `onClose` - zamknięcie modala
 - `onCopyToClipboard` - kopiowanie listy w formacie tekstowym
@@ -59,17 +61,20 @@ Główny komponent modalny zarządzający całym widokiem listy zakupów. Odpowi
 - Loading state podczas generowania listy
 
 **Warunki walidacji:**
+
 - `recipe_id` musi być numerem dodatnim
 - Minimum 1 brakujący składnik do wyświetlenia
 - Ilości muszą być liczbami dodatnimi (> 0)
 
 **Typy:**
+
 - Props: `ShoppingListModalProps`
 - State: `ShoppingListState`
 - API Request: `GenerateShoppingListDTO`
 - API Response: `ShoppingListResponseDTO`
 
 **Propsy (interfejs komponentu):**
+
 ```typescript
 interface ShoppingListModalProps {
   recipeId: number;
@@ -86,23 +91,28 @@ interface ShoppingListModalProps {
 Komponent prezentujący listę edytowalnych pozycji zakupowych. Zarządza stanem lokalnym każdej pozycji (checked, quantity).
 
 **Główne elementy HTML i komponenty dzieci:**
+
 - `<div>` jako wrapper listy
 - `<ShoppingListItem>` dla każdej pozycji z `missing_ingredients`
 
 **Obsługiwane zdarzenia:**
+
 - `onItemCheck` - toggle checkbox dla pozycji
 - `onItemRemove` - usunięcie pozycji z listy
 - `onQuantityChange` - zmiana ilości składnika
 
 **Warunki walidacji:**
+
 - Ilość musi być liczbą dodatnią
 - Minimum 1 item z checked=true do eksportu
 
 **Typy:**
+
 - Props: `EditableShoppingListProps`
 - Item: `EditableShoppingListItem`
 
 **Propsy:**
+
 ```typescript
 interface EditableShoppingListProps {
   items: ShoppingListItemDTO[];
@@ -116,6 +126,7 @@ interface EditableShoppingListProps {
 Pojedynczy wiersz reprezentujący brakujący składnik. Zawiera checkbox, nazwę produktu, edytowalną ilość, jednostkę oraz przycisk usunięcia.
 
 **Główne elementy HTML i komponenty dzieci:**
+
 - `<div className="flex items-center gap-3">` - kontener wiersza
 - `<Checkbox>` (Shadcn/ui)
 - `<span>` - nazwa produktu
@@ -124,18 +135,22 @@ Pojedynczy wiersz reprezentujący brakujący składnik. Zawiera checkbox, nazwę
 - `<Button variant="ghost">` - ikona X do usunięcia
 
 **Obsługiwane zdarzenia:**
+
 - `onCheckedChange` - zmiana stanu checkbox
 - `onQuantityChange` - zmiana ilości (debounced)
 - `onRemove` - usunięcie pozycji
 
 **Warunki walidacji:**
+
 - Ilość > 0
 - Ilość jako liczba (nie NaN)
 
 **Typy:**
+
 - Props: `ShoppingListItemProps`
 
 **Propsy:**
+
 ```typescript
 interface ShoppingListItemProps {
   item: EditableShoppingListItem;
@@ -151,13 +166,16 @@ interface ShoppingListItemProps {
 Nagłówek modala z tytułem i przyciskiem zamknięcia.
 
 **Główne elementy:**
+
 - `<DialogTitle>` - "Lista zakupów: [nazwa przepisu]"
 - `<DialogClose asChild>` - przycisk X
 
 **Obsługiwane zdarzenia:**
+
 - `onClick` na close button - zamyka modal
 
 **Typy:**
+
 - Standard Shadcn/ui Dialog components
 
 ### 4.5 DialogFooter
@@ -166,6 +184,7 @@ Nagłówek modala z tytułem i przyciskiem zamknięcia.
 Stopka modala z przyciskami akcji.
 
 **Główne elementy:**
+
 - 4 przyciski w jednym wierszu (flex, gap-2):
   - "Kopiuj do schowka" (primary)
   - "Drukuj" (secondary)
@@ -173,6 +192,7 @@ Stopka modala z przyciskami akcji.
   - "Zamknij" (secondary)
 
 **Obsługiwane zdarzenia:**
+
 - `onCopy` - kopiowanie do clipboard
 - `onPrint` - drukowanie
 - `onExport` - download pliku
@@ -183,6 +203,7 @@ Stopka modala z przyciskami akcji.
 ### 5.1 DTOs z API (z `src/types.ts`)
 
 **GenerateShoppingListDTO** - Request body dla POST `/api/shopping-list/generate`:
+
 ```typescript
 interface GenerateShoppingListDTO {
   recipe_id: number;
@@ -190,6 +211,7 @@ interface GenerateShoppingListDTO {
 ```
 
 **ShoppingListResponseDTO** - Response z API:
+
 ```typescript
 interface ShoppingListResponseDTO {
   recipe: RecipeReferenceDTO;
@@ -199,6 +221,7 @@ interface ShoppingListResponseDTO {
 ```
 
 **RecipeReferenceDTO**:
+
 ```typescript
 interface RecipeReferenceDTO {
   id: number;
@@ -207,6 +230,7 @@ interface RecipeReferenceDTO {
 ```
 
 **ShoppingListItemDTO**:
+
 ```typescript
 interface ShoppingListItemDTO {
   product: ProductReferenceDTO;
@@ -218,6 +242,7 @@ interface ShoppingListItemDTO {
 ```
 
 **ProductReferenceDTO**:
+
 ```typescript
 interface ProductReferenceDTO {
   id: number;
@@ -226,6 +251,7 @@ interface ProductReferenceDTO {
 ```
 
 **UnitReferenceDTO**:
+
 ```typescript
 interface UnitReferenceDTO {
   id: number;
@@ -237,42 +263,47 @@ interface UnitReferenceDTO {
 ### 5.2 ViewModels (nowe typy dla widoku)
 
 **ShoppingListModalProps** - Props głównego komponentu:
+
 ```typescript
 interface ShoppingListModalProps {
-  recipeId: number;          // ID przepisu do generowania listy
-  recipeTitle: string;       // Tytuł przepisu (do wyświetlenia w nagłówku)
-  isOpen: boolean;           // Kontrola widoczności modala
-  onClose: () => void;       // Callback zamknięcia modala
-  onSuccess?: () => void;    // Optional callback po sukcesie (do refresh w parent)
+  recipeId: number; // ID przepisu do generowania listy
+  recipeTitle: string; // Tytuł przepisu (do wyświetlenia w nagłówku)
+  isOpen: boolean; // Kontrola widoczności modala
+  onClose: () => void; // Callback zamknięcia modala
+  onSuccess?: () => void; // Optional callback po sukcesie (do refresh w parent)
 }
 ```
 
 **ShoppingListState** - Stan wewnętrzny komponentu:
+
 ```typescript
 interface ShoppingListState {
-  loading: boolean;                      // Czy trwa ładowanie danych z API
-  error: string | null;                  // Komunikat błędu (jeśli wystąpił)
-  recipe: RecipeReferenceDTO | null;     // Informacje o przepisie
-  items: EditableShoppingListItem[];     // Edytowalna lista pozycji
-  totalItems: number;                    // Liczba pozycji (z API)
+  loading: boolean; // Czy trwa ładowanie danych z API
+  error: string | null; // Komunikat błędu (jeśli wystąpił)
+  recipe: RecipeReferenceDTO | null; // Informacje o przepisie
+  items: EditableShoppingListItem[]; // Edytowalna lista pozycji
+  totalItems: number; // Liczba pozycji (z API)
 }
 ```
 
 **EditableShoppingListItem** - Rozszerzona wersja `ShoppingListItemDTO` z dodatkowymi polami UI:
+
 ```typescript
 interface EditableShoppingListItem extends ShoppingListItemDTO {
-  id: string;                           // Unikalny identyfikator (dla key w React)
-  checked: boolean;                     // Czy item jest zaznaczony (domyślnie true)
-  editedQuantity: number;               // Edytowana ilość (początkowo = missing_quantity)
+  id: string; // Unikalny identyfikator (dla key w React)
+  checked: boolean; // Czy item jest zaznaczony (domyślnie true)
+  editedQuantity: number; // Edytowana ilość (początkowo = missing_quantity)
 }
 ```
 
 **ExportFormat** - Enum dla formatów eksportu:
+
 ```typescript
-type ExportFormat = 'clipboard' | 'print' | 'txt';
+type ExportFormat = "clipboard" | "print" | "txt";
 ```
 
 **FormattedShoppingListItem** - Format do eksportu:
+
 ```typescript
 interface FormattedShoppingListItem {
   productName: string;
@@ -284,6 +315,7 @@ interface FormattedShoppingListItem {
 ### 5.3 Pomocnicze typy
 
 **ApiError** - Reprezentacja błędu z API:
+
 ```typescript
 interface ApiError {
   code: string;
@@ -299,17 +331,19 @@ interface ApiError {
 Modal zarządza stanem lokalnie przy użyciu `useState` bez wykorzystania zewnętrznych bibliotek state management.
 
 **Stan główny (`ShoppingListState`):**
+
 ```typescript
 const [state, setState] = useState<ShoppingListState>({
   loading: false,
   error: null,
   recipe: null,
   items: [],
-  totalItems: 0
+  totalItems: 0,
 });
 ```
 
 **Alternatywnie - osobne states dla lepszej granularności:**
+
 ```typescript
 const [loading, setLoading] = useState<boolean>(false);
 const [error, setError] = useState<string | null>(null);
@@ -320,6 +354,7 @@ const [items, setItems] = useState<EditableShoppingListItem[]>([]);
 ### 6.2 Efekty uboczne (useEffect)
 
 **Generowanie listy zakupów przy otwarciu modala:**
+
 ```typescript
 useEffect(() => {
   if (isOpen && recipeId) {
@@ -329,39 +364,39 @@ useEffect(() => {
 ```
 
 **Funkcja `generateShoppingList`:**
+
 ```typescript
 const generateShoppingList = async () => {
   setLoading(true);
   setError(null);
-  
+
   try {
-    const response = await fetch('/api/shopping-list/generate', {
-      method: 'POST',
+    const response = await fetch("/api/shopping-list/generate", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ recipe_id: recipeId })
+      body: JSON.stringify({ recipe_id: recipeId }),
     });
-    
+
     if (!response.ok) {
-      throw new Error('Nie udało się wygenerować listy zakupów');
+      throw new Error("Nie udało się wygenerować listy zakupów");
     }
-    
+
     const data: ShoppingListResponseDTO = await response.json();
-    
+
     // Przekształć dane API na EditableShoppingListItem
     const editableItems: EditableShoppingListItem[] = data.missing_ingredients.map((item, index) => ({
       ...item,
       id: `item-${index}-${item.product.id}`,
       checked: true,
-      editedQuantity: item.missing_quantity
+      editedQuantity: item.missing_quantity,
     }));
-    
+
     setRecipe(data.recipe);
     setItems(editableItems);
-    
   } catch (error) {
-    setError(error.message || 'Wystąpił błąd');
+    setError(error.message || "Wystąpił błąd");
   } finally {
     setLoading(false);
   }
@@ -371,35 +406,32 @@ const generateShoppingList = async () => {
 ### 6.3 Zarządzanie zmianami w liście
 
 **Toggle checkbox:**
+
 ```typescript
 const handleItemCheck = (itemId: string, checked: boolean) => {
-  setItems(prevItems =>
-    prevItems.map(item =>
-      item.id === itemId ? { ...item, checked } : item
-    )
-  );
+  setItems((prevItems) => prevItems.map((item) => (item.id === itemId ? { ...item, checked } : item)));
 };
 ```
 
 **Zmiana ilości:**
+
 ```typescript
 const handleQuantityChange = (itemId: string, newQuantity: number) => {
   if (newQuantity <= 0 || isNaN(newQuantity)) {
     return; // Walidacja
   }
-  
-  setItems(prevItems =>
-    prevItems.map(item =>
-      item.id === itemId ? { ...item, editedQuantity: newQuantity } : item
-    )
+
+  setItems((prevItems) =>
+    prevItems.map((item) => (item.id === itemId ? { ...item, editedQuantity: newQuantity } : item))
   );
 };
 ```
 
 **Usunięcie pozycji:**
+
 ```typescript
 const handleItemRemove = (itemId: string) => {
-  setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
 };
 ```
 
@@ -414,9 +446,9 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
   const [error, setError] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<RecipeReferenceDTO | null>(null);
   const [items, setItems] = useState<EditableShoppingListItem[]>([]);
-  
+
   // ... logika z useEffect i funkcje
-  
+
   return {
     loading,
     error,
@@ -425,7 +457,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
     handleItemCheck,
     handleQuantityChange,
     handleItemRemove,
-    regenerate: generateShoppingList
+    regenerate: generateShoppingList,
   };
 }
 ```
@@ -437,12 +469,14 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 **Metoda:** POST  
 **Ścieżka:** `/api/shopping-list/generate`  
 **Nagłówki:**
+
 - `Content-Type: application/json`
 - `Authorization: Bearer {token}` (obsługiwane automatycznie przez middleware)
 
 ### 7.2 Request
 
 **Typ:** `GenerateShoppingListDTO`
+
 ```json
 {
   "recipe_id": 1
@@ -450,6 +484,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 ```
 
 **Walidacja po stronie klienta:**
+
 - `recipe_id` musi być liczbą dodatnią
 - `recipe_id` jest wymagane
 
@@ -458,6 +493,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 **Sukces (200 OK):**
 
 **Typ:** `ShoppingListResponseDTO`
+
 ```json
 {
   "recipe": {
@@ -499,6 +535,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 ```
 
 **Sukces bez brakujących składników (200 OK):**
+
 ```json
 {
   "recipe": {
@@ -513,6 +550,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 **Błędy:**
 
 - **400 Bad Request** - Nieprawidłowy `recipe_id`
+
   ```json
   {
     "error": {
@@ -526,6 +564,7 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
   ```
 
 - **401 Unauthorized** - Brak autoryzacji
+
   ```json
   {
     "error": {
@@ -549,33 +588,32 @@ function useShoppingList(recipeId: number, isOpen: boolean) {
 
 ```typescript
 try {
-  const response = await fetch('/api/shopping-list/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ recipe_id: recipeId })
+  const response = await fetch("/api/shopping-list/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipe_id: recipeId }),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
-    
+
     switch (response.status) {
       case 400:
-        throw new Error('Nieprawidłowe ID przepisu');
+        throw new Error("Nieprawidłowe ID przepisu");
       case 401:
-        throw new Error('Wymagane logowanie');
+        throw new Error("Wymagane logowanie");
       case 404:
-        throw new Error('Przepis nie został znaleziony');
+        throw new Error("Przepis nie został znaleziony");
       default:
-        throw new Error(errorData.error?.message || 'Wystąpił błąd');
+        throw new Error(errorData.error?.message || "Wystąpił błąd");
     }
   }
-  
+
   const data = await response.json();
   // Process data...
-  
 } catch (error) {
   setError(error.message);
-  console.error('Shopping list generation error:', error);
+  console.error("Shopping list generation error:", error);
 }
 ```
 
@@ -586,6 +624,7 @@ try {
 **Trigger:** Kliknięcie przycisku "Generuj listę zakupów" w widoku Recipe Details
 
 **Przepływ:**
+
 1. Użytkownik klika przycisk w sekcji składników
 2. Parent component (`RecipeDetails`) ustawia `isOpen={true}` na `ShoppingListModal`
 3. Modal się otwiera i automatycznie wywołuje API
@@ -593,17 +632,20 @@ try {
 5. Po otrzymaniu danych wyświetlana jest lista składników
 
 **Warunki wstępne:**
+
 - Użytkownik jest na widoku Recipe Details (`/recipes/:id`)
 - Istnieją brakujące składniki (przycisk widoczny tylko wtedy)
 
 ### 8.2 Edycja pozycji
 
 **Interakcja 1: Toggle checkbox**
+
 - Kliknięcie checkbox zaznacza/odznacza pozycję
 - Odznaczone pozycje są wizualnie wygaszone (opacity: 0.5)
 - Odznaczone pozycje nie są uwzględniane w eksporcie
 
 **Interakcja 2: Edycja ilości**
+
 - Kliknięcie w pole input z ilością aktywuje edycję
 - Użytkownik wpisuje nową wartość liczbową
 - Walidacja na bieżąco: ilość > 0, tylko liczby
@@ -611,6 +653,7 @@ try {
 - Po zmianie focus lub Enter - wartość jest zapisywana
 
 **Interakcja 3: Usunięcie pozycji**
+
 - Kliknięcie ikony X usuwa pozycję z listy
 - Brak confirmation dialog (szybkie działanie)
 - Pozycja natychmiast znika z listy
@@ -621,33 +664,38 @@ try {
 **Trigger:** Kliknięcie przycisku "Kopiuj do schowka"
 
 **Przepływ:**
+
 1. Zbierane są wszystkie zaznaczone pozycje (checked=true)
 2. Formatowanie do plain text:
+
    ```
    Lista zakupów: [Nazwa przepisu]
-   
+
    - 2 pc Pomidor
    - 100 g Mąka
    - 1 szt Cebula
    ```
+
 3. Użycie Clipboard API: `navigator.clipboard.writeText(text)`
 4. Wyświetlenie toast success: "Skopiowano do schowka"
 5. Modal pozostaje otwarty
 
 **Walidacja:**
+
 - Minimum 1 zaznaczona pozycja (checked=true)
 - Jeśli brak zaznaczonych: toast error "Zaznacz przynajmniej jeden składnik"
 
 **Format eksportu:**
+
 ```typescript
 const formatForClipboard = (items: EditableShoppingListItem[], recipeTitle: string): string => {
-  const checkedItems = items.filter(item => item.checked);
-  
+  const checkedItems = items.filter((item) => item.checked);
+
   const header = `Lista zakupów: ${recipeTitle}\n\n`;
-  const itemsList = checkedItems.map(item =>
-    `- ${item.editedQuantity} ${item.unit.abbreviation} ${item.product.name}`
-  ).join('\n');
-  
+  const itemsList = checkedItems
+    .map((item) => `- ${item.editedQuantity} ${item.unit.abbreviation} ${item.product.name}`)
+    .join("\n");
+
   return header + itemsList;
 };
 ```
@@ -657,23 +705,25 @@ const formatForClipboard = (items: EditableShoppingListItem[], recipeTitle: stri
 **Trigger:** Kliknięcie przycisku "Drukuj"
 
 **Przepływ:**
+
 1. Przygotowanie zawartości do druku (tylko zaznaczone pozycje)
 2. Wywołanie `window.print()` - otwiera natywny dialog drukowania
 3. CSS `@media print` ukrywa niepotrzebne elementy (przyciski, checkbox)
 4. Po zakończeniu drukowania modal pozostaje otwarty
 
 **Style dla druku:**
+
 ```css
 @media print {
   .shopping-list-modal-footer {
     display: none;
   }
-  
+
   .shopping-list-checkbox,
   .shopping-list-remove-button {
     display: none;
   }
-  
+
   .shopping-list-item {
     page-break-inside: avoid;
   }
@@ -685,6 +735,7 @@ const formatForClipboard = (items: EditableShoppingListItem[], recipeTitle: stri
 **Trigger:** Kliknięcie przycisku "Eksportuj .txt"
 
 **Przepływ:**
+
 1. Formatowanie identyczne jak dla clipboard
 2. Utworzenie Blob z tekstem
 3. Utworzenie URL obiektu Blob
@@ -693,46 +744,50 @@ const formatForClipboard = (items: EditableShoppingListItem[], recipeTitle: stri
 6. Toast success: "Lista zakupów pobrana"
 
 **Implementacja:**
+
 ```typescript
 const handleExportTxt = () => {
-  const checkedItems = items.filter(item => item.checked);
-  
+  const checkedItems = items.filter((item) => item.checked);
+
   if (checkedItems.length === 0) {
-    showToast('Zaznacz przynajmniej jeden składnik', 'error');
+    showToast("Zaznacz przynajmniej jeden składnik", "error");
     return;
   }
-  
+
   const content = formatForClipboard(checkedItems, recipe.title);
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
+
+  const link = document.createElement("a");
   link.href = url;
   link.download = `lista-zakupow-${slugify(recipe.title)}.txt`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   URL.revokeObjectURL(url);
-  showToast('Lista zakupów pobrana', 'success');
+  showToast("Lista zakupów pobrana", "success");
 };
 ```
 
 ### 8.6 Zamykanie modala
 
-**Trigger:** 
+**Trigger:**
+
 - Kliknięcie przycisku "Zamknij"
 - Kliknięcie X w nagłówku
 - Kliknięcie poza modalem (backdrop)
 - Naciśnięcie klawisza Escape
 
 **Przepływ:**
+
 1. Wywołanie callback `onClose()` przekazanego z parent
 2. Parent ustawia `isOpen={false}`
 3. Modal animuje zamknięcie (fade out)
 4. Stan wewnętrzny modala jest zachowany (dla szybkiego ponownego otwarcia)
 
 **Brak confirmation:**
+
 - Edycje są lokalne (nie zapisywane do bazy)
 - Brak potrzeby potwierdzenia zamknięcia
 
@@ -742,25 +797,26 @@ const handleExportTxt = () => {
 
 **Komponent: ShoppingListModal**
 
-| Prop | Warunek | Wpływ na UI | Obsługa błędu |
-|------|---------|-------------|---------------|
-| `recipeId` | Liczba dodatnia (> 0) | Brak wywołania API jeśli invalid | Console.error + close modal |
-| `recipeTitle` | Niepusty string | Wyświetlony w nagłówku | Fallback: "Przepis" |
-| `isOpen` | Boolean | Kontrola widoczności modala | - |
-| `onClose` | Function | Wywołanie przy zamknięciu | Wymagane (brak fallback) |
+| Prop          | Warunek               | Wpływ na UI                      | Obsługa błędu               |
+| ------------- | --------------------- | -------------------------------- | --------------------------- |
+| `recipeId`    | Liczba dodatnia (> 0) | Brak wywołania API jeśli invalid | Console.error + close modal |
+| `recipeTitle` | Niepusty string       | Wyświetlony w nagłówku           | Fallback: "Przepis"         |
+| `isOpen`      | Boolean               | Kontrola widoczności modala      | -                           |
+| `onClose`     | Function              | Wywołanie przy zamknięciu        | Wymagane (brak fallback)    |
 
 **Przykład walidacji:**
+
 ```typescript
 useEffect(() => {
   if (!isOpen) return;
-  
+
   if (!recipeId || recipeId <= 0) {
-    console.error('Invalid recipeId:', recipeId);
-    showToast('Błąd: nieprawidłowe ID przepisu', 'error');
+    console.error("Invalid recipeId:", recipeId);
+    showToast("Błąd: nieprawidłowe ID przepisu", "error");
     onClose();
     return;
   }
-  
+
   generateShoppingList();
 }, [isOpen, recipeId]);
 ```
@@ -769,39 +825,40 @@ useEffect(() => {
 
 **Komponent: ShoppingListItem**
 
-| Pole | Warunki | Komunikat błędu | Działanie UI |
-|------|---------|-----------------|--------------|
-| `editedQuantity` | > 0 | "Ilość musi być większa od 0" | Czerwone obramowanie input |
-| `editedQuantity` | Liczba (not NaN) | "Wprowadź poprawną liczbę" | Czerwone obramowanie input |
-| `editedQuantity` | Max 9999 | "Maksymalna ilość to 9999" | Czerwone obramowanie input |
+| Pole             | Warunki          | Komunikat błędu               | Działanie UI               |
+| ---------------- | ---------------- | ----------------------------- | -------------------------- |
+| `editedQuantity` | > 0              | "Ilość musi być większa od 0" | Czerwone obramowanie input |
+| `editedQuantity` | Liczba (not NaN) | "Wprowadź poprawną liczbę"    | Czerwone obramowanie input |
+| `editedQuantity` | Max 9999         | "Maksymalna ilość to 9999"    | Czerwone obramowanie input |
 
 **Implementacja walidacji inline:**
+
 ```typescript
 const [quantityError, setQuantityError] = useState<string | null>(null);
 
 const validateQuantity = (value: number): boolean => {
   if (isNaN(value)) {
-    setQuantityError('Wprowadź poprawną liczbę');
+    setQuantityError("Wprowadź poprawną liczbę");
     return false;
   }
-  
+
   if (value <= 0) {
-    setQuantityError('Ilość musi być większa od 0');
+    setQuantityError("Ilość musi być większa od 0");
     return false;
   }
-  
+
   if (value > 9999) {
-    setQuantityError('Maksymalna ilość to 9999');
+    setQuantityError("Maksymalna ilość to 9999");
     return false;
   }
-  
+
   setQuantityError(null);
   return true;
 };
 
 const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const newValue = parseFloat(e.target.value);
-  
+
   if (validateQuantity(newValue)) {
     onQuantityChange(newValue);
   }
@@ -809,22 +866,20 @@ const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 ```
 
 **Wizualizacja błędu:**
+
 ```tsx
 <Input
   type="number"
   value={item.editedQuantity}
   onChange={handleQuantityChange}
-  className={cn(
-    "w-20",
-    quantityError && "border-red-500 focus:ring-red-500"
-  )}
+  className={cn("w-20", quantityError && "border-red-500 focus:ring-red-500")}
   min={0}
   max={9999}
   step={0.1}
-/>
-{quantityError && (
-  <span className="text-xs text-red-500">{quantityError}</span>
-)}
+/>;
+{
+  quantityError && <span className="text-xs text-red-500">{quantityError}</span>;
+}
 ```
 
 ### 9.3 Walidacja akcji eksportu
@@ -832,19 +887,20 @@ const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 **Warunek: Minimum 1 zaznaczona pozycja**
 
 ```typescript
-const canExport = items.some(item => item.checked);
+const canExport = items.some((item) => item.checked);
 
 const handleCopyToClipboard = () => {
   if (!canExport) {
-    showToast('Zaznacz przynajmniej jeden składnik do skopiowania', 'error');
+    showToast("Zaznacz przynajmniej jeden składnik do skopiowania", "error");
     return;
   }
-  
+
   // Proceed with export...
 };
 ```
 
 **UI feedback:**
+
 - Przyciski eksportu disabled gdy `!canExport`
 - Tooltip: "Zaznacz przynajmniej jeden składnik"
 
@@ -861,24 +917,28 @@ const handleCopyToClipboard = () => {
 ### 9.4 Warunki stanu komponentu
 
 **Loading state:**
+
 - `loading === true`
 - UI: Skeleton loader w miejscu listy
 - Wszystkie przyciski akcji disabled
 - Komunikat: "Generowanie listy zakupów..."
 
 **Error state:**
+
 - `error !== null`
 - UI: Komunikat błędu w centrum modala
 - Przycisk "Spróbuj ponownie" → wywołuje ponownie `generateShoppingList()`
 - Przycisk "Zamknij" → zamyka modal
 
 **Empty state:**
+
 - `items.length === 0` po załadowaniu
 - UI: Komunikat "Wszystkie składniki dostępne! 🎉"
 - Opis: "Masz wszystko co potrzebne do przygotowania tego przepisu."
 - Przycisk "Zamknij" (primary)
 
 **Normal state:**
+
 - `items.length > 0`
 - Wyświetlenie listy pozycji
 - Wszystkie akcje dostępne
@@ -886,11 +946,13 @@ const handleCopyToClipboard = () => {
 ### 9.5 Walidacja obsługiwana przez API
 
 API endpoint `/api/shopping-list/generate` waliduje:
+
 - `recipe_id` istnieje w bazie
 - Przepis należy do użytkownika
 - Użytkownik jest zaautentykowany
 
 Frontend obsługuje błędy API poprzez:
+
 1. Wyświetlenie komunikatu błędu z API w toast
 2. Pokazanie error state w modalu
 3. Umożliwienie ponownego wywołania lub zamknięcia
@@ -899,57 +961,60 @@ Frontend obsługuje błędy API poprzez:
 
 ### 10.1 Błędy API
 
-| Scenariusz | Kod HTTP | Akcja UI |
-|------------|----------|----------|
-| Brak autoryzacji | 401 | Toast error: "Wymagane logowanie. Zaloguj się ponownie." + Redirect do `/login` |
-| Nieprawidłowy recipe_id | 400 | Toast error: "Nieprawidłowe ID przepisu" + Zamknięcie modala |
-| Przepis nie znaleziony | 404 | Toast error: "Przepis nie został znaleziony" + Zamknięcie modala |
-| Błąd serwera | 500 | Error state w modalu + przycisk "Spróbuj ponownie" |
-| Błąd sieci | Network error | Error state: "Brak połączenia z internetem" + przycisk retry |
+| Scenariusz              | Kod HTTP      | Akcja UI                                                                        |
+| ----------------------- | ------------- | ------------------------------------------------------------------------------- |
+| Brak autoryzacji        | 401           | Toast error: "Wymagane logowanie. Zaloguj się ponownie." + Redirect do `/login` |
+| Nieprawidłowy recipe_id | 400           | Toast error: "Nieprawidłowe ID przepisu" + Zamknięcie modala                    |
+| Przepis nie znaleziony  | 404           | Toast error: "Przepis nie został znaleziony" + Zamknięcie modala                |
+| Błąd serwera            | 500           | Error state w modalu + przycisk "Spróbuj ponownie"                              |
+| Błąd sieci              | Network error | Error state: "Brak połączenia z internetem" + przycisk retry                    |
 
 **Implementacja error handling:**
+
 ```typescript
 const handleApiError = (error: any, response?: Response) => {
-  let errorMessage = 'Wystąpił nieoczekiwany błąd';
-  
+  let errorMessage = "Wystąpił nieoczekiwany błąd";
+
   if (!response) {
     // Network error
-    errorMessage = 'Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.';
+    errorMessage = "Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.";
   } else {
     switch (response.status) {
       case 400:
-        errorMessage = 'Nieprawidłowe dane przepisu';
+        errorMessage = "Nieprawidłowe dane przepisu";
         setTimeout(() => onClose(), 2000); // Auto-close po 2s
         break;
       case 401:
-        errorMessage = 'Wymagane logowanie';
+        errorMessage = "Wymagane logowanie";
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = "/login";
         }, 2000);
         break;
       case 404:
-        errorMessage = 'Przepis nie został znaleziony';
+        errorMessage = "Przepis nie został znaleziony";
         setTimeout(() => onClose(), 2000);
         break;
       case 500:
       default:
-        errorMessage = 'Błąd serwera. Spróbuj ponownie za chwilę.';
+        errorMessage = "Błąd serwera. Spróbuj ponownie za chwilę.";
     }
   }
-  
+
   setError(errorMessage);
-  showToast(errorMessage, 'error');
+  showToast(errorMessage, "error");
 };
 ```
 
 ### 10.2 Błędy walidacji
 
 **Nieprawidłowa ilość w input:**
+
 - **Trigger:** Użytkownik wpisuje wartość <= 0 lub NaN
 - **Akcja:** Czerwone obramowanie input + komunikat pod polem
 - **Recovery:** Automatyczna walidacja onChange, użytkownik poprawia wartość
 
 **Brak zaznaczonych pozycji przy eksporcie:**
+
 - **Trigger:** Kliknięcie "Kopiuj"/"Drukuj"/"Eksportuj" gdy wszystkie unchecked
 - **Akcja:** Toast warning: "Zaznacz przynajmniej jeden składnik"
 - **Recovery:** Użytkownik zaznacza checkbox i ponawia akcję
@@ -963,32 +1028,32 @@ const copyToClipboard = async (text: string) => {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
-      showToast('Skopiowano do schowka', 'success');
+      showToast("Skopiowano do schowka", "success");
     } else {
       // Fallback: textarea trick
       fallbackCopyToClipboard(text);
     }
   } catch (error) {
-    console.error('Clipboard error:', error);
-    showToast('Nie udało się skopiować. Spróbuj ponownie.', 'error');
+    console.error("Clipboard error:", error);
+    showToast("Nie udało się skopiować. Spróbuj ponownie.", "error");
   }
 };
 
 const fallbackCopyToClipboard = (text: string) => {
-  const textarea = document.createElement('textarea');
+  const textarea = document.createElement("textarea");
   textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
   document.body.appendChild(textarea);
   textarea.select();
-  
+
   try {
-    document.execCommand('copy');
-    showToast('Skopiowano do schowka', 'success');
+    document.execCommand("copy");
+    showToast("Skopiowano do schowka", "success");
   } catch (error) {
-    showToast('Nie udało się skopiować', 'error');
+    showToast("Nie udało się skopiować", "error");
   }
-  
+
   document.body.removeChild(textarea);
 };
 ```
@@ -996,42 +1061,50 @@ const fallbackCopyToClipboard = (text: string) => {
 ### 10.4 Empty state scenarios
 
 **Scenariusz 1: Brak brakujących składników**
+
 - API zwraca `missing_ingredients: []`
 - UI: Empty state z pozytywnym komunikatem
+
   ```
   ✅ Wszystkie składniki dostępne!
   Masz wszystko co potrzebne do przygotowania tego przepisu.
-  
+
   [Zamknij]
   ```
 
 **Scenariusz 2: Użytkownik usunął wszystkie pozycje**
+
 - `items.length === 0` po edycji
 - UI: Empty state
+
   ```
   📋 Lista jest pusta
   Wszystkie składniki zostały usunięte z listy.
-  
+
   [Regeneruj listę] [Zamknij]
   ```
 
 ### 10.5 Edge cases
 
 **Case 1: Modal otwarty podczas refresh**
+
 - Modal automatycznie zamknięty przy unmount
 - Parent zarządza stanem `isOpen`
 
 **Case 2: Slow API response**
+
 - Loading state z timeout message po 5s: "Generowanie trwa dłużej niż zwykle..."
 - Możliwość anulowania przez zamknięcie modala
 
 **Case 3: Bardzo długa lista (>50 pozycji)**
+
 - Scrollowalny kontener z max-height
 - Sticky header i footer
 
 ## 11. Kroki implementacji
 
 ### Krok 1: Setup struktury i typów
+
 1. Utworzenie folderu `src/components/shopping-list/`
 2. Utworzenie pliku `ShoppingListModal.tsx`
 3. Definicja wszystkich typów ViewModels w pliku (lub osobnym `types.ts`)
@@ -1039,6 +1112,7 @@ const fallbackCopyToClipboard = (text: string) => {
 5. Setup podstawowej struktury komponentu z Shadcn/ui Dialog
 
 ### Krok 2: Implementacja stanu i logiki API
+
 1. Zaimplementowanie `useState` dla wszystkich stanów komponentu
 2. Implementacja `useEffect` do wywoływania API przy otwierciu
 3. Napisanie funkcji `generateShoppingList()`:
@@ -1049,6 +1123,7 @@ const fallbackCopyToClipboard = (text: string) => {
 4. Testowanie integracji z API (console.log responses)
 
 ### Krok 3: Budowa UI - Layout i struktura
+
 1. Implementacja `DialogHeader`:
    - Dynamiczny tytuł z `recipeTitle`
    - Close button (X icon)
@@ -1061,12 +1136,14 @@ const fallbackCopyToClipboard = (text: string) => {
 4. Stylowanie z Tailwind classes
 
 ### Krok 4: Implementacja EditableShoppingList
+
 1. Utworzenie komponentu `EditableShoppingList.tsx`
 2. Mapowanie `items` na `ShoppingListItem` komponenty
 3. Przekazywanie callbacks: `onItemCheck`, `onQuantityChange`, `onItemRemove`
 4. Empty state handling
 
 ### Krok 5: Implementacja ShoppingListItem
+
 1. Utworzenie komponentu `ShoppingListItem.tsx`
 2. Layout wiersza:
    - Checkbox (Shadcn/ui)
@@ -1078,6 +1155,7 @@ const fallbackCopyToClipboard = (text: string) => {
 4. Stylowanie stanów: checked, unchecked (opacity), error (red border)
 
 ### Krok 6: Loading i Error states
+
 1. Implementacja skeleton loader:
    - 5 skeleton rows mimikujących ShoppingListItem
    - Shimmer animation
@@ -1092,6 +1170,7 @@ const fallbackCopyToClipboard = (text: string) => {
    - Odpowiednie ikony i komunikaty
 
 ### Krok 7: Funkcje eksportu
+
 1. **Kopiowanie do schowka:**
    - Funkcja `formatForClipboard(items, recipeTitle)`
    - Implementacja `copyToClipboard()` z fallback
@@ -1107,6 +1186,7 @@ const fallbackCopyToClipboard = (text: string) => {
    - Toast feedback
 
 ### Krok 8: Walidacja i Edge Cases
+
 1. Walidacja props w `useEffect`
 2. Walidacja quantity w `ShoppingListItem`
 3. Walidacja przed eksportem (min 1 checked)
@@ -1114,6 +1194,7 @@ const fallbackCopyToClipboard = (text: string) => {
 5. Dodanie tooltipów dla disabled buttons
 
 ### Krok 9: Accessibility i UX improvements
+
 1. **Keyboard navigation:**
    - Tab order: checkbox → quantity input → remove button → next item
    - Enter na quantity input = zapisz i przejdź dalej
@@ -1132,6 +1213,7 @@ const fallbackCopyToClipboard = (text: string) => {
    - Transition animations (subtle)
 
 ### Krok 10: Integracja z Recipe Details
+
 1. Dodanie state `isShoppingListOpen` w `RecipeDetails.tsx`
 2. Dodanie przycisku "Generuj listę zakupów" w sekcji składników:
    - Widoczny tylko gdy istnieją missing ingredients
@@ -1149,6 +1231,7 @@ const fallbackCopyToClipboard = (text: string) => {
 4. Przekazanie `client:idle` directive dla lazy loading
 
 ### Krok 11: Testing i Debugging
+
 1. **Testy manualne:**
    - Otwieranie/zamykanie modala
    - Generowanie listy dla różnych przepisów
@@ -1174,6 +1257,7 @@ const fallbackCopyToClipboard = (text: string) => {
    - Network tab dla API calls
 
 ### Krok 12: Optymalizacje i polish
+
 1. **Performance:**
    - Memoizacja funkcji eksportu (`useCallback`)
    - Memoizacja formatowania (`useMemo`)
@@ -1192,6 +1276,7 @@ const fallbackCopyToClipboard = (text: string) => {
    - Props documentation
 
 ### Krok 13: Code review i finalizacja
+
 1. Przegląd kodu pod kątem:
    - Zgodność z PRD i User Stories
    - Best practices React i TypeScript
@@ -1230,18 +1315,21 @@ src/
 ### Zależności zewnętrzne
 
 **Już dostępne w projekcie:**
+
 - React 19
 - Shadcn/ui (Dialog, Button, Input, Checkbox)
 - Tailwind 4
 - TypeScript 5
 
 **Opcjonalne (jeśli potrzebne):**
+
 - `slugify` lub własna funkcja slugify dla nazw plików
 - `clsx` lub `cn` utility dla conditional classes (prawdopodobnie już w projekcie)
 
 ### Uwagi dot. Astro Islands
 
 Modal powinien być lazy-loaded jako React Island:
+
 ```astro
 <ShoppingListModal
   client:idle
@@ -1257,6 +1345,7 @@ Directive `client:idle` zapewnia, że komponent jest hydratowany dopiero gdy prz
 ### Metryki sukcesu
 
 **Funkcjonalne:**
+
 - ✅ Użytkownik może wygenerować listę zakupów dla przepisu
 - ✅ Użytkownik może edytować ilości składników
 - ✅ Użytkownik może odznaczać niepotrzebne składniki
@@ -1265,6 +1354,7 @@ Directive `client:idle` zapewnia, że komponent jest hydratowany dopiero gdy prz
 - ✅ Użytkownik może wyeksportować listę do pliku .txt
 
 **Jakościowe:**
+
 - Czas ładowania listy < 500ms (normalnie)
 - Brak crashów przy edge cases
 - 100% accessibility score dla modala
@@ -1272,6 +1362,7 @@ Directive `client:idle` zapewnia, że komponent jest hydratowany dopiero gdy prz
 - Intuicyjne UX - użytkownik wie co robić bez instrukcji
 
 **Zgodność z PRD:**
+
 - ✅ US-005 w pełni zrealizowane
 - ✅ Walidacja i bezpieczeństwo zgodne z wymaganiami
 - ✅ Format listy zgodny z specyfikacją

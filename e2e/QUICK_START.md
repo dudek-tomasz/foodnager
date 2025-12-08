@@ -5,6 +5,7 @@
 ### Opcja A: Ręcznie przez UI
 
 1. Uruchom serwer dev:
+
    ```bash
    npm run dev
    ```
@@ -37,6 +38,7 @@ npm run test:e2e
 ## 🎯 Co się stanie:
 
 **Pierwszy raz:**
+
 1. ⚡ Uruchomi się **setup project** (`auth.setup.ts`)
 2. 🔐 Zaloguje użytkownika i zapisze sesję do `playwright/.auth/user.json`
 3. ✅ Wszystkie testy będą używać tej sesji (szybko!)
@@ -44,11 +46,13 @@ npm run test:e2e
 5. 🗑️ Usunie wszystkie dane testowe z bazy danych
 
 **Kolejne uruchomienia:**
+
 - Setup uruchomi się tylko jeśli plik sesji nie istnieje
 - Testy startują od razu z zapisaną sesją (mega szybko! ⚡)
 - Teardown zawsze czyści bazę po zakończeniu testów
 
 W Playwright UI:
+
 1. Znajdź test "should add a new product with all required fields"
 2. Kliknij play ▶️
 3. Obserwuj jak:
@@ -60,15 +64,18 @@ W Playwright UI:
 ## 🐛 Problemy?
 
 ### "Authentication failed"
+
 - Sprawdź czy użytkownik testowy istnieje
 - Sprawdź czy hasło jest poprawne
 - Sprawdź czy email jest potwierdzony
 
 ### "Port 3000 already in use"
+
 - Zatrzymaj inny serwer dev
 - Lub zmień port w `playwright.config.ts`
 
 ### "Cannot connect to localhost:3000"
+
 - Upewnij się że `npm run dev` działa
 - Sprawdź czy aplikacja odpowiada na http://localhost:3000
 
@@ -115,6 +122,7 @@ E2E_TEST_USER_ID=your-test-user-uuid-here
 Jeśli chcesz użyć innych danych:
 
 1. Edytuj plik `.env.test`:
+
    ```env
    E2E_USERNAME=moj@email.pl
    E2E_PASSWORD=MojeHaslo123!
@@ -131,6 +139,7 @@ Jeśli chcesz użyć innych danych:
 Po zakończeniu wszystkich testów automatycznie uruchamia się cleanup bazy danych:
 
 **Co jest czyszczone:**
+
 - ✅ Produkty utworzone przez użytkownika testowego
 - ✅ Produkty w lodówce (`user_products`)
 - ✅ Przepisy i ich składniki
@@ -138,6 +147,7 @@ Po zakończeniu wszystkich testów automatycznie uruchamia się cleanup bazy dan
 - ✅ Powiązania przepis-tag
 
 **Dlaczego to ważne:**
+
 - 🔄 Każde uruchomienie testów zaczyna od czystego stanu
 - 🚀 Nie ma konfliktów między kolejnymi uruchomieniami
 - 📊 Baza testowa pozostaje czysta
@@ -147,7 +157,7 @@ Po zakończeniu wszystkich testów automatycznie uruchamia się cleanup bazy dan
 Jeśli potrzebujesz wyczyścić bazę w trakcie developmentu:
 
 ```typescript
-import { cleanupUserData } from './helpers/db-cleanup';
+import { cleanupUserData } from "./helpers/db-cleanup";
 
 // W teście lub standalone skrypcie
 await cleanupUserData(process.env.E2E_TEST_USER_ID!);
@@ -156,7 +166,7 @@ await cleanupUserData(process.env.E2E_TEST_USER_ID!);
 ## ✅ Gotowe!
 
 Jeśli wszystko działa, powinieneś zobaczyć:
+
 - 🔐 Sukces logowania w setup
 - ✅ Zielone checkmarki przy testach
 - 🧹 Cleanup bazy po zakończeniu testów
-

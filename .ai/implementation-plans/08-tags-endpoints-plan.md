@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Tags Dictionary
 
 ## Spis treści
+
 1. [GET /api/tags - List Tags](#1-get-apitags---list-tags)
 2. [POST /api/tags - Create Tag](#2-post-apitags---create-tag)
 
@@ -9,6 +10,7 @@
 ## 1. GET /api/tags - List Tags
 
 ### 1.1 Przegląd punktu końcowego
+
 Endpoint pobiera listę wszystkich dostępnych tagów (kategorii) przepisów w systemie. Tagi są globalne (widoczne dla wszystkich użytkowników) i służą do kategoryzacji przepisów (np. "vegetarian", "quick meal", "dessert"). Endpoint obsługuje opcjonalne wyszukiwanie.
 
 **Powiązane User Stories:** US-003 (Zarządzanie przepisami), kategoryzacja
@@ -20,10 +22,12 @@ Endpoint pobiera listę wszystkich dostępnych tagów (kategorii) przepisów w s
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **Query Parameters:**
+
 - **Opcjonalne:**
   - `search` (string) - Wyszukiwanie w nazwach tagów (case-insensitive)
 
 **Przykładowe żądania:**
+
 ```
 GET /api/tags
 GET /api/tags?search=veg
@@ -32,6 +36,7 @@ GET /api/tags?search=veg
 ### 1.3 Wykorzystywane typy
 
 **Query DTO:**
+
 ```typescript
 ListTagsQueryDTO {
   search?: string;
@@ -39,6 +44,7 @@ ListTagsQueryDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 TagsListResponseDTO {
   data: TagDTO[];
@@ -54,6 +60,7 @@ TagDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK) - All tags:**
+
 ```json
 {
   "data": [
@@ -87,6 +94,7 @@ TagDTO {
 ```
 
 **Sukces (200 OK) - With search:**
+
 ```json
 {
   "data": [
@@ -105,6 +113,7 @@ TagDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `422 Unprocessable Entity` - Nieprawidłowe parametry zapytania
 
@@ -132,40 +141,46 @@ TagDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - Brak RLS (dane globalne)
 - Każdy authenticated user może czytać
 
 **Walidacja:**
+
 - Sanityzacja search query (ILIKE z parametryzacją)
 - Trim whitespace
 
 **Data Exposure:**
+
 - Dane publiczne (global dictionary)
 - Brak wrażliwych informacji
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Search string za długi | 422 | VALIDATION_ERROR | Zwróć: Search query too long (max 50 chars) |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz             | Kod HTTP | Error Code       | Akcja                                       |
+| ---------------------- | -------- | ---------------- | ------------------------------------------- |
+| Brak tokenu            | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji     |
+| Nieprawidłowy token    | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie    |
+| Search string za długi | 422      | VALIDATION_ERROR | Zwróć: Search query too long (max 50 chars) |
+| Błąd bazy danych       | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat               |
 
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - **Caching**: Cache per search query (10 minut TTL)
 - **Simple query**: Szybkie ILIKE na indexed column
 - **Small dataset**: Typowo 20-50 tagów
 - **No pagination**: Dataset mały enough
 
 **Caching Strategy:**
+
 ```typescript
-const cacheKey = search 
+const cacheKey = search
   ? `tags:search:${search.toLowerCase()}`
   : 'tags:all';
 const CACHE_TTL = 600; // 10 minutes
@@ -178,104 +193,106 @@ await cache.set(cacheKey, tags, CACHE_TTL);
 ```
 
 **Cache Invalidation:**
+
 - Invalidacja przy: POST nowego taga
 - Invaliduj wszystkie keys starting with `tags:`
 
 ### 1.9 Etapy wdrożenia
 
 1. **Zod schema walidacji**
+
    ```typescript
    z.object({
-     search: z.string().trim().max(50).optional()
-   })
+     search: z.string().trim().max(50).optional(),
+   });
    ```
 
 2. **TagsService - List Method**
+
    ```typescript
    class TagsService {
      async listTags(search?: string): Promise<TagDTO[]> {
-       const { rows } = await this.db.query(`
+       const { rows } = await this.db.query(
+         `
          SELECT id, name, created_at
          FROM tags
          WHERE ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
          ORDER BY name ASC
-       `, [search || null]);
-       
-       return rows.map(row => ({
+       `,
+         [search || null]
+       );
+
+       return rows.map((row) => ({
          id: row.id,
          name: row.name,
-         created_at: row.created_at
+         created_at: row.created_at,
        }));
      }
    }
    ```
 
 3. **Endpoint handler**
+
    ```typescript
    // src/pages/api/tags/index.ts
-   
+
    export const prerender = false;
-   
+
    export async function GET(context: APIContext) {
      try {
        // Auth
        const supabase = context.locals.supabase;
-       const { data: { user }, error: authError } = await supabase.auth.getUser();
-       
+       const {
+         data: { user },
+         error: authError,
+       } = await supabase.auth.getUser();
+
        if (authError || !user) {
-         return errorResponse('UNAUTHORIZED', 'Authentication required', null, 401);
+         return errorResponse("UNAUTHORIZED", "Authentication required", null, 401);
        }
-       
+
        // Parse and validate
        const url = new URL(context.request.url);
-       const search = url.searchParams.get('search') || undefined;
+       const search = url.searchParams.get("search") || undefined;
        const validatedQuery = ListTagsQuerySchema.parse({ search });
-       
+
        // Cache check
-       const cacheKey = validatedQuery.search
-         ? `tags:search:${validatedQuery.search.toLowerCase()}`
-         : 'tags:all';
-       
+       const cacheKey = validatedQuery.search ? `tags:search:${validatedQuery.search.toLowerCase()}` : "tags:all";
+
        const cached = await cache.get<TagsListResponseDTO>(cacheKey);
        if (cached) {
          return new Response(JSON.stringify(cached), {
            status: 200,
            headers: {
-             'Content-Type': 'application/json',
-             'X-Cache': 'HIT'
-           }
+             "Content-Type": "application/json",
+             "X-Cache": "HIT",
+           },
          });
        }
-       
+
        // Fetch from DB
        const tagsService = new TagsService(supabase);
        const tags = await tagsService.listTags(validatedQuery.search);
-       
+
        const response: TagsListResponseDTO = { data: tags };
-       
+
        // Cache
        await cache.set(cacheKey, response, 600); // 10 min
-       
+
        return new Response(JSON.stringify(response), {
          status: 200,
          headers: {
-           'Content-Type': 'application/json',
-           'X-Cache': 'MISS'
-         }
+           "Content-Type": "application/json",
+           "X-Cache": "MISS",
+         },
        });
-       
      } catch (error) {
-       if (error.name === 'ZodError') {
-         return errorResponse(
-           'VALIDATION_ERROR',
-           'Invalid query parameters',
-           { errors: error.errors },
-           422
-         );
+       if (error.name === "ZodError") {
+         return errorResponse("VALIDATION_ERROR", "Invalid query parameters", { errors: error.errors }, 422);
        }
-       
-       console.error('Tags list error:', error);
-       return errorResponse('INTERNAL_ERROR', 'Failed to fetch tags', null, 500);
+
+       console.error("Tags list error:", error);
+       return errorResponse("INTERNAL_ERROR", "Failed to fetch tags", null, 500);
      }
    }
    ```
@@ -294,6 +311,7 @@ await cache.set(cacheKey, tags, CACHE_TTL);
 ## 2. POST /api/tags - Create Tag
 
 ### 2.1 Przegląd punktu końcowego
+
 Endpoint tworzy nowy tag w systemie. Tagi są globalne (dostępne dla wszystkich użytkowników), więc każdy authenticated user może dodawać nowe tagi. Nazwa taga musi być unikalna (case-insensitive).
 
 **Powiązane User Stories:** US-003 (rozszerzenie), community-driven tagging
@@ -307,10 +325,12 @@ Endpoint tworzy nowy tag w systemie. Tagi są globalne (dostępne dla wszystkich
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `name` (string) - Nazwa taga, min 2 znaki, max 50, unique (case-insensitive)
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/tags
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -324,6 +344,7 @@ Content-Type: application/json
 ### 2.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 CreateTagDTO {
   name: string;
@@ -331,6 +352,7 @@ CreateTagDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 TagDTO {
   id: number;
@@ -342,6 +364,7 @@ TagDTO {
 ### 2.4 Szczegóły odpowiedzi
 
 **Sukces (201 Created):**
+
 ```json
 {
   "id": 10,
@@ -351,6 +374,7 @@ TagDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane (puste name, za krótkie)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `409 Conflict` - Tag o takiej nazwie już istnieje
@@ -375,13 +399,16 @@ TagDTO {
 ### 2.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - Każdy authenticated user może tworzyć tagi (community-driven)
 - **Alternative**: Tylko admini mogą tworzyć tagi (stricter control)
 
 **Walidacja:**
+
 - Trim whitespace
 - Min length: 2 znaki
 - Max length: 50 znaków
@@ -389,28 +416,31 @@ TagDTO {
 - Lowercase normalizacja (optional): wszystkie tagi małe litery
 
 **Input Sanitization:**
+
 - Trim
 - Remove multiple spaces
 - Lowercase (optional, ale zalecane dla consistency)
 
 **Rate Limiting:**
+
 - Opcjonalnie: limit tworzenia tagów (np. 10 per hour per user)
 - Zapobiega spam
 
 ### 2.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak name | 400 | VALIDATION_ERROR | Zwróć: name is required |
-| name < 2 znaki | 400 | VALIDATION_ERROR | Zwróć: name must be at least 2 characters |
-| name > 50 znaków | 400 | VALIDATION_ERROR | Zwróć: name too long (max 50) |
-| Duplikat nazwy | 409 | CONFLICT | Zwróć: Tag with this name already exists |
-| Invalid JSON | 400 | VALIDATION_ERROR | Zwróć: Invalid request body |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz          | Kod HTTP | Error Code       | Akcja                                     |
+| ------------------- | -------- | ---------------- | ----------------------------------------- |
+| Brak tokenu         | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji   |
+| Nieprawidłowy token | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie  |
+| Brak name           | 400      | VALIDATION_ERROR | Zwróć: name is required                   |
+| name < 2 znaki      | 400      | VALIDATION_ERROR | Zwróć: name must be at least 2 characters |
+| name > 50 znaków    | 400      | VALIDATION_ERROR | Zwróć: name too long (max 50)             |
+| Duplikat nazwy      | 409      | CONFLICT         | Zwróć: Tag with this name already exists  |
+| Invalid JSON        | 400      | VALIDATION_ERROR | Zwróć: Invalid request body               |
+| Błąd bazy danych    | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat             |
 
 **Przykład odpowiedzi błędu:**
+
 ```json
 {
   "error": {
@@ -427,117 +457,121 @@ TagDTO {
 ### 2.8 Wydajność
 
 **Optymalizacje:**
+
 - Uniqueness check używa indexed column (LOWER(name))
 - INSERT jest szybki (single row)
 - Cache invalidation po utworzeniu
 
 **Cache Invalidation:**
+
 ```typescript
 // Invalidate all tag caches
-await cache.deletePattern('tags:*');
+await cache.deletePattern("tags:*");
 // Or more specific:
-await cache.delete('tags:all');
+await cache.delete("tags:all");
 // Keep search caches temporarily (will expire naturally)
 ```
 
 ### 2.9 Etapy wdrożenia
 
 1. **Zod schema walidacji**
+
    ```typescript
    z.object({
-     name: z.string()
+     name: z
+       .string()
        .trim()
-       .min(2, 'Tag name must be at least 2 characters')
-       .max(50, 'Tag name too long (max 50 characters)')
-       .transform(val => val.toLowerCase()) // Normalize to lowercase
-   })
+       .min(2, "Tag name must be at least 2 characters")
+       .max(50, "Tag name too long (max 50 characters)")
+       .transform((val) => val.toLowerCase()), // Normalize to lowercase
+   });
    ```
 
 2. **TagsService - Create Method**
+
    ```typescript
    class TagsService {
      async createTag(name: string): Promise<TagDTO> {
        // Check uniqueness (case-insensitive)
-       const existing = await this.db.query(`
+       const existing = await this.db.query(
+         `
          SELECT id FROM tags
          WHERE LOWER(name) = LOWER($1)
-       `, [name]);
-       
+       `,
+         [name]
+       );
+
        if (existing.rows.length > 0) {
-         throw new ConflictError('Tag with this name already exists');
+         throw new ConflictError("Tag with this name already exists");
        }
-       
+
        // Insert new tag
-       const { rows } = await this.db.query(`
+       const { rows } = await this.db.query(
+         `
          INSERT INTO tags (name)
          VALUES ($1)
          RETURNING id, name, created_at
-       `, [name]);
-       
+       `,
+         [name]
+       );
+
        return {
          id: rows[0].id,
          name: rows[0].name,
-         created_at: rows[0].created_at
+         created_at: rows[0].created_at,
        };
      }
    }
    ```
 
 3. **Endpoint handler**
+
    ```typescript
    // src/pages/api/tags/index.ts
-   
+
    export async function POST(context: APIContext) {
      try {
        // Auth
        const supabase = context.locals.supabase;
-       const { data: { user }, error: authError } = await supabase.auth.getUser();
-       
+       const {
+         data: { user },
+         error: authError,
+       } = await supabase.auth.getUser();
+
        if (authError || !user) {
-         return errorResponse('UNAUTHORIZED', 'Authentication required', null, 401);
+         return errorResponse("UNAUTHORIZED", "Authentication required", null, 401);
        }
-       
+
        // Parse and validate
        const body = await context.request.json();
        const validatedData = CreateTagSchema.parse(body);
-       
+
        // Create tag
        const tagsService = new TagsService(supabase);
        const tag = await tagsService.createTag(validatedData.name);
-       
+
        // Invalidate cache
-       await cache.deletePattern('tags:*');
-       
+       await cache.deletePattern("tags:*");
+
        // Return with Location header
        return new Response(JSON.stringify(tag), {
          status: 201,
          headers: {
-           'Content-Type': 'application/json',
-           'Location': `/api/tags/${tag.id}`
-         }
+           "Content-Type": "application/json",
+           Location: `/api/tags/${tag.id}`,
+         },
        });
-       
      } catch (error) {
        if (error instanceof ConflictError) {
-         return errorResponse(
-           'CONFLICT',
-           error.message,
-           { field: 'name' },
-           409
-         );
+         return errorResponse("CONFLICT", error.message, { field: "name" }, 409);
        }
-       
-       if (error.name === 'ZodError') {
-         return errorResponse(
-           'VALIDATION_ERROR',
-           'Invalid request data',
-           { errors: error.errors },
-           400
-         );
+
+       if (error.name === "ZodError") {
+         return errorResponse("VALIDATION_ERROR", "Invalid request data", { errors: error.errors }, 400);
        }
-       
-       console.error('Tag creation error:', error);
-       return errorResponse('INTERNAL_ERROR', 'Failed to create tag', null, 500);
+
+       console.error("Tag creation error:", error);
+       return errorResponse("INTERNAL_ERROR", "Failed to create tag", null, 500);
      }
    }
    ```
@@ -556,6 +590,7 @@ await cache.delete('tags:all');
 ### 2.10 Seed Data
 
 **Initial Tags (Migration)**
+
 ```sql
 -- supabase/migrations/xxx_seed_tags.sql
 
@@ -600,6 +635,7 @@ ON CONFLICT (name) DO NOTHING;
 ### 2.11 Future Enhancements
 
 **Tag Management:**
+
 ```typescript
 // PATCH /api/tags/:id - Update tag (admin only)
 // DELETE /api/tags/:id - Delete tag (admin only, if not used)
@@ -607,6 +643,7 @@ ON CONFLICT (name) DO NOTHING;
 ```
 
 **Tag Usage Statistics:**
+
 ```typescript
 // GET /api/tags/popular - Most used tags
 {
@@ -619,12 +656,14 @@ ON CONFLICT (name) DO NOTHING;
 ```
 
 **Tag Suggestions:**
+
 ```typescript
 // AI-powered tag suggestions when creating recipe
 // Based on ingredients, instructions, title
 ```
 
 **Tag Hierarchies (Advanced):**
+
 ```typescript
 // Parent-child relationships
 // "vegetarian" is parent of "vegan"
@@ -636,6 +675,7 @@ ON CONFLICT (name) DO NOTHING;
 ## Podsumowanie implementacji Tags API
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -675,6 +715,7 @@ src/
 ### Testing Checklist
 
 **GET /api/tags:**
+
 - [ ] Returns all tags
 - [ ] Search filtering works
 - [ ] Case-insensitive search
@@ -683,6 +724,7 @@ src/
 - [ ] Auth required
 
 **POST /api/tags:**
+
 - [ ] Creates new tag
 - [ ] Lowercase normalization
 - [ ] Duplicate detection (case-insensitive)
@@ -694,12 +736,15 @@ src/
 ### Kolejność implementacji
 
 **Day 1:**
+
 1. GET endpoint (2h)
 2. POST endpoint (2h)
 3. Cache integration (1h)
 
 **Day 2:**
+
 <!-- 4. Tests (3h) -->
+
 5. Seed data (1h)
 6. Documentation (1h)
 
@@ -716,12 +761,14 @@ TAGS_NORMALIZE_LOWERCASE=true
 ### Monitoring
 
 **Metrics:**
+
 - Tag creation rate (per day/hour)
 - Most created tags
 - Duplicate attempt rate
 - Cache hit rate
 
 **Alerts:**
+
 - Unusual spike in tag creation (potential spam)
 - High duplicate rate (UI issue?)
 - Low cache hit rate (cache problems?)
@@ -729,16 +776,18 @@ TAGS_NORMALIZE_LOWERCASE=true
 ### Security Considerations
 
 **Spam Prevention:**
+
 ```typescript
 // Rate limit: max 10 tags per hour per user
 const rateLimiter = new RateLimiter({
   windowMs: 3600000, // 1 hour
   max: 10,
-  keyGenerator: (context) => context.user.id
+  keyGenerator: (context) => context.user.id,
 });
 ```
 
 **Content Moderation:**
+
 ```typescript
 // Optional: filter inappropriate words
 const inappropriateWords = ['spam', 'xxx', ...];
@@ -750,6 +799,7 @@ function validateTagName(name: string): boolean {
 ```
 
 **Admin Override:**
+
 ```typescript
 // Allow admins to create tags without restrictions
 if (!user.isAdmin) {
@@ -764,12 +814,14 @@ if (!user.isAdmin) {
 ### Współpraca z innymi endpointami
 
 **Tags są używane przez:**
+
 - `POST /api/recipes` - Przypisywanie tagów do przepisów
 - `PATCH /api/recipes/:id` - Aktualizacja tagów
 - `GET /api/recipes` - Filtrowanie po tagach
 - `POST /api/recipes/generate` - AI auto-tagging
 
 **Cache Strategy:**
+
 - Tags cache jest invalidowany przy POST
 - Recipe endpoints używają tag data (mogą cache separately)
 - Consistency przez cache TTL
@@ -791,11 +843,10 @@ Jeśli w przyszłości zechcemy wspierać user-specific tags:
 interface TagDTO {
   id: number;
   name: string;
-  is_global: boolean;  // New field
-  user_id: string | null;  // New field
+  is_global: boolean; // New field
+  user_id: string | null; // New field
   created_at: string;
 }
 ```
 
 Ale na razie: **Keep it simple - global tags only**.
-

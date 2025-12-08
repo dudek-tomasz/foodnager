@@ -8,7 +8,7 @@ Zaimplementowano automatyczne czyszczenie bazy danych Supabase po testach E2E zg
 ✅ Usuwanie wpisów z tabeli `products` (prywatnych użytkownika)  
 ✅ Usuwanie powiązanych danych (fridge, recipes, history)  
 ✅ Wykorzystanie zmiennych środowiskowych z `.env.test`  
-✅ Dokumentacja i przykłady użycia  
+✅ Dokumentacja i przykłady użycia
 
 ## 🎯 Co zostało zaimplementowane
 
@@ -26,6 +26,7 @@ Automatyczny teardown uruchamiany po zakończeniu wszystkich testów:
 - ✅ Loguje szczegółowe informacje o czyszczeniu
 
 **Kluczowe cechy:**
+
 - Używa service role key (omija RLS)
 - Usuwa dane w odpowiedniej kolejności (foreign keys)
 - Nie blokuje testów jeśli cleanup fail
@@ -36,16 +37,17 @@ Automatyczny teardown uruchamiany po zakończeniu wszystkich testów:
 Biblioteka pomocnicza do selektywnego czyszczenia podczas testów:
 
 ```typescript
-import { 
-  cleanupUserData,       // Wszystkie dane użytkownika
-  cleanupUserProducts,   // Tylko produkty
-  cleanupFridge,         // Tylko lodówka
-  cleanupRecipes,        // Tylko przepisy
-  cleanupCookingHistory  // Tylko historia
-} from './helpers/db-cleanup';
+import {
+  cleanupUserData, // Wszystkie dane użytkownika
+  cleanupUserProducts, // Tylko produkty
+  cleanupFridge, // Tylko lodówka
+  cleanupRecipes, // Tylko przepisy
+  cleanupCookingHistory, // Tylko historia
+} from "./helpers/db-cleanup";
 ```
 
 **Zastosowanie:**
+
 - Czyszczenie przed testem (guaranteed clean state)
 - Czyszczenie po teście (cleanup test data)
 - Debugowanie (inspect data after failed test)
@@ -60,6 +62,7 @@ globalTeardown: './e2e/global.teardown.ts',
 ```
 
 **Lifecycle testów:**
+
 ```
 1. Setup (auth.setup.ts)      ← Logowanie (1x)
 2. Tests (*.spec.ts)           ← Testy E2E (parallel)
@@ -86,24 +89,24 @@ E2E_TEST_USER_ID=your-test-user-uuid  # ⚠️ WYMAGANE!
 
 **Gdzie znaleźć wartości:**
 
-| Zmienna | Źródło |
-|---------|--------|
-| `SUPABASE_URL` | Dashboard → Settings → API → Project URL |
-| `SUPABASE_KEY` | Dashboard → Settings → API → anon/public |
+| Zmienna                     | Źródło                                    |
+| --------------------------- | ----------------------------------------- |
+| `SUPABASE_URL`              | Dashboard → Settings → API → Project URL  |
+| `SUPABASE_KEY`              | Dashboard → Settings → API → anon/public  |
 | `SUPABASE_SERVICE_ROLE_KEY` | Dashboard → Settings → API → service_role |
-| `E2E_TEST_USER_ID` | Dashboard → Authentication → Users → id |
+| `E2E_TEST_USER_ID`          | Dashboard → Authentication → Users → id   |
 
 ### 5. Dokumentacja
 
 Utworzono szczegółową dokumentację:
 
-| Plik | Opis |
-|------|------|
-| `ENV_TEST_SETUP.md` | 🚀 Przewodnik konfiguracji .env.test (START TUTAJ!) |
-| `e2e/DB_CLEANUP_GUIDE.md` | 📚 Kompletny przewodnik czyszczenia bazy |
-| `e2e/QUICK_START.md` | ⚡ Aktualizowany quick start z teardown |
-| `e2e/README.md` | 📖 Zaktualizowana główna dokumentacja E2E |
-| `e2e/examples/cleanup-example.spec.ts` | 💡 Przykłady użycia cleanup |
+| Plik                                   | Opis                                                |
+| -------------------------------------- | --------------------------------------------------- |
+| `ENV_TEST_SETUP.md`                    | 🚀 Przewodnik konfiguracji .env.test (START TUTAJ!) |
+| `e2e/DB_CLEANUP_GUIDE.md`              | 📚 Kompletny przewodnik czyszczenia bazy            |
+| `e2e/QUICK_START.md`                   | ⚡ Aktualizowany quick start z teardown             |
+| `e2e/README.md`                        | 📖 Zaktualizowana główna dokumentacja E2E           |
+| `e2e/examples/cleanup-example.spec.ts` | 💡 Przykłady użycia cleanup                         |
 
 ## 🚀 Jak uruchomić
 
@@ -204,21 +207,21 @@ foodnager/
 ### Przykład 1: Basic cleanup w teście
 
 ```typescript
-import { cleanupFridge } from './helpers/db-cleanup';
+import { cleanupFridge } from "./helpers/db-cleanup";
 
-test('should start with empty fridge', async ({ page }) => {
+test("should start with empty fridge", async ({ page }) => {
   // Clean before test
   await cleanupFridge(process.env.E2E_TEST_USER_ID!);
-  
-  await page.goto('/fridge');
-  await expect(page.getByText('Lodówka jest pusta')).toBeVisible();
+
+  await page.goto("/fridge");
+  await expect(page.getByText("Lodówka jest pusta")).toBeVisible();
 });
 ```
 
 ### Przykład 2: Setup/Teardown pattern
 
 ```typescript
-test.describe('Fridge Tests', () => {
+test.describe("Fridge Tests", () => {
   test.beforeEach(async () => {
     await cleanupFridge(process.env.E2E_TEST_USER_ID!);
   });
@@ -227,7 +230,7 @@ test.describe('Fridge Tests', () => {
     await cleanupFridge(process.env.E2E_TEST_USER_ID!);
   });
 
-  test('test 1', async ({ page }) => {
+  test("test 1", async ({ page }) => {
     // Guaranteed clean state
   });
 });
@@ -236,7 +239,7 @@ test.describe('Fridge Tests', () => {
 ### Przykład 3: Selective cleanup
 
 ```typescript
-import { cleanupRecipes, cleanupCookingHistory } from './helpers/db-cleanup';
+import { cleanupRecipes, cleanupCookingHistory } from "./helpers/db-cleanup";
 
 // Clean only recipes
 await cleanupRecipes(TEST_USER_ID);
@@ -252,6 +255,7 @@ await cleanupCookingHistory(TEST_USER_ID);
 ### Problem: "Skipping database cleanup: SUPABASE_SERVICE_ROLE_KEY not configured"
 
 **Rozwiązanie:**
+
 1. Otwórz Supabase Dashboard → Settings → API
 2. Skopiuj "service_role" key
 3. Dodaj do `.env.test`:
@@ -262,6 +266,7 @@ await cleanupCookingHistory(TEST_USER_ID);
 ### Problem: "Skipping database cleanup: E2E_TEST_USER_ID not configured"
 
 **Rozwiązanie:**
+
 1. Supabase Dashboard → Authentication → Users
 2. Znajdź `test@foodnager.pl`
 3. Skopiuj UUID (id)
@@ -273,21 +278,24 @@ await cleanupCookingHistory(TEST_USER_ID);
 ### Problem: Cleanup nie usuwa danych
 
 **Rozwiązanie:**
+
 1. Sprawdź logi - czy cleanup się uruchamia?
 2. Sprawdź `E2E_TEST_USER_ID` - czy to poprawny UUID?
 3. Sprawdź service role key - czy jest poprawny?
 4. Sprawdź RLS policies - czy są włączone?
 
 **Debug:**
+
 ```sql
 -- Check test user data
-SELECT COUNT(*) FROM user_products 
+SELECT COUNT(*) FROM user_products
 WHERE user_id = 'your-test-user-id';
 ```
 
 ### Problem: Foreign key violations podczas cleanup
 
 **Rozwiązanie:**
+
 - Cleanup usuwa dane we właściwej kolejności
 - Jeśli błąd występuje, sprawdź czy nie ma cyklicznych foreign keys
 - Zobacz logi - który table wywołuje błąd?
@@ -296,16 +304,17 @@ WHERE user_id = 'your-test-user-id';
 
 ## 📊 Co jest czyszczone
 
-| Tabela | Warunek | Ile rekordów |
-|--------|---------|--------------|
-| `cooking_history` | `user_id = test user` | Wszystkie |
-| `user_products` | `user_id = test user` | Wszystkie |
-| `recipe_tags` | `recipe_id IN (user recipes)` | Wszystkie |
-| `recipe_ingredients` | `recipe_id IN (user recipes)` | Wszystkie |
-| `recipes` | `user_id = test user` | Wszystkie |
-| `products` | `user_id = test user` | Tylko prywatne |
+| Tabela               | Warunek                       | Ile rekordów   |
+| -------------------- | ----------------------------- | -------------- |
+| `cooking_history`    | `user_id = test user`         | Wszystkie      |
+| `user_products`      | `user_id = test user`         | Wszystkie      |
+| `recipe_tags`        | `recipe_id IN (user recipes)` | Wszystkie      |
+| `recipe_ingredients` | `recipe_id IN (user recipes)` | Wszystkie      |
+| `recipes`            | `user_id = test user`         | Wszystkie      |
+| `products`           | `user_id = test user`         | Tylko prywatne |
 
 **Co NIE jest czyszczone:**
+
 - ❌ Globalne produkty (`user_id = NULL`)
 - ❌ Jednostki (`units`)
 - ❌ Tagi (`tags`)
@@ -322,13 +331,13 @@ WHERE user_id = 'your-test-user-id';
 
 ## 📚 Dokumentacja
 
-| Dokument | Dla kogo | Czas czytania |
-|----------|----------|---------------|
-| `ENV_TEST_SETUP.md` | Wszyscy | 5 min |
-| `e2e/QUICK_START.md` | Początkujący | 3 min |
-| `e2e/README.md` | Wszyscy | 10 min |
-| `e2e/DB_CLEANUP_GUIDE.md` | Advanced | 15 min |
-| `e2e/examples/cleanup-example.spec.ts` | Developerzy | 5 min |
+| Dokument                               | Dla kogo     | Czas czytania |
+| -------------------------------------- | ------------ | ------------- |
+| `ENV_TEST_SETUP.md`                    | Wszyscy      | 5 min         |
+| `e2e/QUICK_START.md`                   | Początkujący | 3 min         |
+| `e2e/README.md`                        | Wszyscy      | 10 min        |
+| `e2e/DB_CLEANUP_GUIDE.md`              | Advanced     | 15 min        |
+| `e2e/examples/cleanup-example.spec.ts` | Developerzy  | 5 min         |
 
 ## ✅ Checklist
 
@@ -349,11 +358,13 @@ Przed pierwszym uruchomieniem testów:
 Twoje testy E2E są teraz w pełni skonfigurowane z automatycznym czyszczeniem bazy danych!
 
 **Następne uruchomienie:**
+
 ```bash
 npm run test:e2e
 ```
 
 **W razie problemów:**
+
 - Zobacz `ENV_TEST_SETUP.md` - setup guide
 - Zobacz `e2e/DB_CLEANUP_GUIDE.md` - troubleshooting
 - Sprawdź logi w konsoli
@@ -362,4 +373,3 @@ npm run test:e2e
 ---
 
 **Pytania?** Zobacz dokumentację w katalogu `e2e/`
-

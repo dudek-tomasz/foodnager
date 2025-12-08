@@ -41,6 +41,7 @@ OPENROUTER_MODEL=anthropic/claude-3-haiku
 Musisz mieć produkty w bazie danych. Dodaj je poprzez:
 
 **Opcja A: Przez UI aplikacji**
+
 1. Uruchom aplikację: `npm run dev`
 2. Przejdź do: http://localhost:3000/fridge
 3. Dodaj kilka produktów (np. pomidor, cebula, czosnek, makaron)
@@ -60,6 +61,7 @@ Jest to najprostszy sposób testowania.
 #### Kroki:
 
 1. **Uruchom aplikację**
+
    ```bash
    npm run dev
    ```
@@ -118,11 +120,13 @@ Cookie: sb-access-token=twoj_token; sb-refresh-token=twoj_token
 #### Jak uzyskać tokeny auth?
 
 **Opcja A: Z przeglądarki**
+
 1. Zaloguj się w aplikacji (http://localhost:3000/login)
 2. Otwórz DevTools (F12) → Application/Storage → Cookies
 3. Skopiuj wartości `sb-access-token` i `sb-refresh-token`
 
 **Opcja B: Przez API logowania**
+
 ```bash
 POST http://localhost:3000/api/auth/login
 Content-Type: application/json
@@ -172,9 +176,7 @@ Content-Type: application/json
             "unit": { "id": 5, "name": "sztuka", "abbreviation": "szt" }
           }
         ],
-        "tags": [
-          { "id": 1, "name": "Włoska", "created_at": "..." }
-        ],
+        "tags": [{ "id": 1, "name": "Włoska", "created_at": "..." }],
         "created_at": "2025-10-26T12:00:00Z",
         "updated_at": "2025-10-26T12:00:00Z"
       },
@@ -205,6 +207,7 @@ Content-Type: application/json
 ### Problem 1: "No products available in fridge"
 
 **Rozwiązanie:**
+
 - Dodaj produkty do lodówki poprzez UI lub API
 - Sprawdź czy jesteś zalogowany jako właściwy użytkownik
 - Sprawdź w bazie danych czy produkty istnieją: `SELECT * FROM user_products WHERE user_id = '...'`
@@ -212,11 +215,13 @@ Content-Type: application/json
 ### Problem 2: AI generation nie działa / wraca do Tier 1
 
 **Możliwe przyczyny:**
+
 1. Brak klucza API: Sprawdź `OPENROUTER_API_KEY` w `.env`
 2. Brak środków na koncie OpenRouter
 3. Tier 1 zwrócił "dobre" wyniki (match_score >= 0.7)
 
 **Rozwiązanie:**
+
 - Sprawdź logi w konsoli serwera
 - Sprawdź `openRouterClient.isConfigured()` zwraca `true`
 - Usuń przepisy z Tier 1 lub użyj produktów, które nie pasują do żadnego przepisu
@@ -224,21 +229,25 @@ Content-Type: application/json
 ### Problem 3: OpenRouter błąd 401 / 402
 
 **401 Unauthorized:**
+
 - Klucz API jest nieprawidłowy
 - Sprawdź czy skopiowałeś pełny klucz (zaczyna się od `sk-or-v1-`)
 
 **402 Payment Required:**
+
 - Brak środków na koncie OpenRouter
 - Dodaj środki: https://openrouter.ai/credits
 
 ### Problem 4: Timeout / długie czekanie
 
 **Oczekiwany czas:**
+
 - Tier 1 (własne przepisy): < 1s
 - Tier 2 (External API): 2-5s
 - Tier 3 (AI): 5-15s
 
 **Jeśli dłużej:**
+
 - Sprawdź połączenie internetowe
 - Sprawdź logi OpenRouter w konsoli
 - Sprawdź status OpenRouter: https://status.openrouter.ai/
@@ -251,10 +260,10 @@ Po wygenerowaniu przepisu, sprawdź w bazie:
 
 ```sql
 -- Sprawdź ostatnio wygenerowane przepisy przez AI
-SELECT 
-  id, 
-  title, 
-  source, 
+SELECT
+  id,
+  title,
+  source,
   created_at,
   metadata
 FROM recipes
@@ -287,6 +296,7 @@ Metadata powinno zawierać:
 3. Claude-3-Haiku kosztuje ~$0.25 / 1M input tokens, ~$1.25 / 1M output tokens
 
 **Szacowany koszt jednego przepisu:**
+
 - Input: ~500 tokens ($0.000125)
 - Output: ~800 tokens ($0.001)
 - **Razem: ~$0.0011 (około 1 grosz)**
@@ -308,6 +318,7 @@ Po pomyślnym teście, możesz:
 ## Kontakt i Pomoc
 
 Jeśli masz problemy:
+
 1. Sprawdź logi w konsoli: `npm run dev` (backend logs)
 2. Sprawdź DevTools w przeglądarce (network tab)
 3. Sprawdź dokumentację OpenRouter: https://openrouter.ai/docs
@@ -316,4 +327,3 @@ Jeśli masz problemy:
 
 **Status:** ✅ Implementacja kompletna, gotowa do testowania
 **Ostatnia aktualizacja:** 26.10.2025
-

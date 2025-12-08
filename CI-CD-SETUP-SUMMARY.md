@@ -7,21 +7,26 @@ Setup CI/CD dla projektu Foodnager jest **kompletny i gotowy do użycia**.
 ## 📦 Utworzone pliki
 
 ### 1. Główny Workflow
+
 ```
 .github/workflows/ci.yml
 ```
+
 - ✅ Automatyczne uruchomienie po push do `master`
 - ✅ Manualne uruchomienie z opcją wyłączenia E2E
 - ✅ 4 kroki: Lint → Build → Unit Tests → E2E Tests
 
 ### 2. Szablon zmiennych środowiskowych
+
 ```
 .env.example
 ```
+
 - Szablon dla zmiennych potrzebnych do buildu
 - Skopiuj do `.env` i wypełnij prawdziwymi wartościami
 
 ### 3. Dokumentacja
+
 ```
 .ai/CI-CD-QUICK-START.md         ← START TUTAJ! Szybki start (5 min)
 .ai/github-actions-setup.md      ← Szczegółowa dokumentacja
@@ -67,11 +72,13 @@ git push origin master
 ## 🎮 Jak używać?
 
 ### Automatyczne uruchomienie
+
 ```bash
 git push origin master  # Workflow uruchomi się automatycznie
 ```
 
 ### Manualne uruchomienie
+
 1. GitHub → **Actions** → **CI - Tests & Build**
 2. Kliknij **"Run workflow"**
 3. (Opcjonalnie) Zaznacz **"Pomiń testy E2E"**
@@ -98,13 +105,16 @@ Każdy push do `master` wykona:
 ## 🔧 Wyłączenie E2E (jeśli potrzeba)
 
 ### Tymczasowo:
+
 - Przy manualnym uruchomieniu zaznacz checkbox "Pomiń testy E2E"
 
 ### Trwale:
+
 Edytuj `.github/workflows/ci.yml` (linia 95):
+
 ```yaml
 - name: 🎬 Run E2E tests
-  if: false  # ← Zmień na 'false'
+  if: false # ← Zmień na 'false'
 ```
 
 ## 📚 Gdzie szukać pomocy?

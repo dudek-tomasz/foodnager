@@ -1,6 +1,7 @@
 # API Endpoints Implementation Plan: Virtual Fridge Management
 
 ## Spis treści
+
 1. [GET /api/fridge - List Fridge Items](#1-get-apifridge---list-fridge-items)
 2. [GET /api/fridge/:id - Get Fridge Item by ID](#2-get-apifridgeid---get-fridge-item-by-id)
 3. [POST /api/fridge - Add Item to Fridge](#3-post-apifridge---add-item-to-fridge)
@@ -12,6 +13,7 @@
 ## 1. GET /api/fridge - List Fridge Items
 
 ### 1.1 Przegląd punktu końcowego
+
 Endpoint pobiera zawartość wirtualnej lodówki użytkownika z zaawansowanymi opcjami filtrowania i sortowania. Umożliwia wyszukiwanie produktów, filtrowanie według daty ważności (przeterminowane, wkrótce przeterminowane), sortowanie oraz paginację wyników.
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
@@ -23,6 +25,7 @@ Endpoint pobiera zawartość wirtualnej lodówki użytkownika z zaawansowanymi o
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **Query Parameters:**
+
 - **Opcjonalne:**
   - `expired` (enum: `yes`, `no`, `all`) - Filtruj według statusu ważności, domyślnie `all`
   - `expiring_soon` (integer) - Próg dni dla produktów wkrótce przeterminowanych (np. 3 = w ciągu 3 dni)
@@ -33,6 +36,7 @@ Endpoint pobiera zawartość wirtualnej lodówki użytkownika z zaawansowanymi o
   - `limit` (integer) - Liczba elementów na stronę, domyślnie `20`, maximum `100`
 
 **Przykładowe żądania:**
+
 ```
 GET /api/fridge?expired=no&expiring_soon=3&page=1&limit=20
 GET /api/fridge?search=tomato&sort=expiry_date&order=asc
@@ -41,6 +45,7 @@ GET /api/fridge?search=tomato&sort=expiry_date&order=asc
 ### 1.3 Wykorzystywane typy
 
 **Query DTO:**
+
 ```typescript
 ListFridgeQueryDTO {
   expired?: 'yes' | 'no' | 'all';
@@ -54,6 +59,7 @@ ListFridgeQueryDTO {
 ```
 
 **Response DTOs:**
+
 ```typescript
 FridgeListResponseDTO {
   data: FridgeItemDTO[];
@@ -84,6 +90,7 @@ UnitReferenceDTO {
 ### 1.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "data": [
@@ -113,6 +120,7 @@ UnitReferenceDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `422 Unprocessable Entity` - Nieprawidłowe parametry zapytania
 
@@ -146,49 +154,56 @@ UnitReferenceDTO {
 ### 1.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token z Supabase Auth
 
 **Autoryzacja:**
+
 - RLS Policy: `WHERE user_id = auth.uid()`
 - Użytkownik widzi tylko swoją lodówkę
 - JOIN z products respektuje RLS (global + own private)
 
 **Walidacja:**
+
 - Walidacja wszystkich query params przez Zod
 - Sanityzacja search query (ILIKE z parametryzacją)
 - Walidacja zakresów: page >= 1, limit <= 100, expiring_soon >= 0
 
 **Data Privacy:**
+
 - Nie ujawniamy user_id w response
 - Produkty prywatne innych użytkowników są niedostępne
 
 ### 1.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy expired value | 422 | VALIDATION_ERROR | Zwróć: expired must be yes, no, or all |
-| expiring_soon < 0 | 422 | VALIDATION_ERROR | Zwróć: expiring_soon must be positive |
-| Nieprawidłowy sort field | 422 | VALIDATION_ERROR | Zwróć listę dozwolonych wartości |
-| page < 1 | 422 | VALIDATION_ERROR | Zwróć: page must be >= 1 |
-| limit > 100 | 422 | VALIDATION_ERROR | Zwróć: limit cannot exceed 100 |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj szczegóły, zwróć ogólny komunikat |
+| Scenariusz                  | Kod HTTP | Error Code       | Akcja                                    |
+| --------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                 | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token         | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy expired value | 422      | VALIDATION_ERROR | Zwróć: expired must be yes, no, or all   |
+| expiring_soon < 0           | 422      | VALIDATION_ERROR | Zwróć: expiring_soon must be positive    |
+| Nieprawidłowy sort field    | 422      | VALIDATION_ERROR | Zwróć listę dozwolonych wartości         |
+| page < 1                    | 422      | VALIDATION_ERROR | Zwróć: page must be >= 1                 |
+| limit > 100                 | 422      | VALIDATION_ERROR | Zwróć: limit cannot exceed 100           |
+| Błąd bazy danych            | 500      | INTERNAL_ERROR   | Loguj szczegóły, zwróć ogólny komunikat  |
 
 ### 1.8 Wydajność
 
 **Optymalizacje:**
+
 - Indeks na `user_products(user_id)` - FK index
 - Indeks na `user_products(expiry_date)` - dla filtrowania
 - JOIN optymalizacja: indexed foreign keys
-- COUNT(*) OVER() dla total bez dodatkowego query
+- COUNT(\*) OVER() dla total bez dodatkowego query
 
 **Caching:**
+
 - Cache krótkoterminowy (5 minut): `fridge:{userId}:page:{page}:params:{hash}`
 - Invalidacja cache przy: POST, PATCH, DELETE
 - Cache key zawiera hash wszystkich parametrów
 
 **Query Optimization:**
+
 - Selective loading tylko potrzebnych kolumn
 - Proper index usage dla wszystkich filtrów
 
@@ -196,21 +211,22 @@ UnitReferenceDTO {
 
 1. **Utworzenie Zod schema walidacji**
    - Schema dla ListFridgeQueryDTO:
+
    ```typescript
    z.object({
-     expired: z.enum(['yes', 'no', 'all']).default('all'),
+     expired: z.enum(["yes", "no", "all"]).default("all"),
      expiring_soon: z.coerce.number().int().nonnegative().optional(),
      search: z.string().trim().optional(),
-     sort: z.enum(['name', 'quantity', 'expiry_date', 'created_at']).default('created_at'),
-     order: z.enum(['asc', 'desc']).default('desc'),
+     sort: z.enum(["name", "quantity", "expiry_date", "created_at"]).default("created_at"),
+     order: z.enum(["asc", "desc"]).default("desc"),
      page: z.coerce.number().int().min(1).default(1),
-     limit: z.coerce.number().int().min(1).max(100).default(20)
-   })
+     limit: z.coerce.number().int().min(1).max(100).default(20),
+   });
    ```
 
 2. **Utworzenie FridgeService**
    - Utwórz `src/lib/services/fridge.service.ts`
-   - Implementuj `listFridgeItems(userId, query)` 
+   - Implementuj `listFridgeItems(userId, query)`
    - Zbuduj complex SQL query z JOIN
    - Mapuj sort field na database column (name → p.name)
    - Implementuj logikę filtrów (expired, expiring_soon, search)
@@ -218,7 +234,7 @@ UnitReferenceDTO {
 
 3. **Helper funkcje transformacji**
    - `transformToFridgeItemDTO(row)` - konwertuje flat row na nested DTO
-   - Grupowanie kolumn: product.*, unit.*
+   - Grupowanie kolumn: product._, unit._
 
 4. **Utworzenie endpoint handlera**
    - Utwórz `src/pages/api/fridge/index.ts`
@@ -243,6 +259,7 @@ UnitReferenceDTO {
 ## 2. GET /api/fridge/:id - Get Fridge Item by ID
 
 ### 2.1 Przegląd punktu końcowego
+
 Endpoint pobiera szczegóły pojedynczego produktu z lodówki użytkownika. Zwraca pełne informacje o produkcie, ilości, jednostce i dacie ważności.
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
@@ -254,10 +271,12 @@ Endpoint pobiera szczegóły pojedynczego produktu z lodówki użytkownika. Zwra
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID pozycji w lodówce
 
 **Przykładowe żądanie:**
+
 ```
 GET /api/fridge/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -266,6 +285,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 2.3 Wykorzystywane typy
 
 **Response DTO:**
+
 ```typescript
 FridgeItemDTO {
   id: number;
@@ -280,6 +300,7 @@ FridgeItemDTO {
 ### 2.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -299,6 +320,7 @@ FridgeItemDTO {
 ```
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Pozycja nie istnieje lub nie należy do użytkownika
 
@@ -323,34 +345,39 @@ FridgeItemDTO {
 ### 2.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy: `WHERE id = $id AND user_id = auth.uid()`
 - Zapobiega dostępowi do lodówek innych użytkowników
 - 404 zamiast 403 (information disclosure prevention)
 
 **Walidacja:**
+
 - Walidacja ID: integer, positive
 
 ### 2.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid item ID |
-| Pozycja nie istnieje | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| Pozycja innego użytkownika | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid item ID                   |
+| Pozycja nie istnieje       | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| Pozycja innego użytkownika | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 2.8 Wydajność
 
 **Optymalizacje:**
+
 - PRIMARY KEY lookup (id) - bardzo szybkie
 - JOIN z indexed foreign keys
 
 **Caching:**
+
 - Cache item: `fridge:item:{itemId}` na 5 minut
 - Invalidacja przy UPDATE/DELETE
 
@@ -383,6 +410,7 @@ FridgeItemDTO {
 ## 3. POST /api/fridge - Add Item to Fridge
 
 ### 3.1 Przegląd punktu końcowego
+
 Endpoint dodaje nowy produkt do wirtualnej lodówki użytkownika. Wymaga podania ID produktu, ilości, jednostki miary oraz opcjonalnie daty ważności.
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
@@ -396,6 +424,7 @@ Endpoint dodaje nowy produkt do wirtualnej lodówki użytkownika. Wymaga podania
   - `Content-Type: application/json`
 
 **Request Body:**
+
 - **Wymagane:**
   - `product_id` (integer) - ID produktu (globalnego lub prywatnego użytkownika)
   - `quantity` (number) - Ilość produktu, >= 0
@@ -404,6 +433,7 @@ Endpoint dodaje nowy produkt do wirtualnej lodówki użytkownika. Wymaga podania
   - `expiry_date` (string | null) - Data ważności w formacie ISO 8601 (YYYY-MM-DD)
 
 **Przykładowe żądanie:**
+
 ```json
 POST /api/fridge
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -420,6 +450,7 @@ Content-Type: application/json
 ### 3.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 CreateFridgeItemDTO {
   product_id: number;
@@ -430,6 +461,7 @@ CreateFridgeItemDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 FridgeItemDTO {
   id: number;
@@ -444,6 +476,7 @@ FridgeItemDTO {
 ### 3.4 Szczegóły odpowiedzi
 
 **Sukces (201 Created):**
+
 ```json
 {
   "id": 1,
@@ -463,6 +496,7 @@ FridgeItemDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane (quantity < 0, nieprawidłowa data)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Produkt lub jednostka nie istnieją
@@ -488,14 +522,17 @@ FridgeItemDTO {
 ### 3.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla INSERT: `WITH CHECK (user_id = auth.uid())`
 - user_id automatycznie ustawiany na auth.uid()
 - Weryfikacja dostępu do product_id (global lub own)
 
 **Walidacja:**
+
 - quantity >= 0 (decimal)
 - product_id musi istnieć i być dostępny dla użytkownika
 - unit_id musi istnieć
@@ -503,44 +540,48 @@ FridgeItemDTO {
 - Prevent SQL injection przez parametryzację
 
 **Business Rules:**
+
 - Możliwość dodania tego samego produktu wiele razy (różne daty ważności, lokalizacje)
 - expiry_date w przeszłości: opcjonalnie warning, ale dozwolone
 
 ### 3.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Brak wymaganych pól | 400 | VALIDATION_ERROR | Zwróć listę brakujących pól |
-| quantity < 0 | 400 | VALIDATION_ERROR | Zwróć: quantity must be >= 0 |
-| Nieprawidłowy format expiry_date | 400 | VALIDATION_ERROR | Zwróć: expiry_date must be valid ISO date |
-| product_id nie istnieje | 404 | NOT_FOUND | Zwróć: Product not found |
-| unit_id nie istnieje | 404 | NOT_FOUND | Zwróć: Unit not found |
-| Invalid JSON | 400 | VALIDATION_ERROR | Zwróć: Invalid request body |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                       | Kod HTTP | Error Code       | Akcja                                     |
+| -------------------------------- | -------- | ---------------- | ----------------------------------------- |
+| Brak tokenu                      | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji   |
+| Nieprawidłowy token              | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie  |
+| Brak wymaganych pól              | 400      | VALIDATION_ERROR | Zwróć listę brakujących pól               |
+| quantity < 0                     | 400      | VALIDATION_ERROR | Zwróć: quantity must be >= 0              |
+| Nieprawidłowy format expiry_date | 400      | VALIDATION_ERROR | Zwróć: expiry_date must be valid ISO date |
+| product_id nie istnieje          | 404      | NOT_FOUND        | Zwróć: Product not found                  |
+| unit_id nie istnieje             | 404      | NOT_FOUND        | Zwróć: Unit not found                     |
+| Invalid JSON                     | 400      | VALIDATION_ERROR | Zwróć: Invalid request body               |
+| Błąd bazy danych                 | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat             |
 
 ### 3.8 Wydajność
 
 **Optymalizacje:**
+
 - Batch verification: sprawdzenie product + unit w jednym query
 - RETURNING clause: unikamy dodatkowego SELECT
 - Transakcja dla atomowości
 
 **Cache Invalidation:**
+
 - Invalidacja cache listy: `fridge:{userId}:*`
 
 ### 3.9 Etapy wdrożenia
 
 1. **Zod schema walidacji**
    - Schema dla CreateFridgeItemDTO:
+
    ```typescript
    z.object({
      product_id: z.number().int().positive(),
      quantity: z.number().nonnegative(),
      unit_id: z.number().int().positive(),
-     expiry_date: z.string().date().nullable().optional()
-   })
+     expiry_date: z.string().date().nullable().optional(),
+   });
    ```
 
 2. **Rozszerzenie FridgeService**
@@ -577,6 +618,7 @@ FridgeItemDTO {
 ## 4. PATCH /api/fridge/:id - Update Fridge Item
 
 ### 4.1 Przegląd punktu końcowego
+
 Endpoint aktualizuje istniejącą pozycję w lodówce użytkownika. Pozwala na zmianę ilości, jednostki miary oraz daty ważności. Nie można zmienić produktu (product_id) - wymaga usunięcia i dodania nowej pozycji.
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
@@ -590,16 +632,19 @@ Endpoint aktualizuje istniejącą pozycję w lodówce użytkownika. Pozwala na z
   - `Content-Type: application/json`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID pozycji do aktualizacji
 
 **Request Body:**
+
 - **Opcjonalne (przynajmniej jedno wymagane):**
   - `quantity` (number) - Nowa ilość, >= 0
   - `unit_id` (integer) - Nowy ID jednostki
   - `expiry_date` (string | null) - Nowa data ważności lub null (usunięcie)
 
 **Przykładowe żądanie:**
+
 ```json
 PATCH /api/fridge/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -615,6 +660,7 @@ Content-Type: application/json
 ### 4.3 Wykorzystywane typy
 
 **Request DTO:**
+
 ```typescript
 UpdateFridgeItemDTO {
   quantity?: number;
@@ -624,6 +670,7 @@ UpdateFridgeItemDTO {
 ```
 
 **Response DTO:**
+
 ```typescript
 FridgeItemDTO {
   id: number;
@@ -638,6 +685,7 @@ FridgeItemDTO {
 ### 4.4 Szczegóły odpowiedzi
 
 **Sukces (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -657,6 +705,7 @@ FridgeItemDTO {
 ```
 
 **Błędy:**
+
 - `400 Bad Request` - Nieprawidłowe dane (puste body, quantity < 0)
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Pozycja nie istnieje, unit nie istnieje, lub pozycja nie należy do użytkownika
@@ -682,13 +731,16 @@ FridgeItemDTO {
 ### 4.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla UPDATE: `USING (user_id = auth.uid())`
 - Użytkownik może aktualizować tylko swoje pozycje
 
 **Walidacja:**
+
 - Walidacja ID pozycji
 - quantity >= 0
 - Weryfikacja istnienia nowego unit_id (jeśli zmieniane)
@@ -696,32 +748,35 @@ FridgeItemDTO {
 - Wymóg przynajmniej jednego pola w body
 
 **Business Rules:**
+
 - Nie można zmienić product_id (by design)
 - expiry_date może być ustawione na null (usunięcie daty)
 
 ### 4.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid item ID |
-| Puste body | 400 | VALIDATION_ERROR | Zwróć: At least one field required |
-| quantity < 0 | 400 | VALIDATION_ERROR | Zwróć: quantity must be >= 0 |
-| Nieprawidłowa data | 400 | VALIDATION_ERROR | Zwróć: Invalid expiry_date format |
-| Pozycja nie istnieje | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| Pozycja innego użytkownika | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| unit_id nie istnieje | 404 | NOT_FOUND | Zwróć: Unit not found |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid item ID                   |
+| Puste body                 | 400      | VALIDATION_ERROR | Zwróć: At least one field required       |
+| quantity < 0               | 400      | VALIDATION_ERROR | Zwróć: quantity must be >= 0             |
+| Nieprawidłowa data         | 400      | VALIDATION_ERROR | Zwróć: Invalid expiry_date format        |
+| Pozycja nie istnieje       | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| Pozycja innego użytkownika | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| unit_id nie istnieje       | 404      | NOT_FOUND        | Zwróć: Unit not found                    |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 4.8 Wydajność
 
 **Optymalizacje:**
+
 - UPDATE WHERE id + user_id używa indeksów
 - Weryfikacja unit tylko gdy zmienione
 - Pojedyncza transakcja
 
 **Cache Invalidation:**
+
 - Invalidacja cache pozycji: `fridge:item:{itemId}`
 - Invalidacja cache listy: `fridge:{userId}:*`
 
@@ -729,14 +784,15 @@ FridgeItemDTO {
 
 1. **Zod schema walidacji**
    - Schema dla UpdateFridgeItemDTO:
+
    ```typescript
    z.object({
      quantity: z.number().nonnegative().optional(),
      unit_id: z.number().int().positive().optional(),
-     expiry_date: z.string().date().nullable().optional()
-   }).refine(data => Object.keys(data).length > 0, {
-     message: "At least one field is required"
-   })
+     expiry_date: z.string().date().nullable().optional(),
+   }).refine((data) => Object.keys(data).length > 0, {
+     message: "At least one field is required",
+   });
    ```
 
 2. **Rozszerzenie FridgeService**
@@ -775,6 +831,7 @@ FridgeItemDTO {
 ## 5. DELETE /api/fridge/:id - Delete Fridge Item
 
 ### 5.1 Przegląd punktu końcowego
+
 Endpoint usuwa pozycję z wirtualnej lodówki użytkownika. Operacja jest trwała i nieodwracalna. Nie wpływa na inne dane (brak CASCADE do innych tabel).
 
 **Powiązane User Stories:** US-002 (Zarządzanie wirtualną lodówką)
@@ -786,10 +843,12 @@ Endpoint usuwa pozycję z wirtualnej lodówki użytkownika. Operacja jest trwał
 - **Wymagane nagłówki:** `Authorization: Bearer {access_token}`
 
 **URL Parameters:**
+
 - **Wymagane:**
   - `id` (integer) - ID pozycji do usunięcia
 
 **Przykładowe żądanie:**
+
 ```
 DELETE /api/fridge/123
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -802,10 +861,12 @@ Brak body w request i response (204 No Content).
 ### 5.4 Szczegóły odpowiedzi
 
 **Sukces (204 No Content):**
+
 - Puste body
 - Status 204 oznacza sukces
 
 **Błędy:**
+
 - `401 Unauthorized` - Brak lub nieprawidłowy token
 - `404 Not Found` - Pozycja nie istnieje lub nie należy do użytkownika
 
@@ -826,37 +887,43 @@ Brak body w request i response (204 No Content).
 ### 5.6 Względy bezpieczeństwa
 
 **Uwierzytelnianie:**
+
 - Wymagany Bearer token
 
 **Autoryzacja:**
+
 - RLS Policy dla DELETE: `USING (user_id = auth.uid())`
 - Użytkownik może usuwać tylko swoje pozycje
 
 **Walidacja:**
+
 - Walidacja ID pozycji
 
 **No Cascade Effects:**
+
 - Usunięcie z lodówki nie wpływa na inne dane
 - Bezpieczna operacja
 
 ### 5.7 Obsługa błędów
 
-| Scenariusz | Kod HTTP | Error Code | Akcja |
-|------------|----------|------------|-------|
-| Brak tokenu | 401 | UNAUTHORIZED | Zwróć komunikat o wymaganej autoryzacji |
-| Nieprawidłowy token | 401 | UNAUTHORIZED | Zwróć komunikat o nieprawidłowym tokenie |
-| Nieprawidłowy ID | 400 | VALIDATION_ERROR | Zwróć: Invalid item ID |
-| Pozycja nie istnieje | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| Pozycja innego użytkownika | 404 | NOT_FOUND | Zwróć: Fridge item not found |
-| Błąd bazy danych | 500 | INTERNAL_ERROR | Loguj, zwróć ogólny komunikat |
+| Scenariusz                 | Kod HTTP | Error Code       | Akcja                                    |
+| -------------------------- | -------- | ---------------- | ---------------------------------------- |
+| Brak tokenu                | 401      | UNAUTHORIZED     | Zwróć komunikat o wymaganej autoryzacji  |
+| Nieprawidłowy token        | 401      | UNAUTHORIZED     | Zwróć komunikat o nieprawidłowym tokenie |
+| Nieprawidłowy ID           | 400      | VALIDATION_ERROR | Zwróć: Invalid item ID                   |
+| Pozycja nie istnieje       | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| Pozycja innego użytkownika | 404      | NOT_FOUND        | Zwróć: Fridge item not found             |
+| Błąd bazy danych           | 500      | INTERNAL_ERROR   | Loguj, zwróć ogólny komunikat            |
 
 ### 5.8 Wydajność
 
 **Optymalizacje:**
+
 - DELETE WHERE id + user_id używa indeksów PRIMARY + FK
 - Bardzo szybka operacja
 
 **Cache Invalidation:**
+
 - Invalidacja cache pozycji: `fridge:item:{itemId}`
 - Invalidacja cache listy: `fridge:{userId}:*`
 
@@ -890,6 +957,7 @@ Brak body w request i response (204 No Content).
 ## Podsumowanie implementacji Virtual Fridge API
 
 ### Struktura plików
+
 ```
 src/
 ├── lib/
@@ -909,6 +977,7 @@ src/
 ### Kluczowe funkcjonalności
 
 **Filtrowanie wg ważności:**
+
 ```typescript
 // Expired products
 WHERE expiry_date < CURRENT_DATE
@@ -921,34 +990,37 @@ WHERE expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '$N days'
 ```
 
 **Transformacja danych:**
+
 ```typescript
 function transformToFridgeItemDTO(row): FridgeItemDTO {
   return {
     id: row.id,
     product: {
       id: row.product_id,
-      name: row.product_name
+      name: row.product_name,
     },
     quantity: row.quantity,
     unit: {
       id: row.unit_id,
       name: row.unit_name,
-      abbreviation: row.unit_abbreviation
+      abbreviation: row.unit_abbreviation,
     },
     expiry_date: row.expiry_date,
-    created_at: row.created_at
+    created_at: row.created_at,
   };
 }
 ```
 
 **Date helpers:**
+
 ```typescript
-function isExpired(expiryDate: string | null): boolean
-function isExpiringSoon(expiryDate: string | null, days: number): boolean
-function formatDate(date: Date): string // ISO format
+function isExpired(expiryDate: string | null): boolean;
+function isExpiringSoon(expiryDate: string | null, days: number): boolean;
+function formatDate(date: Date): string; // ISO format
 ```
 
 ### Kolejność implementacji
+
 1. Setup: Date utils, error classes (reuse from Products)
 2. FridgeService: Wszystkie metody
 3. Validation schemas: Zod schemas
@@ -958,11 +1030,11 @@ function formatDate(date: Date): string // ISO format
    - GET /api/fridge/:id (get by id)
    - PATCH /api/fridge/:id (update)
    - DELETE /api/fridge/:id (delete)
-<!-- 5. Testing: Unit + integration tests -->
+   <!-- 5. Testing: Unit + integration tests -->
 
 ### Uwagi implementacyjne
+
 - **JOIN optimization**: Zawsze łączymy products i units dla pełnych danych
 - **Expiry date handling**: NULL oznacza brak daty ważności (produkt nie psujący się)
 - **Quantity precision**: Używamy DECIMAL dla dokładności (np. 1.5 kg)
 - **RLS security**: Automatyczna izolacja danych użytkowników
-

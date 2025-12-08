@@ -10,7 +10,7 @@
 
 ## Przegląd
 
-Testy E2E tworzą dane testowe w bazie Supabase (produkty, przepisy, wpisy w lodówce itp.). 
+Testy E2E tworzą dane testowe w bazie Supabase (produkty, przepisy, wpisy w lodówce itp.).
 System czyszczenia zapewnia, że po każdym uruchomieniu testów baza jest czyszczona automatycznie.
 
 ### Jak to działa?
@@ -73,8 +73,8 @@ E2E_TEST_USER_ID=a1b2c3d4-e5f6-7890-abcd-1234567890ab
 **Metoda B: Przez SQL Editor**
 
 ```sql
-SELECT id, email 
-FROM auth.users 
+SELECT id, email
+FROM auth.users
 WHERE email = 'test@foodnager.pl';
 ```
 
@@ -83,13 +83,13 @@ WHERE email = 'test@foodnager.pl';
 Dodaj do `e2e/auth.setup.ts`:
 
 ```typescript
-setup('authenticate', async ({ page }) => {
+setup("authenticate", async ({ page }) => {
   // ... existing login code ...
-  
+
   // Get user ID after login
-  const response = await page.request.get('/api/auth/me');
+  const response = await page.request.get("/api/auth/me");
   const userData = await response.json();
-  console.log('Test User ID:', userData.user.id);
+  console.log("Test User ID:", userData.user.id);
 });
 ```
 
@@ -132,14 +132,14 @@ Dane są usuwane w **odwrotnej kolejności** kluczy obcych (foreign keys):
 
 ### Co jest czyszczone?
 
-| Tabela | Warunek | Opis |
-|--------|---------|------|
-| `cooking_history` | `user_id = E2E_TEST_USER_ID` | Historia gotowania |
-| `user_products` | `user_id = E2E_TEST_USER_ID` | Produkty w lodówce |
-| `recipe_tags` | `recipe_id IN (user recipes)` | Tagi przepisów użytkownika |
-| `recipe_ingredients` | `recipe_id IN (user recipes)` | Składniki przepisów |
-| `recipes` | `user_id = E2E_TEST_USER_ID` | Przepisy użytkownika |
-| `products` | `user_id = E2E_TEST_USER_ID` | Prywatne produkty |
+| Tabela               | Warunek                       | Opis                       |
+| -------------------- | ----------------------------- | -------------------------- |
+| `cooking_history`    | `user_id = E2E_TEST_USER_ID`  | Historia gotowania         |
+| `user_products`      | `user_id = E2E_TEST_USER_ID`  | Produkty w lodówce         |
+| `recipe_tags`        | `recipe_id IN (user recipes)` | Tagi przepisów użytkownika |
+| `recipe_ingredients` | `recipe_id IN (user recipes)` | Składniki przepisów        |
+| `recipes`            | `user_id = E2E_TEST_USER_ID`  | Przepisy użytkownika       |
+| `products`           | `user_id = E2E_TEST_USER_ID`  | Prywatne produkty          |
 
 ### Co NIE jest czyszczone?
 
@@ -153,15 +153,15 @@ Dane są usuwane w **odwrotnej kolejności** kluczy obcych (foreign keys):
 ```typescript
 export default defineConfig({
   // ...
-  
+
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
-    { name: 'chromium', dependencies: ['setup'] },
-    { name: 'teardown', testMatch: /.*\.teardown\.ts/ },
+    { name: "setup", testMatch: /.*\.setup\.ts/ },
+    { name: "chromium", dependencies: ["setup"] },
+    { name: "teardown", testMatch: /.*\.teardown\.ts/ },
   ],
-  
+
   // Global teardown runs AFTER all projects
-  globalTeardown: './e2e/global.teardown.ts',
+  globalTeardown: "./e2e/global.teardown.ts",
 });
 ```
 
@@ -195,16 +195,16 @@ Podczas czyszczenia zobaczysz w konsoli:
 Jeśli potrzebujesz wyczyścić dane **w trakcie** testu:
 
 ```typescript
-import { cleanupFridge } from './helpers/db-cleanup';
+import { cleanupFridge } from "./helpers/db-cleanup";
 
-test.describe('Fridge Tests', () => {
-  test('should handle empty fridge', async ({ page }) => {
+test.describe("Fridge Tests", () => {
+  test("should handle empty fridge", async ({ page }) => {
     // Clean fridge before test
     await cleanupFridge(process.env.E2E_TEST_USER_ID!);
-    
+
     // Test with empty state
-    await page.goto('/fridge');
-    await expect(page.getByText('Lodówka jest pusta')).toBeVisible();
+    await page.goto("/fridge");
+    await expect(page.getByText("Lodówka jest pusta")).toBeVisible();
   });
 });
 ```
@@ -213,12 +213,12 @@ test.describe('Fridge Tests', () => {
 
 ```typescript
 import {
-  cleanupUserData,      // Wszystkie dane użytkownika
-  cleanupUserProducts,  // Tylko produkty
-  cleanupFridge,        // Tylko lodówka
-  cleanupRecipes,       // Tylko przepisy
-  cleanupCookingHistory // Tylko historia
-} from './helpers/db-cleanup';
+  cleanupUserData, // Wszystkie dane użytkownika
+  cleanupUserProducts, // Tylko produkty
+  cleanupFridge, // Tylko lodówka
+  cleanupRecipes, // Tylko przepisy
+  cleanupCookingHistory, // Tylko historia
+} from "./helpers/db-cleanup";
 
 // Clean everything
 await cleanupUserData(userId);
@@ -234,15 +234,15 @@ Możesz uruchomić cleanup jako standalone skrypt:
 
 ```typescript
 // scripts/cleanup-test-db.ts
-import { config } from 'dotenv';
-import { cleanupUserData } from '../e2e/helpers/db-cleanup';
+import { config } from "dotenv";
+import { cleanupUserData } from "../e2e/helpers/db-cleanup";
 
-config({ path: '.env.test' });
+config({ path: ".env.test" });
 
 const userId = process.env.E2E_TEST_USER_ID!;
 await cleanupUserData(userId);
 
-console.log('✅ Database cleaned!');
+console.log("✅ Database cleaned!");
 ```
 
 Uruchomienie:
@@ -297,11 +297,11 @@ Sprawdź:
 
 ```sql
 -- Check foreign keys
-SELECT 
-  tc.table_name, 
+SELECT
+  tc.table_name,
   kcu.column_name,
   ccu.table_name AS foreign_table_name
-FROM information_schema.table_constraints AS tc 
+FROM information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
   ON tc.constraint_name = kcu.constraint_name
 JOIN information_schema.constraint_column_usage AS ccu
@@ -338,19 +338,22 @@ projects: [
 
 ```typescript
 // e2e/hooks.ts
-import { test as base } from '@playwright/test';
-import { cleanupUserData } from './helpers/db-cleanup';
+import { test as base } from "@playwright/test";
+import { cleanupUserData } from "./helpers/db-cleanup";
 
 export const test = base.extend({
   // Cleanup after each test file
-  auto: [async ({}, use, testInfo) => {
-    await use();
-    
-    // Only cleanup after last test in file
-    if (testInfo.project.name === 'chromium') {
-      await cleanupUserData(process.env.E2E_TEST_USER_ID!);
-    }
-  }, { auto: true }]
+  auto: [
+    async ({}, use, testInfo) => {
+      await use();
+
+      // Only cleanup after last test in file
+      if (testInfo.project.name === "chromium") {
+        await cleanupUserData(process.env.E2E_TEST_USER_ID!);
+      }
+    },
+    { auto: true },
+  ],
 });
 ```
 
@@ -359,6 +362,7 @@ export const test = base.extend({
 **Metoda A: Logi konsoli**
 
 Szukaj:
+
 ```
 ✅ Database cleanup completed successfully
 ```
@@ -368,7 +372,7 @@ Szukaj:
 1. Otwórz SQL Editor
 2. Uruchom:
    ```sql
-   SELECT COUNT(*) FROM user_products 
+   SELECT COUNT(*) FROM user_products
    WHERE user_id = 'your-test-user-id';
    ```
 3. Powinno być `0` po teardown
@@ -379,10 +383,10 @@ Szukaj:
 test.afterAll(async () => {
   const supabase = createTestSupabaseClient();
   const { count } = await supabase
-    .from('user_products')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', process.env.E2E_TEST_USER_ID!);
-  
+    .from("user_products")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", process.env.E2E_TEST_USER_ID!);
+
   expect(count).toBe(0);
 });
 ```
@@ -414,4 +418,3 @@ Jeśli masz problemy z cleanup:
 3. Sprawdź RLS policies w Supabase
 4. Zobacz [e2e/README.md](./README.md) dla więcej info
 5. Otwórz issue na GitHub
-

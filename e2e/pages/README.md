@@ -30,27 +30,27 @@ e2e/
 ```typescript
 export class ExamplePage {
   private readonly page: Page;
-  
+
   // Locators (private)
   private readonly someButton: Locator;
-  
+
   // Sub-components (public dla dostępu w testach)
   public readonly subComponent: SubComponent;
-  
+
   constructor(page: Page) {
     this.page = page;
-    this.someButton = page.getByTestId('some-button');
+    this.someButton = page.getByTestId("some-button");
     this.subComponent = new SubComponent(page);
   }
-  
+
   // Actions (public methods)
-  async doSomething(): Promise<void> { }
-  
+  async doSomething(): Promise<void> {}
+
   // Queries (public methods returning data)
-  async getSomething(): Promise<string> { }
-  
+  async getSomething(): Promise<string> {}
+
   // Assertions (public methods for verification)
-  async assertSomething(): Promise<void> { }
+  async assertSomething(): Promise<void> {}
 }
 ```
 
@@ -61,6 +61,7 @@ export class ExamplePage {
 Główna strona zarządzania lodówką.
 
 **Metody:**
+
 - `goto()` - Nawigacja do strony
 - `openAddProductModal()` - Otwiera modal dodawania produktu
 - `search(query)` - Wyszukiwanie produktów
@@ -69,11 +70,12 @@ Główna strona zarządzania lodówką.
 - `assertProductExists(name)` - Weryfikacja istnienia produktu
 
 **Przykład:**
+
 ```typescript
 const fridgePage = new FridgePage(page);
 await fridgePage.goto();
 await fridgePage.openAddProductModal();
-await fridgePage.assertProductExists('Mleko');
+await fridgePage.assertProductExists("Mleko");
 ```
 
 ### AddProductModal
@@ -81,11 +83,13 @@ await fridgePage.assertProductExists('Mleko');
 Modal dodawania produktu do lodówki z zagnieżdżonymi komponentami.
 
 **Komponenty:**
+
 - `productAutocomplete` - Komponent wyboru produktu
 - `unitSelect` - Komponent wyboru jednostki
 - `expiryDatePicker` - Komponent wyboru daty
 
 **Metody:**
+
 - `fillAndSubmit(data)` - Wypełnia formularz i wysyła
 - `quickAdd(name, quantity, unit)` - Szybkie dodanie produktu
 - `submit()` - Wysłanie formularza
@@ -93,16 +97,17 @@ Modal dodawania produktu do lodówki z zagnieżdżonymi komponentami.
 - `assertModalVisible()` - Weryfikacja widoczności modala
 
 **Przykład:**
+
 ```typescript
 await modal.fillAndSubmit({
-  productName: 'Mleko',
+  productName: "Mleko",
   quantity: 1.5,
-  unitText: 'litr',
-  expiryDate: '2025-12-31',
+  unitText: "litr",
+  expiryDate: "2025-12-31",
 });
 
 // Lub szybkie dodanie:
-await modal.quickAdd('Chleb', 2, 'szt');
+await modal.quickAdd("Chleb", 2, "szt");
 ```
 
 ### ProductAutocompleteComponent
@@ -110,6 +115,7 @@ await modal.quickAdd('Chleb', 2, 'szt');
 Komponent autocomplete do wyboru lub utworzenia produktu.
 
 **Metody:**
+
 - `open()` - Otwiera dropdown
 - `search(productName)` - Wyszukuje produkt
 - `selectProduct(id)` - Wybiera produkt po ID
@@ -118,11 +124,12 @@ Komponent autocomplete do wyboru lub utworzenia produktu.
 - `getSelectedProductText()` - Zwraca wybrany produkt
 
 **Przykład:**
+
 ```typescript
-await autocomplete.searchAndSelect('Mleko');
+await autocomplete.searchAndSelect("Mleko");
 
 // Lub utworzenie nowego:
-await autocomplete.createNewProduct('Mój Produkt');
+await autocomplete.createNewProduct("Mój Produkt");
 ```
 
 ### UnitSelectComponent
@@ -130,14 +137,16 @@ await autocomplete.createNewProduct('Mój Produkt');
 Komponent wyboru jednostki miary.
 
 **Metody:**
+
 - `selectUnit(id)` - Wybiera jednostkę po ID
 - `selectUnitByText(text)` - Wybiera jednostkę po tekście
 - `getAllUnits()` - Zwraca listę wszystkich jednostek
 - `getSelectedUnitText()` - Zwraca wybraną jednostkę
 
 **Przykład:**
+
 ```typescript
-await unitSelect.selectUnitByText('kg');
+await unitSelect.selectUnitByText("kg");
 // lub
 await unitSelect.selectUnit(1);
 ```
@@ -147,6 +156,7 @@ await unitSelect.selectUnit(1);
 Komponent wyboru daty.
 
 **Metody:**
+
 - `setDate(date)` - Ustawia datę (format: YYYY-MM-DD)
 - `setToday()` - Ustawia dzisiaj
 - `setTomorrow()` - Ustawia jutro
@@ -155,12 +165,13 @@ Komponent wyboru daty.
 - `getValue()` - Zwraca aktualną wartość
 
 **Przykład:**
+
 ```typescript
 await datePicker.setTomorrow();
 // lub
 await datePicker.setDaysFromNow(7); // Za tydzień
 // lub
-await datePicker.setDate('2025-12-31');
+await datePicker.setDate("2025-12-31");
 ```
 
 ## Przykłady testów
@@ -168,60 +179,60 @@ await datePicker.setDate('2025-12-31');
 ### Prosty test dodawania produktu
 
 ```typescript
-test('should add a product to fridge', async ({ page }) => {
+test("should add a product to fridge", async ({ page }) => {
   const fridgePage = new FridgePage(page);
-  
+
   await fridgePage.goto();
   await fridgePage.openAddProductModal();
-  
-  await fridgePage.addProductModal.quickAdd('Mleko', 1, 'litr');
-  
-  await fridgePage.assertSuccessToast('Produkt dodany pomyślnie');
-  await fridgePage.assertProductExists('Mleko');
+
+  await fridgePage.addProductModal.quickAdd("Mleko", 1, "litr");
+
+  await fridgePage.assertSuccessToast("Produkt dodany pomyślnie");
+  await fridgePage.assertProductExists("Mleko");
 });
 ```
 
 ### Test z pełną kontrolą
 
 ```typescript
-test('should add product with all fields', async ({ page }) => {
+test("should add product with all fields", async ({ page }) => {
   const fridgePage = new FridgePage(page);
-  
+
   await fridgePage.goto();
   await fridgePage.openAddProductModal();
-  
+
   const modal = fridgePage.addProductModal;
-  
+
   // Krok po kroku
-  await modal.productAutocomplete.searchAndSelect('Jogurt');
+  await modal.productAutocomplete.searchAndSelect("Jogurt");
   await modal.fillQuantity(2);
-  await modal.unitSelect.selectUnitByText('szt');
+  await modal.unitSelect.selectUnitByText("szt");
   await modal.expiryDatePicker.setDaysFromNow(7);
   await modal.setAddAnother(false);
   await modal.submit();
-  
+
   await modal.waitForModalClose();
-  await fridgePage.assertProductExists('Jogurt');
+  await fridgePage.assertProductExists("Jogurt");
 });
 ```
 
 ### Test tworzenia nowego produktu
 
 ```typescript
-test('should create new custom product', async ({ page }) => {
+test("should create new custom product", async ({ page }) => {
   const fridgePage = new FridgePage(page);
-  
+
   await fridgePage.goto();
   await fridgePage.openAddProductModal();
-  
+
   await fridgePage.addProductModal.fillAndSubmit({
-    productName: 'Mój Własny Produkt',
+    productName: "Mój Własny Produkt",
     createNewProduct: true,
     quantity: 5,
-    unitText: 'kg',
+    unitText: "kg",
   });
-  
-  await fridgePage.assertProductExists('Mój Własny Produkt');
+
+  await fridgePage.assertProductExists("Mój Własny Produkt");
 });
 ```
 
@@ -230,29 +241,33 @@ test('should create new custom product', async ({ page }) => {
 ### 1. Używaj testId zamiast selektorów CSS
 
 ❌ **Źle:**
+
 ```typescript
-await page.locator('.btn-primary').click();
+await page.locator(".btn-primary").click();
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
-await page.getByTestId('submit-button').click();
+await page.getByTestId("submit-button").click();
 ```
 
 ### 2. Enkapsulacja logiki w POM
 
 ❌ **Źle:**
+
 ```typescript
 // W teście
-await page.getByTestId('product-autocomplete-trigger').click();
-await page.getByTestId('product-autocomplete-search-input').fill('Mleko');
-await page.getByTestId('product-autocomplete-option-1').click();
+await page.getByTestId("product-autocomplete-trigger").click();
+await page.getByTestId("product-autocomplete-search-input").fill("Mleko");
+await page.getByTestId("product-autocomplete-option-1").click();
 ```
 
 ✅ **Dobrze:**
+
 ```typescript
 // W teście
-await modal.productAutocomplete.searchAndSelect('Mleko');
+await modal.productAutocomplete.searchAndSelect("Mleko");
 ```
 
 ### 3. Asercje w POM
@@ -322,6 +337,7 @@ npx playwright codegen http://localhost:4321/fridge
 ### Problem: Element nie znaleziony
 
 **Rozwiązanie:** Sprawdź czy:
+
 1. `data-testid` jest poprawnie ustawiony w komponencie
 2. Element jest widoczny (nie ukryty przez CSS/conditional rendering)
 3. Używasz `waitFor()` dla dynamicznych elementów
@@ -329,6 +345,7 @@ npx playwright codegen http://localhost:4321/fridge
 ### Problem: Test niestabilny (flaky)
 
 **Rozwiązanie:**
+
 1. Dodaj `waitFor()` przed akcjami
 2. Użyj `waitForLoadState('networkidle')`
 3. Zwiększ timeout dla wolnych operacji
@@ -337,10 +354,10 @@ npx playwright codegen http://localhost:4321/fridge
 ### Problem: Modal się nie otwiera
 
 **Rozwiązanie:**
+
 ```typescript
 // Upewnij się, że button jest klikalny
-await button.waitFor({ state: 'visible' });
+await button.waitFor({ state: "visible" });
 await button.click();
-await modal.waitFor({ state: 'visible' });
+await modal.waitFor({ state: "visible" });
 ```
-

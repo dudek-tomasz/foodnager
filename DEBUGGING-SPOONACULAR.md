@@ -68,12 +68,14 @@ OPENROUTER_API_KEY=sk-or-v1-....
 ```
 
 Jeśli jej brak lub klucz nieprawidłowy:
+
 - Tłumaczenie będzie pominięte
 - Zobaczysz log: `🌍 [TRANSLATOR] OpenRouter not configured, skipping translation`
 
 ### Przyczyna 2: Serwer nie został zrestartowany
 
 Po zmianach w kodzie **MUSISZ** zrestartować serwer:
+
 - Ctrl+C w terminalu
 - `npm run dev` ponownie
 
@@ -82,6 +84,7 @@ Po zmianach w kodzie **MUSISZ** zrestartować serwer:
 Może być błąd TypeScript/JavaScript który nie jest wykrywany przez linter.
 
 Sprawdź terminal czy są czerwone błędy podczas startu:
+
 - `TypeError`
 - `Cannot find module`
 - `undefined is not a function`
@@ -89,6 +92,7 @@ Sprawdź terminal czy są czerwone błędy podczas startu:
 ### Przyczyna 4: Cache przeglądarki
 
 Przepisy mogą być cache'owane w przeglądarce:
+
 - Otwórz DevTools (F12)
 - Zakładka Network
 - Zaznacz "Disable cache"
@@ -99,6 +103,7 @@ Przepisy mogą być cache'owane w przeglądarce:
 Jeśli przepisy zostały zapisane **przed** dodaniem kodu tłumaczenia, będą nadal po angielsku.
 
 Rozwiązanie:
+
 1. Usuń przepisy z API z bazy danych
 2. Wykonaj wyszukiwanie ponownie
 3. Nowe przepisy będą już przetłumaczone
@@ -153,6 +158,7 @@ Jeśli pokazuje `0 ingredients` → problem z danymi z Spoonacular.
 ## 🆘 Bez logów nie mogę pomóc
 
 Kod jest poprawny. Problem musi być w:
+
 - Konfiguracji środowiska (.env)
 - Runtime errors
 - Cache
@@ -161,4 +167,3 @@ Kod jest poprawny. Problem musi być w:
 **Proszę wykonaj wyszukiwanie i prześlij mi WSZYSTKIE logi z terminala.**
 
 Alternatywnie, zrób screenshot terminala po wykonaniu wyszukiwania.
-

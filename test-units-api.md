@@ -1,6 +1,7 @@
 # Test Units API Endpoint
 
 ## Endpoint Details
+
 - **URL**: `GET /api/units`
 - **Authentication**: Required (Bearer token)
 - **Response**: List of all measurement units
@@ -8,12 +9,14 @@
 ## Test Cases
 
 ### 1. Get All Units (Success)
+
 ```bash
 curl -X GET http://localhost:4321/api/units \
   -H "Content-Type: application/json"
 ```
 
 **Expected Response** (200 OK):
+
 ```json
 {
   "data": [
@@ -35,10 +38,12 @@ curl -X GET http://localhost:4321/api/units \
 ```
 
 **Expected Headers**:
+
 - `X-Cache: MISS` (first request)
 - `X-Cache: HIT` (subsequent requests within 1 hour)
 
 ### 2. Cache Test (Verify Caching Works)
+
 ```bash
 # First request - should be MISS
 curl -X GET http://localhost:4321/api/units \
@@ -69,4 +74,3 @@ curl -X GET http://localhost:4321/api/units \
 - Currently uses DEFAULT_USER_ID for authentication (temporary)
 - TODO: Add real authentication with Bearer token validation
 - Cache is in-memory, will be cleared on server restart
-

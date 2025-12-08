@@ -9,6 +9,7 @@ Widok Lodówki (Virtual Fridge) to kluczowy moduł aplikacji Foodnager, który u
 **Ścieżka:** `/fridge`
 
 **Struktura plików:**
+
 - `src/pages/fridge.astro` - Główna strona Astro z layoutem i kontenerem dla React komponentu
 - `src/components/FridgeView.tsx` - Główny React komponent widoku (client:load)
 
@@ -51,6 +52,7 @@ FridgeView (React - client:load)
 **Opis:** Główny komponent React zarządzający całym widokiem lodówki. Koordynuje pobieranie danych, zarządzanie stanem, obsługę filtrowania i sortowania oraz wyświetlanie wszystkich podkomponentów.
 
 **Główne elementy:**
+
 - `<div>` container z głównym layoutem
 - `<FridgeToolbar />` - pasek narzędzi z wyszukiwaniem i sortowaniem
 - `<FridgeStats />` - statystyki lodówki
@@ -62,6 +64,7 @@ FridgeView (React - client:load)
 - `<Toast />` - powiadomienia toast
 
 **Obsługiwane zdarzenia:**
+
 - Inicjalizacja widoku: fetch listy produktów z API
 - Zmiana filtrów/sortowania: refetch z nowymi parametrami
 - Kliknięcie "Dodaj produkt": otwórz AddProductModal
@@ -72,9 +75,11 @@ FridgeView (React - client:load)
 - Paginacja: fetch kolejnej strony
 
 **Warunki walidacji:**
+
 - Brak - komponent kontenera deleguje walidację do podkomponentów
 
 **Typy:**
+
 - `FridgeViewState` (ViewModel)
 - `FridgeItemDTO` (z types.ts)
 - `FridgeListResponseDTO` (z types.ts)
@@ -90,30 +95,35 @@ Brak - komponent najwyższego poziomu
 **Opis:** Pasek narzędzi zawierający wyszukiwarkę i opcje sortowania/filtrowania.
 
 **Główne elementy:**
+
 - `<div>` flex container
 - `<SearchBar />` - komponent wyszukiwania
 - `<SortDropdown />` - dropdown z opcjami sortowania
 - `<Button>` - przycisk "Dodaj produkt" (opcjonalnie, jeśli nie ma FAB)
 
 **Obsługiwane zdarzenia:**
+
 - Zmiana search query: przekaż do rodzica
 - Zmiana sortowania: przekaż do rodzica
 - Kliknięcie "Dodaj produkt": przekaż event do rodzica
 
 **Warunki walidacji:**
+
 - Brak - tylko UI dla kontrolek
 
 **Typy:**
+
 - `FridgeToolbarProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface FridgeToolbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  sortBy: 'name' | 'quantity' | 'expiry_date' | 'created_at';
-  sortOrder: 'asc' | 'desc';
-  onSortChange: (sortBy: string, order: 'asc' | 'desc') => void;
+  sortBy: "name" | "quantity" | "expiry_date" | "created_at";
+  sortOrder: "asc" | "desc";
+  onSortChange: (sortBy: string, order: "asc" | "desc") => void;
   onAddProduct: () => void;
 }
 ```
@@ -125,21 +135,26 @@ interface FridgeToolbarProps {
 **Opis:** Pole wyszukiwania z debouncingiem do filtrowania produktów po nazwie.
 
 **Główne elementy:**
+
 - `<Input>` z Shadcn/ui
 - `<SearchIcon>` - ikona lupy
 - `<Button>` - przycisk clear (gdy jest wartość)
 
 **Obsługiwane zdarzenia:**
+
 - onChange: debounced (300ms) wywołanie callback
 - onClear: wyczyszczenie wartości i wywołanie callback z pustym stringiem
 
 **Warunki walidacji:**
+
 - Brak - wszystkie wartości są akceptowalne
 
 **Typy:**
+
 - `SearchBarProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface SearchBarProps {
   value: string;
@@ -155,28 +170,33 @@ interface SearchBarProps {
 **Opis:** Dropdown do wyboru pola sortowania i kierunku (asc/desc).
 
 **Główne elementy:**
+
 - `<Select>` z Shadcn/ui dla pola sortowania
 - `<Button>` toggle dla kierunku (ikona strzałki)
 
 **Obsługiwane zdarzenia:**
+
 - Zmiana pola sortowania: wywołaj callback
 - Toggle kierunku: wywołaj callback z odwróconym kierunkiem
 
 **Warunki walidacji:**
+
 - Wartości ograniczone do enum: 'name' | 'quantity' | 'expiry_date' | 'created_at'
 
 **Typy:**
+
 - `SortDropdownProps` (interfejs)
 - `SortField` type alias
 
 **Propsy:**
+
 ```typescript
-type SortField = 'name' | 'quantity' | 'expiry_date' | 'created_at';
+type SortField = "name" | "quantity" | "expiry_date" | "created_at";
 
 interface SortDropdownProps {
   sortBy: SortField;
-  sortOrder: 'asc' | 'desc';
-  onChange: (sortBy: SortField, order: 'asc' | 'desc') => void;
+  sortOrder: "asc" | "desc";
+  onChange: (sortBy: SortField, order: "asc" | "desc") => void;
 }
 ```
 
@@ -187,20 +207,25 @@ interface SortDropdownProps {
 **Opis:** Komponent wyświetlający statystyki lodówki: całkowitą liczbę produktów i liczbę przeterminowanych.
 
 **Główne elementy:**
+
 - `<div>` flex container z dwoma kartami statystyk
 - `<Card>` z Shadcn/ui dla każdej statystyki
 - Ikony i liczby
 
 **Obsługiwane zdarzenia:**
+
 - Brak - tylko wyświetlanie
 
 **Warunki walidacji:**
+
 - Brak - tylko prezentacja danych
 
 **Typy:**
+
 - `FridgeStatsProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface FridgeStatsProps {
   totalCount: number;
@@ -215,23 +240,28 @@ interface FridgeStatsProps {
 **Opis:** Lista produktów w lodówce z obsługą pustego stanu.
 
 **Główne elementy:**
+
 - `<ul>` semantic list
 - `<FridgeItem />` dla każdego produktu
 - `<EmptyState />` gdy lista pusta
 - `<Pagination />` z Shadcn/ui (na dole)
 
 **Obsługiwane zdarzenia:**
+
 - Kliknięcie "Edytuj": przekaż event do rodzica z ID produktu
 - Kliknięcie "Usuń": przekaż event do rodzica z ID produktu
 - Zmiana strony: przekaż do rodzica
 
 **Warunki walidacji:**
+
 - Brak - tylko prezentacja listy
 
 **Typy:**
+
 - `FridgeListProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface FridgeListProps {
   items: FridgeItemDTO[];
@@ -251,6 +281,7 @@ interface FridgeListProps {
 **Opis:** Pojedynczy element listy produktów z informacjami i akcjami.
 
 **Główne elementy:**
+
 - `<li>` semantic list item
 - `<div>` dla informacji produktu (nazwa, ilość, jednostka)
 - `<ExpiryDateBadge />` - badge z datą ważności i color coding
@@ -258,16 +289,20 @@ interface FridgeListProps {
 - `<Button>` ikony dla akcji
 
 **Obsługiwane zdarzenia:**
+
 - Kliknięcie "Edytuj": wywołaj callback z ID
 - Kliknięcie "Usuń": wywołaj callback z ID
 
 **Warunki walidacji:**
+
 - Brak - tylko prezentacja
 
 **Typy:**
+
 - `FridgeItemProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface FridgeItemProps {
   item: FridgeItemDTO;
@@ -283,22 +318,27 @@ interface FridgeItemProps {
 **Opis:** Badge wyświetlający datę ważności z color coding: zielony (>3 dni), pomarańczowy (≤3 dni), czerwony (przeterminowany).
 
 **Główne elementy:**
+
 - `<Badge>` z Shadcn/ui z dynamicznym variant/className
 - Tekst daty lub "Brak daty ważności"
 
 **Obsługiwane zdarzenia:**
+
 - Brak - tylko wyświetlanie
 
 **Warunki walidacji:**
+
 - Brak - tylko prezentacja
 
 **Typy:**
+
 - `ExpiryDateBadgeProps` (interfejs)
 - `ExpiryStatus` type alias
 
 **Propsy:**
+
 ```typescript
-type ExpiryStatus = 'expired' | 'expiring-soon' | 'fresh' | 'no-expiry';
+type ExpiryStatus = "expired" | "expiring-soon" | "fresh" | "no-expiry";
 
 interface ExpiryDateBadgeProps {
   expiryDate: string | null;
@@ -312,6 +352,7 @@ interface ExpiryDateBadgeProps {
 **Opis:** Komponent wyświetlany gdy lodówka jest pusta.
 
 **Główne elementy:**
+
 - `<div>` container z centrowaniem
 - Ilustracja/ikona pustej lodówki
 - Nagłówek "Twoja lodówka jest pusta"
@@ -319,15 +360,19 @@ interface ExpiryDateBadgeProps {
 - `<Button>` "Dodaj pierwszy produkt"
 
 **Obsługiwane zdarzenia:**
+
 - Kliknięcie przycisku: wywołaj callback
 
 **Warunki walidacji:**
+
 - Brak
 
 **Typy:**
+
 - `EmptyStateProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface EmptyStateProps {
   onAddFirst: () => void;
@@ -341,6 +386,7 @@ interface EmptyStateProps {
 **Opis:** Modal dialog do dodawania nowego produktu do lodówki. Zawiera autocomplete dla wyboru produktu (z możliwością tworzenia nowego), pola ilości, jednostki i daty ważności.
 
 **Główne elementy:**
+
 - `<Dialog>` z Shadcn/ui
 - `<DialogHeader>` z tytułem "Dodaj produkt"
 - `<DialogContent>` z formularzem:
@@ -353,6 +399,7 @@ interface EmptyStateProps {
 - Checkbox "Dodaj kolejny produkt"
 
 **Obsługiwane zdarzenia:**
+
 - Wybór produktu z autocomplete: ustaw product_id
 - Kliknięcie "+ Dodaj nowy produkt" w autocomplete: otwórz inline form tworzenia produktu
 - Zmiana ilości: waliduj i ustaw wartość
@@ -362,18 +409,21 @@ interface EmptyStateProps {
 - Kliknięcie "Anuluj": zamknij modal
 
 **Warunki walidacji:**
+
 - `product_id` (required): musi być wybrany produkt
 - `quantity` (required): musi być >= 0, number
 - `unit_id` (required): musi być wybrana jednostka
 - `expiry_date` (optional): musi być w formacie ISO (YYYY-MM-DD), może być w przeszłości (warning, ale nie błąd)
 
 **Typy:**
+
 - `AddProductModalProps` (interfejs)
 - `CreateFridgeItemDTO` (z types.ts)
 - `ProductDTO` (dla autocomplete)
 - `UnitDTO` (dla select)
 
 **Propsy:**
+
 ```typescript
 interface AddProductModalProps {
   isOpen: boolean;
@@ -389,6 +439,7 @@ interface AddProductModalProps {
 **Opis:** Modal dialog do edycji istniejącego produktu w lodówce. Podobny do AddProductModal, ale bez możliwości zmiany produktu (tylko ilość, jednostka, data).
 
 **Główne elementy:**
+
 - `<Dialog>` z Shadcn/ui
 - `<DialogHeader>` z tytułem "Edytuj produkt"
 - `<DialogContent>` z formularzem:
@@ -400,6 +451,7 @@ interface AddProductModalProps {
   - `<Button variant="primary">` "Zapisz zmiany"
 
 **Obsługiwane zdarzenia:**
+
 - Zmiana ilości: waliduj i ustaw wartość
 - Wybór jednostki: ustaw unit_id
 - Wybór daty: waliduj i ustaw expiry_date
@@ -408,17 +460,20 @@ interface AddProductModalProps {
 - Kliknięcie "Anuluj": zamknij modal
 
 **Warunki walidacji:**
+
 - Przynajmniej jedno pole musi być zmienione (API requirement)
 - `quantity` (optional): jeśli podana, musi być >= 0
 - `unit_id` (optional): jeśli podana, musi istnieć
 - `expiry_date` (optional): jeśli podana, musi być w formacie ISO (YYYY-MM-DD)
 
 **Typy:**
+
 - `EditProductModalProps` (interfejs)
 - `UpdateFridgeItemDTO` (z types.ts)
 - `FridgeItemDTO` (dla initial values)
 
 **Propsy:**
+
 ```typescript
 interface EditProductModalProps {
   isOpen: boolean;
@@ -435,6 +490,7 @@ interface EditProductModalProps {
 **Opis:** Autocomplete/combobox do wyszukiwania i wyboru produktu z możliwością dodania nowego.
 
 **Główne elementy:**
+
 - `<Combobox>` z Shadcn/ui lub custom implementation
 - `<Input>` do wpisywania query
 - `<Popover>` z listą wyników
@@ -443,20 +499,24 @@ interface EditProductModalProps {
 - Inline form tworzenia produktu (conditional)
 
 **Obsługiwane zdarzenia:**
+
 - onChange input: debounced fetch z GET /api/products?search=...&scope=all
 - Wybór produktu z listy: wywołaj callback z ProductDTO
 - Kliknięcie "+ Dodaj nowy": pokaż inline form
 - Submit inline form: POST /api/products, dodaj do listy, wybierz automatycznie
 
 **Warunki walidacji:**
+
 - Query: dowolny string
 - Nazwa nowego produktu: min 1 znak, max zgodnie z API
 
 **Typy:**
+
 - `ProductAutocompleteProps` (interfejs)
 - `ProductDTO` (z types.ts)
 
 **Propsy:**
+
 ```typescript
 interface ProductAutocompleteProps {
   value: ProductDTO | null;
@@ -472,20 +532,25 @@ interface ProductAutocompleteProps {
 **Opis:** Dropdown do wyboru jednostki miary.
 
 **Główne elementy:**
+
 - `<Select>` z Shadcn/ui
 - Lista jednostek z `units.name` i `units.abbreviation`
 
 **Obsługiwane zdarzenia:**
+
 - Zmiana wartości: wywołaj callback z unit_id
 
 **Warunki walidacji:**
+
 - Wartość musi być z listy dostępnych jednostek
 
 **Typy:**
+
 - `UnitSelectProps` (interfejs)
 - `UnitDTO` (z types.ts)
 
 **Propsy:**
+
 ```typescript
 interface UnitSelectProps {
   value: number | null;
@@ -502,6 +567,7 @@ interface UnitSelectProps {
 **Opis:** Dialog potwierdzenia usunięcia produktu.
 
 **Główne elementy:**
+
 - `<AlertDialog>` z Shadcn/ui
 - Tytuł "Usunąć produkt?"
 - Opis "Czy na pewno chcesz usunąć [nazwa produktu]? Ta operacja jest nieodwracalna."
@@ -510,16 +576,20 @@ interface UnitSelectProps {
   - `<Button variant="destructive">` "Usuń"
 
 **Obsługiwane zdarzenia:**
+
 - Kliknięcie "Usuń": wywołaj callback onConfirm
 - Kliknięcie "Anuluj": wywołaj callback onCancel
 
 **Warunki walidacji:**
+
 - Brak
 
 **Typy:**
+
 - `ConfirmDialogProps` (interfejs)
 
 **Propsy:**
+
 ```typescript
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -536,16 +606,16 @@ interface ConfirmDialogProps {
 
 ```typescript
 // Używane bezpośrednio z types.ts:
-FridgeItemDTO
-FridgeListResponseDTO
-ListFridgeQueryDTO
-CreateFridgeItemDTO
-UpdateFridgeItemDTO
-ProductDTO
-UnitDTO
-PaginationMetaDTO
-ProductReferenceDTO
-UnitReferenceDTO
+FridgeItemDTO;
+FridgeListResponseDTO;
+ListFridgeQueryDTO;
+CreateFridgeItemDTO;
+UpdateFridgeItemDTO;
+ProductDTO;
+UnitDTO;
+PaginationMetaDTO;
+ProductReferenceDTO;
+UnitReferenceDTO;
 ```
 
 ### 5.2 Nowe typy ViewModel
@@ -558,28 +628,28 @@ interface FridgeViewState {
   // Dane
   items: FridgeItemDTO[];
   pagination: PaginationMetaDTO;
-  
+
   // Filtrowanie i sortowanie
   searchQuery: string;
-  sortBy: 'name' | 'quantity' | 'expiry_date' | 'created_at';
-  sortOrder: 'asc' | 'desc';
-  expiredFilter: 'yes' | 'no' | 'all';
+  sortBy: "name" | "quantity" | "expiry_date" | "created_at";
+  sortOrder: "asc" | "desc";
+  expiredFilter: "yes" | "no" | "all";
   expiringSoonDays: number | undefined;
-  
+
   // UI state
   isLoading: boolean;
   error: string | null;
-  
+
   // Modals
   isAddModalOpen: boolean;
   isEditModalOpen: boolean;
   editingItem: FridgeItemDTO | null;
-  
+
   // Confirm dialog
   isConfirmDialogOpen: boolean;
   deletingItemId: number | null;
   deletingItemName: string | null;
-  
+
   // Stats
   stats: {
     totalCount: number;
@@ -590,12 +660,12 @@ interface FridgeViewState {
 /**
  * Status daty ważności produktu
  */
-type ExpiryStatus = 'expired' | 'expiring-soon' | 'fresh' | 'no-expiry';
+type ExpiryStatus = "expired" | "expiring-soon" | "fresh" | "no-expiry";
 
 /**
  * Pole sortowania
  */
-type SortField = 'name' | 'quantity' | 'expiry_date' | 'created_at';
+type SortField = "name" | "quantity" | "expiry_date" | "created_at";
 
 /**
  * Stan formularza dodawania produktu
@@ -606,7 +676,7 @@ interface AddProductFormState {
   unit: UnitDTO | null;
   expiryDate: string | null;
   addAnother: boolean;
-  
+
   // Validation errors
   errors: {
     product?: string;
@@ -623,7 +693,7 @@ interface EditProductFormState {
   quantity: number | null;
   unit: UnitDTO | null;
   expiryDate: string | null;
-  
+
   // Validation errors
   errors: {
     quantity?: string;
@@ -651,25 +721,25 @@ interface ProductAutocompleteState {
  * Helper do obliczania statusu daty ważności
  */
 function getExpiryStatus(expiryDate: string | null): ExpiryStatus {
-  if (!expiryDate) return 'no-expiry';
-  
+  if (!expiryDate) return "no-expiry";
+
   const today = new Date();
   const expiry = new Date(expiryDate);
   const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  
-  if (diffDays < 0) return 'expired';
-  if (diffDays <= 3) return 'expiring-soon';
-  return 'fresh';
+
+  if (diffDays < 0) return "expired";
+  if (diffDays <= 3) return "expiring-soon";
+  return "fresh";
 }
 
 /**
  * Mapowanie statusu na klasy CSS/variant
  */
 const EXPIRY_STATUS_CONFIG: Record<ExpiryStatus, { variant: string; color: string; label: string }> = {
-  'expired': { variant: 'destructive', color: 'text-red-600', label: 'Przeterminowany' },
-  'expiring-soon': { variant: 'warning', color: 'text-orange-600', label: 'Wkrótce przeterminowany' },
-  'fresh': { variant: 'success', color: 'text-green-600', label: 'Świeży' },
-  'no-expiry': { variant: 'secondary', color: 'text-gray-600', label: 'Brak daty' },
+  expired: { variant: "destructive", color: "text-red-600", label: "Przeterminowany" },
+  "expiring-soon": { variant: "warning", color: "text-orange-600", label: "Wkrótce przeterminowany" },
+  fresh: { variant: "success", color: "text-green-600", label: "Świeży" },
+  "no-expiry": { variant: "secondary", color: "text-gray-600", label: "Brak daty" },
 };
 ```
 
@@ -688,10 +758,10 @@ function useFridge() {
   const [state, setState] = useState<FridgeViewState>({
     items: [],
     pagination: { page: 1, limit: 20, total: 0, total_pages: 0 },
-    searchQuery: '',
-    sortBy: 'created_at',
-    sortOrder: 'desc',
-    expiredFilter: 'all',
+    searchQuery: "",
+    sortBy: "created_at",
+    sortOrder: "desc",
+    expiredFilter: "all",
     expiringSoonDays: undefined,
     isLoading: false,
     error: null,
@@ -705,45 +775,54 @@ function useFridge() {
   });
 
   // Fetch items
-  const fetchItems = useCallback(async (params?: Partial<ListFridgeQueryDTO>) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    try {
-      const queryParams = new URLSearchParams({
-        page: String(params?.page ?? state.pagination.page),
-        limit: String(params?.limit ?? state.pagination.limit),
-        sort: params?.sort ?? state.sortBy,
-        order: params?.order ?? state.sortOrder,
-        expired: params?.expired ?? state.expiredFilter,
-        ...(state.searchQuery && { search: state.searchQuery }),
-        ...(state.expiringSoonDays && { expiring_soon: String(state.expiringSoonDays) }),
-      });
+  const fetchItems = useCallback(
+    async (params?: Partial<ListFridgeQueryDTO>) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const response = await fetch(`/api/fridge?${queryParams}`);
-      if (!response.ok) throw new Error('Failed to fetch items');
+      try {
+        const queryParams = new URLSearchParams({
+          page: String(params?.page ?? state.pagination.page),
+          limit: String(params?.limit ?? state.pagination.limit),
+          sort: params?.sort ?? state.sortBy,
+          order: params?.order ?? state.sortOrder,
+          expired: params?.expired ?? state.expiredFilter,
+          ...(state.searchQuery && { search: state.searchQuery }),
+          ...(state.expiringSoonDays && { expiring_soon: String(state.expiringSoonDays) }),
+        });
 
-      const data: FridgeListResponseDTO = await response.json();
+        const response = await fetch(`/api/fridge?${queryParams}`);
+        if (!response.ok) throw new Error("Failed to fetch items");
 
-      setState(prev => ({
-        ...prev,
-        items: data.data,
-        pagination: data.pagination,
-        stats: {
-          totalCount: data.pagination.total,
-          expiredCount: data.data.filter(item => 
-            item.expiry_date && new Date(item.expiry_date) < new Date()
-          ).length,
-        },
-        isLoading: false,
-      }));
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Nie udało się pobrać produktów',
-      }));
-    }
-  }, [state.pagination.page, state.sortBy, state.sortOrder, state.searchQuery, state.expiredFilter, state.expiringSoonDays]);
+        const data: FridgeListResponseDTO = await response.json();
+
+        setState((prev) => ({
+          ...prev,
+          items: data.data,
+          pagination: data.pagination,
+          stats: {
+            totalCount: data.pagination.total,
+            expiredCount: data.data.filter((item) => item.expiry_date && new Date(item.expiry_date) < new Date())
+              .length,
+          },
+          isLoading: false,
+        }));
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: "Nie udało się pobrać produktów",
+        }));
+      }
+    },
+    [
+      state.pagination.page,
+      state.sortBy,
+      state.sortOrder,
+      state.searchQuery,
+      state.expiredFilter,
+      state.expiringSoonDays,
+    ]
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -752,12 +831,12 @@ function useFridge() {
 
   // Handlers
   const handleSearchChange = useDebouncedCallback((query: string) => {
-    setState(prev => ({ ...prev, searchQuery: query, pagination: { ...prev.pagination, page: 1 } }));
+    setState((prev) => ({ ...prev, searchQuery: query, pagination: { ...prev.pagination, page: 1 } }));
     fetchItems({ search: query, page: 1 });
   }, 300);
 
-  const handleSortChange = (sortBy: SortField, order: 'asc' | 'desc') => {
-    setState(prev => ({ ...prev, sortBy, sortOrder: order }));
+  const handleSortChange = (sortBy: SortField, order: "asc" | "desc") => {
+    setState((prev) => ({ ...prev, sortBy, sortOrder: order }));
     fetchItems({ sort: sortBy, order });
   };
 
@@ -765,18 +844,18 @@ function useFridge() {
     fetchItems({ page });
   };
 
-  const openAddModal = () => setState(prev => ({ ...prev, isAddModalOpen: true }));
-  const closeAddModal = () => setState(prev => ({ ...prev, isAddModalOpen: false }));
+  const openAddModal = () => setState((prev) => ({ ...prev, isAddModalOpen: true }));
+  const closeAddModal = () => setState((prev) => ({ ...prev, isAddModalOpen: false }));
 
   const openEditModal = (item: FridgeItemDTO) => {
-    setState(prev => ({ ...prev, isEditModalOpen: true, editingItem: item }));
+    setState((prev) => ({ ...prev, isEditModalOpen: true, editingItem: item }));
   };
   const closeEditModal = () => {
-    setState(prev => ({ ...prev, isEditModalOpen: false, editingItem: null }));
+    setState((prev) => ({ ...prev, isEditModalOpen: false, editingItem: null }));
   };
 
   const openDeleteConfirm = (itemId: number, itemName: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isConfirmDialogOpen: true,
       deletingItemId: itemId,
@@ -784,7 +863,7 @@ function useFridge() {
     }));
   };
   const closeDeleteConfirm = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isConfirmDialogOpen: false,
       deletingItemId: null,
@@ -807,10 +886,10 @@ function useFridge() {
 
     try {
       const response = await fetch(`/api/fridge/${state.deletingItemId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
-      if (!response.ok) throw new Error('Failed to delete item');
+      if (!response.ok) throw new Error("Failed to delete item");
 
       await fetchItems();
       closeDeleteConfirm();
@@ -846,7 +925,7 @@ function useFridge() {
  * Hook do obsługi autocomplete produktów
  */
 function useProductAutocomplete() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProductDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -860,17 +939,17 @@ function useProductAutocomplete() {
     try {
       const params = new URLSearchParams({
         search: searchQuery,
-        scope: 'all',
-        limit: '10',
+        scope: "all",
+        limit: "10",
       });
 
       const response = await fetch(`/api/products?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch products');
+      if (!response.ok) throw new Error("Failed to fetch products");
 
       const data = await response.json();
       setResults(data.data);
     } catch (error) {
-      console.error('Failed to fetch products:', error);
+      console.error("Failed to fetch products:", error);
     } finally {
       setIsLoading(false);
     }
@@ -893,13 +972,13 @@ function useUnits() {
   useEffect(() => {
     async function fetchUnits() {
       try {
-        const response = await fetch('/api/units');
-        if (!response.ok) throw new Error('Failed to fetch units');
+        const response = await fetch("/api/units");
+        if (!response.ok) throw new Error("Failed to fetch units");
 
         const data = await response.json();
         setUnits(data.data);
       } catch (error) {
-        console.error('Failed to fetch units:', error);
+        console.error("Failed to fetch units:", error);
       } finally {
         setIsLoading(false);
       }
@@ -919,6 +998,7 @@ function useUnits() {
 **GET /api/fridge - Lista produktów w lodówce**
 
 Request:
+
 - Query params: `ListFridgeQueryDTO`
   - `expired?: 'yes' | 'no' | 'all'` (default: 'all')
   - `expiring_soon?: number` (dni do przeterminowania)
@@ -929,6 +1009,7 @@ Request:
   - `limit?: number` (default: 20, max: 100)
 
 Response: `FridgeListResponseDTO`
+
 ```typescript
 {
   data: FridgeItemDTO[];
@@ -941,7 +1022,9 @@ Response: `FridgeListResponseDTO`
 **POST /api/fridge - Dodaj produkt do lodówki**
 
 Request:
+
 - Body: `CreateFridgeItemDTO`
+
 ```typescript
 {
   product_id: number;
@@ -952,6 +1035,7 @@ Request:
 ```
 
 Response: `FridgeItemDTO` (201 Created)
+
 - Header `Location`: `/api/fridge/{id}`
 
 ---
@@ -959,8 +1043,10 @@ Response: `FridgeItemDTO` (201 Created)
 **PATCH /api/fridge/:id - Edytuj produkt w lodówce**
 
 Request:
+
 - URL param: `id` (number)
 - Body: `UpdateFridgeItemDTO`
+
 ```typescript
 {
   quantity?: number;
@@ -978,6 +1064,7 @@ Uwaga: Przynajmniej jedno pole musi być podane.
 **DELETE /api/fridge/:id - Usuń produkt z lodówki**
 
 Request:
+
 - URL param: `id` (number)
 
 Response: 204 No Content
@@ -987,6 +1074,7 @@ Response: 204 No Content
 **GET /api/products - Lista produktów (dla autocomplete)**
 
 Request:
+
 - Query params:
   - `search?: string`
   - `scope?: 'global' | 'private' | 'all'` (default: 'all')
@@ -1000,7 +1088,9 @@ Response: `ProductsListResponseDTO`
 **POST /api/products - Utwórz nowy produkt (z autocomplete)**
 
 Request:
+
 - Body: `CreateProductDTO`
+
 ```typescript
 {
   name: string;
@@ -1016,6 +1106,7 @@ Response: `ProductDTO` (201 Created)
 Request: brak parametrów
 
 Response: `UnitsListResponseDTO`
+
 ```typescript
 {
   data: UnitDTO[];
@@ -1025,6 +1116,7 @@ Response: `UnitsListResponseDTO`
 ### 7.2 Obsługa błędów API
 
 Wszystkie endpointy mogą zwrócić następujące kody błędów:
+
 - `400 Bad Request` - nieprawidłowe dane wejściowe
 - `401 Unauthorized` - brak autoryzacji (gdy auth będzie aktywny)
 - `404 Not Found` - zasób nie istnieje
@@ -1032,6 +1124,7 @@ Wszystkie endpointy mogą zwrócić następujące kody błędów:
 - `500 Internal Server Error` - błąd serwera
 
 Format odpowiedzi błędu:
+
 ```typescript
 {
   error: {
@@ -1047,12 +1140,14 @@ Format odpowiedzi błędu:
 ### 8.1 Przeglądanie listy produktów
 
 **Flow:**
+
 1. Użytkownik wchodzi na `/fridge`
 2. Aplikacja automatycznie pobiera listę produktów (GET /api/fridge)
 3. Wyświetlane są produkty z color coding daty ważności
 4. Na górze widoczne są statystyki (łączna liczba, przeterminowane)
 
 **Obsługa:**
+
 - Loading state: skeleton/spinner podczas ładowania
 - Empty state: gdy lista pusta, wyświetl EmptyState
 - Error state: toast z błędem + przycisk "Spróbuj ponownie"
@@ -1062,12 +1157,14 @@ Format odpowiedzi błędu:
 ### 8.2 Wyszukiwanie produktu
 
 **Flow:**
+
 1. Użytkownik wpisuje tekst w SearchBar
 2. Po 300ms debounce, aplikacja wysyła zapytanie z parametrem `search`
 3. Lista odświeża się z wynikami wyszukiwania
 4. Pagination resetuje się do strony 1
 
 **Obsługa:**
+
 - Loading indicator w SearchBar podczas wyszukiwania
 - Przycisk X do czyszczenia wyszukiwania
 - Brak wyników: komunikat "Nie znaleziono produktów"
@@ -1077,11 +1174,13 @@ Format odpowiedzi błędu:
 ### 8.3 Sortowanie i filtrowanie
 
 **Flow:**
+
 1. Użytkownik wybiera pole sortowania z dropdown
 2. Użytkownik klika ikonę kierunku (asc/desc)
 3. Lista odświeża się z nowymi parametrami
 
 **Obsługa:**
+
 - Animacja zmiany kierunku strzałki
 - Highlight aktywnego pola sortowania
 
@@ -1090,6 +1189,7 @@ Format odpowiedzi błędu:
 ### 8.4 Dodawanie produktu
 
 **Flow:**
+
 1. Użytkownik klika "Dodaj produkt"
 2. Otwiera się AddProductModal
 3. Użytkownik zaczyna wpisywać nazwę w autocomplete
@@ -1108,6 +1208,7 @@ Format odpowiedzi błędu:
     - Lub wyczyszczenie formularza (jeśli zaznaczono)
 
 **Obsługa błędów:**
+
 - Inline validation: pokazuj błędy pod polami
 - API errors: toast + highlight pól z błędami
 - Network errors: toast + możliwość retry
@@ -1117,6 +1218,7 @@ Format odpowiedzi błędu:
 ### 8.5 Edycja produktu
 
 **Flow:**
+
 1. Użytkownik klika ikonę "Edytuj" przy produkcie
 2. Otwiera się EditProductModal z prefilowanymi wartościami
 3. Nazwa produktu jest tylko do odczytu
@@ -1125,11 +1227,12 @@ Format odpowiedzi błędu:
 6. Walidacja frontendowa (przynajmniej jedno pole zmienione)
 7. Jeśli OK: PATCH /api/fridge/:id
 8. Jeśli sukces:
-    - Toast "Produkt zaktualizowany pomyślnie"
-    - Odświeżenie listy
-    - Zamknięcie modala
+   - Toast "Produkt zaktualizowany pomyślnie"
+   - Odświeżenie listy
+   - Zamknięcie modala
 
 **Obsługa błędów:**
+
 - Inline validation
 - API errors: toast + highlight pól
 - Brak zmian: pokazuj tooltip "Wprowadź zmiany"
@@ -1139,16 +1242,18 @@ Format odpowiedzi błędu:
 ### 8.6 Usuwanie produktu
 
 **Flow:**
+
 1. Użytkownik klika ikonę "Usuń" przy produkcie
 2. Otwiera się ConfirmDialog z nazwą produktu
 3. Użytkownik klika "Usuń" (lub "Anuluj")
 4. Jeśli "Usuń": DELETE /api/fridge/:id
 5. Jeśli sukces:
-    - Toast "Produkt usunięty pomyślnie"
-    - Odświeżenie listy
-    - Zamknięcie dialogu
+   - Toast "Produkt usunięty pomyślnie"
+   - Odświeżenie listy
+   - Zamknięcie dialogu
 
 **Obsługa błędów:**
+
 - API errors: toast + możliwość retry
 - 404: toast "Produkt już nie istnieje" + zamknij dialog + refetch
 
@@ -1157,12 +1262,14 @@ Format odpowiedzi błędu:
 ### 8.7 Paginacja
 
 **Flow:**
+
 1. Użytkownik klika numer strony lub Następna/Poprzednia
 2. Aplikacja wysyła zapytanie z nowym parametrem `page`
 3. Lista odświeża się z produktami z nowej strony
 4. Scroll wraca na górę
 
 **Obsługa:**
+
 - Loading state podczas ładowania nowej strony
 - Disabled state dla przycisków gdy nie ma więcej stron
 
@@ -1171,6 +1278,7 @@ Format odpowiedzi błędu:
 ### 8.8 Tworzenie produktu z autocomplete
 
 **Flow:**
+
 1. W AddProductModal, użytkownik wpisuje nazwę nieistniejącego produktu
 2. W wynikach pojawia się "+ Dodaj nowy produkt [nazwa]"
 3. Użytkownik klika tę opcję
@@ -1178,11 +1286,12 @@ Format odpowiedzi błędu:
 5. Użytkownik zatwierdza
 6. POST /api/products
 7. Jeśli sukces:
-    - Nowy produkt pojawia się w autocomplete
-    - Automatycznie zostaje wybrany
-    - Toast "Produkt utworzony"
+   - Nowy produkt pojawia się w autocomplete
+   - Automatycznie zostaje wybrany
+   - Toast "Produkt utworzony"
 
 **Obsługa błędów:**
+
 - API errors: inline error message
 - Duplikat: "Produkt już istnieje" + zaznacz istniejący
 
@@ -1193,6 +1302,7 @@ Format odpowiedzi błędu:
 **Komponent:** AddProductModal
 
 **Pole: product (ProductAutocomplete)**
+
 - **Warunek:** Wymagane
 - **Walidacja:** Musi być wybrane przed submitem
 - **Komunikat błędu:** "Wybierz produkt z listy"
@@ -1200,8 +1310,9 @@ Format odpowiedzi błędu:
 - **Wpływ na UI:** Czerwona obwódka autocomplete + komunikat pod polem
 
 **Pole: quantity**
+
 - **Warunek:** Wymagane, >= 0
-- **Walidacja:** 
+- **Walidacja:**
   - Nie może być puste
   - Musi być liczbą
   - Musi być >= 0
@@ -1213,6 +1324,7 @@ Format odpowiedzi błędu:
 - **Wpływ na UI:** Czerwona obwódka + komunikat pod polem + disabled przycisk submit
 
 **Pole: unit (UnitSelect)**
+
 - **Warunek:** Wymagane
 - **Walidacja:** Musi być wybrane z listy
 - **Komunikat błędu:** "Wybierz jednostkę"
@@ -1220,6 +1332,7 @@ Format odpowiedzi błędu:
 - **Wpływ na UI:** Czerwona obwódka select + komunikat pod polem
 
 **Pole: expiry_date (DatePicker)**
+
 - **Warunek:** Opcjonalne
 - **Walidacja:**
   - Jeśli podane, musi być w formacie YYYY-MM-DD
@@ -1237,6 +1350,7 @@ Format odpowiedzi błędu:
 **Komponent:** EditProductModal
 
 **Warunek globalny:**
+
 - **Przynajmniej jedno pole musi być zmienione**
 - **Walidacja:** Porównanie z initial values
 - **Komunikat:** "Wprowadź przynajmniej jedną zmianę"
@@ -1244,6 +1358,7 @@ Format odpowiedzi błędu:
 - **Wpływ na UI:** Disabled przycisk submit gdy brak zmian + tooltip
 
 **Pole: quantity**
+
 - **Warunek:** Opcjonalne, >= 0
 - **Walidacja:** Jeśli zmienione, musi być >= 0
 - **Komunikat:** "Ilość nie może być ujemna"
@@ -1251,11 +1366,13 @@ Format odpowiedzi błędu:
 - **Wpływ na UI:** Czerwona obwódka + komunikat
 
 **Pole: unit**
+
 - **Warunek:** Opcjonalne
 - **Walidacja:** Jeśli zmienione, musi być z listy
 - **Wpływ na UI:** Brak (select gwarantuje poprawną wartość)
 
 **Pole: expiry_date**
+
 - **Warunek:** Opcjonalne
 - **Walidacja:** Jak w AddProductModal
 - **Wpływ na UI:** Jak w AddProductModal
@@ -1265,11 +1382,13 @@ Format odpowiedzi błędu:
 ### 9.3 Walidacja API-side
 
 Wszystkie walidacje są również wykonywane po stronie API. Frontend powinien:
+
 1. Wykonać walidację przed wysłaniem requestu
 2. Obsłużyć błędy walidacji z API (422)
 3. Wyświetlić błędy z API w odpowiednich polach
 
 **Mapowanie błędów API na pola:**
+
 ```typescript
 // Przykład odpowiedzi błędu API:
 {
@@ -1297,6 +1416,7 @@ errors: {
 **Komponent:** SearchBar
 
 **Warunek:** Dowolny tekst
+
 - **Walidacja:** Brak (wszystkie wartości akceptowalne)
 - **Optymalizacja:** Debouncing 300ms
 - **Wpływ na UI:** Loading indicator podczas wyszukiwania
@@ -1308,6 +1428,7 @@ errors: {
 **Komponent:** ProductAutocomplete (inline form)
 
 **Pole: name**
+
 - **Warunek:** Wymagane, min 1 znak
 - **Walidacja:**
   - Nie może być puste
@@ -1325,6 +1446,7 @@ errors: {
 **Scenariusz:** Brak połączenia z internetem lub serwer nie odpowiada
 
 **Obsługa:**
+
 - Toast z komunikatem: "Błąd połączenia. Sprawdź połączenie z internetem."
 - Przycisk "Spróbuj ponownie" w toast
 - Opcjonalnie: Offline indicator w UI
@@ -1338,11 +1460,13 @@ errors: {
 **Scenariusz:** Produkt/jednostka nie istnieje lub został usunięty
 
 **Obsługa:**
+
 - Toast z komunikatem: "Zasób nie został znaleziony"
 - Automatyczne odświeżenie listy (może być już nieaktualny)
 - Zamknięcie otwartego modala
 
-**Komponenty dotknięte:** 
+**Komponenty dotknięte:**
+
 - EditProductModal (produkt usunięty w międzyczasie)
 - DeleteConfirm (produkt już usunięty)
 
@@ -1353,12 +1477,14 @@ errors: {
 **Scenariusz:** Dane nie przeszły walidacji po stronie API
 
 **Obsługa:**
+
 - Mapowanie błędów API na pola formularza
 - Wyświetlenie inline errors pod odpowiednimi polami
 - Toast z ogólnym komunikatem: "Popraw błędy w formularzu"
 - Focus na pierwsze pole z błędem
 
 **Komponenty dotknięte:**
+
 - AddProductModal
 - EditProductModal
 
@@ -1369,6 +1495,7 @@ errors: {
 **Scenariusz:** Błąd po stronie serwera
 
 **Obsługa:**
+
 - Toast z komunikatem: "Wystąpił błąd serwera. Spróbuj ponownie później."
 - Przycisk "Spróbuj ponownie"
 - Logowanie błędu do console (dla developmentu)
@@ -1382,12 +1509,14 @@ errors: {
 **Scenariusz:** Błąd podczas pobierania listy produktów/jednostek
 
 **Obsługa:**
+
 - Error state w FridgeView
 - Placeholder z komunikatem błędu
 - Przycisk "Spróbuj ponownie"
 - Ilustracja błędu (opcjonalnie)
 
 **Komponenty dotknięte:**
+
 - FridgeView (główna lista)
 - UnitSelect (ładowanie jednostek)
 
@@ -1398,11 +1527,13 @@ errors: {
 **Scenariusz:** Endpoint `/api/units` zwraca pustą listę (seed nie wykonany)
 
 **Obsługa:**
+
 - Komunikat w UnitSelect: "Brak dostępnych jednostek"
 - Toast z błędem: "Nie można załadować jednostek. Skontaktuj się z administratorem."
 - Disabled AddProductModal
 
 **Komponenty dotknięte:**
+
 - AddProductModal
 - EditProductModal
 - UnitSelect
@@ -1414,6 +1545,7 @@ errors: {
 **Scenariusz:** Request trwa zbyt długo
 
 **Obsługa:**
+
 - Timeout po 30 sekundach
 - Toast: "Operacja trwa zbyt długo. Spróbuj ponownie."
 - Anulowanie requestu (AbortController)
@@ -1427,6 +1559,7 @@ errors: {
 **Scenariusz:** Błąd podczas DELETE
 
 **Obsługa:**
+
 - Toast z komunikatem błędu
 - Dialog pozostaje otwarty
 - Przycisk "Spróbuj ponownie" w dialogu
@@ -1440,6 +1573,7 @@ errors: {
 **Scenariusz:** Użytkownik edytuje produkt, który został zmieniony/usunięty przez inny proces
 
 **Obsługa:**
+
 - 404 z API
 - Toast: "Produkt został zmieniony lub usunięty. Odświeżam listę."
 - Automatyczne zamknięcie modala
@@ -1450,12 +1584,14 @@ errors: {
 ## 11. Kroki implementacji
 
 ### Krok 1: Setup projektu i struktura plików
+
 1. Utwórz plik `src/pages/fridge.astro` z podstawowym layoutem
 2. Utwórz folder `src/components/fridge/` dla wszystkich komponentów widoku
 3. Utwórz plik `src/components/fridge/FridgeView.tsx` - główny komponent React
 4. Dodaj niezbędne importy Shadcn/ui komponentów (Dialog, Button, Input, Select, Badge, etc.)
 
 ### Krok 2: Implementacja typów i utility functions
+
 1. W `src/types.ts` dodaj nowe typy ViewModel (jeśli nie istnieją):
    - `FridgeViewState`
    - `ExpiryStatus`
@@ -1466,6 +1602,7 @@ errors: {
 3. Utwórz `src/lib/utils/form-validation.ts` z funkcjami walidacji dla formularzy
 
 ### Krok 3: Implementacja custom hooks
+
 1. Utwórz `src/components/fridge/hooks/useFridge.ts`:
    - Zaimplementuj podstawowy state
    - Dodaj funkcję `fetchItems()`
@@ -1475,6 +1612,7 @@ errors: {
 3. Utwórz `src/components/fridge/hooks/useUnits.ts`
 
 ### Krok 4: Implementacja podstawowych komponentów prezentacyjnych
+
 1. `ExpiryDateBadge.tsx`:
    - Przyjmij `expiryDate` jako prop
    - Oblicz status używając `getExpiryStatus()`
@@ -1485,6 +1623,7 @@ errors: {
    - Wyświetl dwie karty ze statystykami
 
 ### Krok 5: Implementacja SearchBar i SortDropdown
+
 1. `SearchBar.tsx`:
    - Input z Shadcn/ui
    - Implementuj debouncing (useDebouncedCallback)
@@ -1496,6 +1635,7 @@ errors: {
    - Ikona strzałki (animowana)
 
 ### Krok 6: Implementacja FridgeToolbar
+
 1. `FridgeToolbar.tsx`:
    - Flex container
    - Osadź SearchBar i SortDropdown
@@ -1503,6 +1643,7 @@ errors: {
    - Responsive layout (mobile: column, desktop: row)
 
 ### Krok 7: Implementacja FridgeItem i FridgeList
+
 1. `FridgeItem.tsx`:
    - Layout z informacjami produktu
    - ExpiryDateBadge
@@ -1515,6 +1656,7 @@ errors: {
    - Pagination z Shadcn/ui
 
 ### Krok 8: Implementacja ProductAutocomplete
+
 1. `ProductAutocomplete.tsx`:
    - Użyj Combobox z Shadcn/ui lub Radix
    - Zintegruj hook `useProductAutocomplete`
@@ -1524,6 +1666,7 @@ errors: {
    - Obsługa POST /api/products
 
 ### Krok 9: Implementacja UnitSelect
+
 1. `UnitSelect.tsx`:
    - Select z Shadcn/ui
    - Załaduj jednostki używając `useUnits`
@@ -1531,6 +1674,7 @@ errors: {
    - Loading state
 
 ### Krok 10: Implementacja AddProductModal
+
 1. `AddProductModal.tsx`:
    - Dialog z Shadcn/ui
    - Form z polami:
@@ -1545,6 +1689,7 @@ errors: {
    - Error handling
 
 ### Krok 11: Implementacja EditProductModal
+
 1. `EditProductModal.tsx`:
    - Podobna struktura do AddProductModal
    - Read-only display nazwy produktu
@@ -1554,6 +1699,7 @@ errors: {
    - Error handling
 
 ### Krok 12: Implementacja ConfirmDialog
+
 1. `ConfirmDialog.tsx`:
    - AlertDialog z Shadcn/ui
    - Wyświetl nazwę produktu do usunięcia
@@ -1561,6 +1707,7 @@ errors: {
    - Secondary button "Anuluj"
 
 ### Krok 13: Integracja FridgeView
+
 1. `FridgeView.tsx`:
    - Użyj hook `useFridge()`
    - Osadź wszystkie podkomponenty
@@ -1570,6 +1717,7 @@ errors: {
    - Toast notifications (Shadcn/ui Toaster)
 
 ### Krok 14: Implementacja strony Astro
+
 1. `src/pages/fridge.astro`:
    - Użyj Layout
    - Osadź FridgeView z `client:load`
@@ -1577,6 +1725,7 @@ errors: {
    - Opcjonalnie: SSR preload dla units (optymalizacja)
 
 ### Krok 15: Stylowanie i responsywność
+
 1. Dodaj Tailwind classes dla layoutu
 2. Zaimplementuj responsive breakpoints:
    - Mobile: stacked layout, bottom sheet dla modali
@@ -1588,6 +1737,7 @@ errors: {
 4. Dark mode support (jeśli w roadmap)
 
 ### Krok 16: Accessibility
+
 1. Dodaj aria-labels dla wszystkich interaktywnych elementów
 2. Focus trap w modalach
 3. Keyboard navigation:
@@ -1598,6 +1748,7 @@ errors: {
 5. Skip links (jeśli potrzebne)
 
 ### Krok 17: Testowanie i debugging
+
 1. Test wszystkich ścieżek użytkownika:
    - Dodawanie produktu
    - Edycja produktu
@@ -1616,6 +1767,7 @@ errors: {
 5. Test na różnych rozmiarach ekranu
 
 ### Krok 18: Optymalizacje wydajności
+
 1. Memoizacja komponentów (React.memo gdzie potrzeba)
 2. useMemo dla ciężkich obliczeń (np. filtrowanie expiredCount)
 3. useCallback dla funkcji przekazywanych jako propsy
@@ -1624,6 +1776,7 @@ errors: {
 6. Optimistic updates (opcjonalnie)
 
 ### Krok 19: Dokumentacja
+
 1. Dodaj JSDoc comments do wszystkich komponentów
 2. Dodaj README w folderze `src/components/fridge/` z:
    - Opisem struktury
@@ -1632,6 +1785,7 @@ errors: {
 3. Dodaj komentarze do złożonych funkcji
 
 ### Krok 20: Code review i refactoring
+
 1. Przejrzyj kod pod kątem:
    - DRY (Don't Repeat Yourself)
    - Spójności nazewnictwa
@@ -1656,4 +1810,3 @@ Plan implementacji pokrywa wszystkie aspekty widoku Lodówki zgodnie z PRD (US-0
 - **Wydajność:** Memoization, debouncing, lazy loading
 
 Implementacja powinna zająć około 3-5 dni dla doświadczonego frontend developera, z dodatkowym czasem na testowanie i optymalizacje.
-

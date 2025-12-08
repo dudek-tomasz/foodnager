@@ -7,49 +7,58 @@ Niniejsza specyfikacja definiuje architekturę systemu autentykacji dla aplikacj
 ## ⚠️ Wyjaśnienia i Uproszczenia dla MVP
 
 ### Zakres Publicznych Stron
-**PRD US-001.5** mówi: *"Dla niezalogowanych użytkowników dostępny jest tylko i wyłącznie dedykowany widok logowania/rejestracji"*
+
+**PRD US-001.5** mówi: _"Dla niezalogowanych użytkowników dostępny jest tylko i wyłącznie dedykowany widok logowania/rejestracji"_
 
 **Wyjaśnienie**: Strony `/forgot-password` i `/reset-password` są **niezbędne** dla realizacji **US-001.7** (odzyskiwanie hasła) i są traktowane jako rozszerzenie funkcjonalności logowania. Są to jedyne dodatkowe publiczne strony poza `/login` i `/register`.
 
 ### Email Verification - MVP Simplification
-**PRD nie wymaga** weryfikacji email przed pierwszym logowaniem. 
 
-**Decyzja dla MVP**: 
+**PRD nie wymaga** weryfikacji email przed pierwszym logowaniem.
+
+**Decyzja dla MVP**:
+
 - Supabase wysyła email weryfikacyjny po rejestracji (wymóg US-001.3: "potwierdzenie rejestracji")
 - Użytkownik **MOŻE zalogować się bez klikania linku** weryfikacyjnego
 - Sprawdzanie `email_confirmed_at` jest **WYŁĄCZONE** dla MVP
 - W przyszłości można włączyć wymóg weryfikacji
 
 **Zmiany w implementacji**:
+
 - W `authService.login()` - USUNĄĆ sprawdzanie `email_confirmed_at`
 - W komunikatach błędów - USUNĄĆ "EMAIL_NOT_VERIFIED"
 
 ### Funkcjonalności Opcjonalne dla MVP (Do Usunięcia/Uproszczenia)
 
 #### 1. Terms & Conditions Checkbox
+
 - **Status**: USUNĄĆ z MVP
 - **Powód**: PRD nie wymaga akceptacji regulaminu
 - **Działanie**: Usunąć pole `termsAccepted` z RegisterForm i walidacji
 
 #### 2. "Remember Me" Checkbox
-- **Status**: USUNĄĆ z MVP  
+
+- **Status**: USUNĄĆ z MVP
 - **Powód**: PRD nie wymaga tej funkcjonalności, Supabase automatycznie persystuje sesje
 - **Działanie**: Usunąć pole `remember` z LoginForm i logiki API
 
 #### 3. Display Name
+
 - **Status**: UPROŚCIĆ dla MVP
 - **Powód**: PRD nie wspomina o nazwie wyświetlanej
-- **Działanie**: 
+- **Działanie**:
   - Pole `display_name` w tabeli `profiles` może pozostać (NULL dla MVP)
   - Nie wyświetlać w UI, używać tylko email
   - UserInfoDisplay pokazuje tylko email (bez displayName)
 
 #### 4. Avatar URL
+
 - **Status**: USUNĄĆ z MVP
 - **Powód**: PRD nie wspomina o avatarach
 - **Działanie**: Usunąć pole `avatar_url` z tabeli profiles i wszystkich komponentów
 
 #### 5. Statystyki w Profilu
+
 - **Status**: UPROŚCIĆ dla MVP
 - **Powód**: PRD nie wymaga statystyk w profilu
 - **Działanie**: ProfileView może pokazać podstawowe info (email, data rejestracji) bez statystyk
@@ -58,15 +67,17 @@ Niniejsza specyfikacja definiuje architekturę systemu autentykacji dla aplikacj
 
 **Decyzja**: Tabela `profiles` jest **ZBĘDNA** dla MVP.
 
-**Uzasadnienie**: 
+**Uzasadnienie**:
+
 - Supabase Auth (`auth.users`) już zawiera wszystkie potrzebne dane: `id`, `email`, `created_at`, `updated_at`
 - Dla MVP nie potrzebujemy żadnych dodatkowych pól
 - `display_name` można w przyszłości zapisać w `raw_user_meta_data` jeśli będzie potrzebne
 - Zmniejsza to złożoność systemu i liczbę migracji
 
 **Dane dostępne z auth.users przez session/user object**:
+
 - `user.id` - UUID użytkownika
-- `user.email` - email użytkownika  
+- `user.email` - email użytkownika
 - `user.created_at` - data rejestracji
 - `user.email_confirmed_at` - data weryfikacji email (opcjonalnie)
 - `user.user_metadata` - dodatkowe dane (dla przyszłości)
@@ -80,6 +91,7 @@ Niniejsza specyfikacja definiuje architekturę systemu autentykacji dla aplikacj
 **Cel**: Dedykowany layout dla stron autentykacji (login, register, forgot-password, reset-password)
 
 **Charakterystyka**:
+
 - Brak nawigacji (sidebar/bottom nav)
 - Pełnoekranowy layout z wycentrowanym contentem
 - Gradient background dla lepszej estetyki
@@ -87,6 +99,7 @@ Niniejsza specyfikacja definiuje architekturę systemu autentykacji dla aplikacj
 - Włącza globalny toast system dla komunikatów
 
 **Struktura**:
+
 ```astro
 ---
 interface Props {
@@ -94,6 +107,7 @@ interface Props {
   description?: string;
 }
 ---
+
 <!doctype html>
 <html lang="pl">
   <head>
@@ -109,6 +123,7 @@ interface Props {
 ```
 
 **Style**:
+
 - Full viewport height
 - Centered content (flexbox)
 - Gradient background (podobny do obecnego w login.astro)
@@ -117,11 +132,13 @@ interface Props {
 #### 1.1.2. Layout (rozszerzenie) - `src/layouts/Layout.astro`
 
 **Modyfikacje**:
+
 - Dodanie sekcji user info w Sidebar (desktop)
 - Przekazanie user data do Sidebar i BottomNavigation
 - Protected layout - wymaga zalogowanego użytkownika
 
 **Nowa struktura Props**:
+
 ```typescript
 interface Props {
   title?: string;
@@ -134,6 +151,7 @@ interface Props {
 ```
 
 **Logika server-side**:
+
 - Sprawdzenie sesji użytkownika w context.locals
 - Przekierowanie do /login jeśli brak sesji
 - Pobranie danych użytkownika z Supabase Auth
@@ -149,14 +167,17 @@ interface Props {
 **Rendering**: Server-side (`export const prerender = false`)
 
 **Komponenty**:
+
 - LoginForm (React) - `src/components/auth/LoginForm.tsx`
 
 **Logika server-side**:
+
 - Sprawdzenie czy użytkownik jest już zalogowany
 - Jeśli tak → redirect do /fridge
 - Jeśli nie → renderuj formularz
 
 **Struktura strony**:
+
 ```astro
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
@@ -165,7 +186,9 @@ import LoginForm from "@/components/auth/LoginForm";
 export const prerender = false;
 
 // Sprawdź czy użytkownik jest już zalogowany
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 if (session) {
   return Astro.redirect("/fridge");
 }
@@ -188,14 +211,17 @@ const redirectTo = Astro.url.searchParams.get("redirect") || "/fridge";
 **Rendering**: Server-side (`export const prerender = false`)
 
 **Komponenty**:
+
 - RegisterForm (React) - `src/components/auth/RegisterForm.tsx`
 
 **Logika server-side**:
+
 - Sprawdzenie czy użytkownik jest już zalogowany
 - Jeśli tak → redirect do /fridge
 - Jeśli nie → renderuj formularz
 
 **Struktura strony**:
+
 ```astro
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
@@ -204,7 +230,9 @@ import RegisterForm from "@/components/auth/RegisterForm";
 export const prerender = false;
 
 // Sprawdź czy użytkownik jest już zalogowany
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 if (session) {
   return Astro.redirect("/fridge");
 }
@@ -222,9 +250,11 @@ if (session) {
 **Rendering**: Server-side (`export const prerender = false`)
 
 **Komponenty**:
+
 - ForgotPasswordForm (React) - `src/components/auth/ForgotPasswordForm.tsx`
 
 **Logika**:
+
 - Formularz z polem email
 - Po wysłaniu → email z linkiem resetującym
 - Komunikat o sukcesie (toast)
@@ -236,13 +266,16 @@ if (session) {
 **Rendering**: Server-side (`export const prerender = false`)
 
 **Komponenty**:
+
 - ResetPasswordForm (React) - `src/components/auth/ResetPasswordForm.tsx`
 
 **Logika server-side**:
+
 - Walidacja tokenu z URL (query param lub hash)
 - Jeśli token nieprawidłowy → komunikat błędu + link do forgot-password
 
 **Struktura**:
+
 ```astro
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
@@ -270,16 +303,19 @@ if (!token) {
 **Rendering**: Server-side (`export const prerender = false`)
 
 **Komponenty**:
+
 - ProfileView (React) - `src/components/profile/ProfileView.tsx`
 - UserInfoCard (React) - `src/components/profile/UserInfoCard.tsx`
 - LogoutButton (React) - `src/components/profile/LogoutButton.tsx`
 
 **Logika server-side**:
+
 - Protected route - wymaga zalogowanego użytkownika
 - Pobranie danych użytkownika z Astro.locals.user (z auth.users)
 - Opcjonalnie: pobranie podstawowych statystyk (liczba przepisów, produktów - dla przyszłości)
 
 **Funkcjonalności**:
+
 - Wyświetlenie informacji o użytkowniku (email, data rejestracji)
 - Statystyki użytkownika
 - Przycisk wylogowania (dla mobile, na desktop będzie w sidebar)
@@ -290,6 +326,7 @@ if (!token) {
 #### 1.3.1. LoginForm - `src/components/auth/LoginForm.tsx`
 
 **Props**:
+
 ```typescript
 interface LoginFormProps {
   redirectTo?: string;
@@ -297,6 +334,7 @@ interface LoginFormProps {
 ```
 
 **State**:
+
 ```typescript
 {
   email: string;
@@ -307,6 +345,7 @@ interface LoginFormProps {
 ```
 
 **Funkcjonalności**:
+
 - Formularz z polami: email, password
 - Walidacja client-side (Zod schema)
 - Obsługa błędów z backendu
@@ -316,11 +355,13 @@ interface LoginFormProps {
 - Wykorzystanie Shadcn/ui components (Card, Input, Button, Label)
 
 **API call**:
+
 - POST /api/auth/login
 - W przypadku sukcesu → redirect do redirectTo (domyślnie /fridge)
 - W przypadku błędu → wyświetlenie komunikatu
 
 **Walidacja**:
+
 ```typescript
 const loginSchema = z.object({
   email: z.string().email("Nieprawidłowy format email"),
@@ -329,12 +370,14 @@ const loginSchema = z.object({
 ```
 
 **Komunikaty błędów**:
+
 - "Nieprawidłowy email lub hasło" - dla błędów autoryzacji
 - "Wystąpił błąd podczas logowania. Spróbuj ponownie." - dla innych błędów
 
 #### 1.3.2. RegisterForm - `src/components/auth/RegisterForm.tsx`
 
 **State**:
+
 ```typescript
 {
   email: string;
@@ -347,6 +390,7 @@ const loginSchema = z.object({
 ```
 
 **Funkcjonalności**:
+
 - Formularz z polami: email, password, passwordConfirm
 - Walidacja client-side (Zod schema)
 - Sprawdzenie zgodności haseł
@@ -357,38 +401,46 @@ const loginSchema = z.object({
 - Wykorzystanie Shadcn/ui components
 
 **API call**:
+
 - POST /api/auth/register
 - W przypadku sukcesu → wyświetlenie komunikatu o wysłaniu maila weryfikacyjnego
 - Po weryfikacji → przekierowanie do /login?verified=true
 
 **Walidacja**:
+
 ```typescript
-const registerSchema = z.object({
-  email: z.string().email("Nieprawidłowy format email"),
-  password: z.string()
-    .min(8, "Hasło musi mieć minimum 8 znaków")
-    .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
-    .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
-    .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
-  passwordConfirm: z.string(),
-}).refine(data => data.password === data.passwordConfirm, {
-  message: "Hasła nie są zgodne",
-  path: ["passwordConfirm"],
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Nieprawidłowy format email"),
+    password: z
+      .string()
+      .min(8, "Hasło musi mieć minimum 8 znaków")
+      .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
+      .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
+      .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
+    passwordConfirm: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Hasła nie są zgodne",
+    path: ["passwordConfirm"],
+  });
 ```
 
 **Komunikaty błędów**:
+
 - "Ten email jest już zarejestrowany" - dla duplikatów
 - "Hasło musi spełniać wymagania bezpieczeństwa" - dla słabych haseł
 - "Wystąpił błąd podczas rejestracji. Spróbuj ponownie." - dla innych błędów
 
 **Komunikat sukcesu (MVP - Uproszczony)**:
+
 - "Konto zostało utworzone! Możesz się teraz zalogować."
 - Opcjonalnie można dodać: "Sprawdź swoją skrzynkę email aby potwierdzić adres (opcjonalne)."
 
 #### 1.3.3. ForgotPasswordForm - `src/components/auth/ForgotPasswordForm.tsx`
 
 **State**:
+
 ```typescript
 {
   email: string;
@@ -399,6 +451,7 @@ const registerSchema = z.object({
 ```
 
 **Funkcjonalności**:
+
 - Pojedyncze pole email
 - Walidacja email
 - Loading state
@@ -406,10 +459,12 @@ const registerSchema = z.object({
 - Link powrotny do logowania
 
 **API call**:
+
 - POST /api/auth/forgot-password
 - Zawsze zwraca sukces (security best practice - nie ujawnia czy email istnieje)
 
 **Walidacja**:
+
 ```typescript
 const forgotPasswordSchema = z.object({
   email: z.string().email("Nieprawidłowy format email"),
@@ -417,11 +472,13 @@ const forgotPasswordSchema = z.object({
 ```
 
 **Komunikat sukcesu**:
+
 - "Jeśli konto z tym adresem email istnieje, wysłaliśmy instrukcje resetowania hasła."
 
 #### 1.3.4. ResetPasswordForm - `src/components/auth/ResetPasswordForm.tsx`
 
 **Props**:
+
 ```typescript
 interface ResetPasswordFormProps {
   token: string;
@@ -429,6 +486,7 @@ interface ResetPasswordFormProps {
 ```
 
 **State**:
+
 ```typescript
 {
   password: string;
@@ -440,6 +498,7 @@ interface ResetPasswordFormProps {
 ```
 
 **Funkcjonalności**:
+
 - Pola: password, passwordConfirm
 - Walidacja siły hasła
 - Sprawdzenie zgodności haseł
@@ -447,19 +506,23 @@ interface ResetPasswordFormProps {
 - Po sukcesie → redirect do /login?reset=success
 
 **API call**:
+
 - POST /api/auth/reset-password
 - Body: { token, newPassword }
 
 **Walidacja**:
+
 - Taka sama jak dla password w RegisterForm
 
 **Komunikaty**:
+
 - Sukces: "Hasło zostało zmienione. Możesz się teraz zalogować."
 - Błąd: "Link resetujący wygasł lub jest nieprawidłowy."
 
 #### 1.3.5. ProfileView - `src/components/profile/ProfileView.tsx`
 
 **Props**:
+
 ```typescript
 interface ProfileViewProps {
   user: {
@@ -471,11 +534,13 @@ interface ProfileViewProps {
 ```
 
 **Funkcjonalności (MVP - Uproszczone)**:
+
 - Wyświetlenie informacji o użytkowniku (email, data rejestracji)
 - Przycisk wylogowania (dla mobile)
 - Sekcja "Moje konto" z podstawowymi danymi
 
 **Komponenty wewnętrzne**:
+
 - UserInfoCard - karta z danymi użytkownika
 - LogoutButton - przycisk wylogowania
 
@@ -484,6 +549,7 @@ interface ProfileViewProps {
 #### 1.3.6. UserInfoDisplay - `src/components/auth/UserInfoDisplay.tsx`
 
 **Props**:
+
 ```typescript
 interface UserInfoDisplayProps {
   user: {
@@ -494,12 +560,14 @@ interface UserInfoDisplayProps {
 ```
 
 **Funkcjonalności (MVP - Uproszczone)**:
+
 - Wyświetlenie avatar (inicjały z email - pierwsze litery przed @)
 - Wyświetlenie email
 - Przycisk wylogowania (tylko dla variant="sidebar")
 - Responsywny design
 
 **Lokalizacja**:
+
 - Desktop: Na dole Sidebar
 - Mobile: Na stronie /profile
 
@@ -508,11 +576,13 @@ interface UserInfoDisplayProps {
 #### 1.4.1. Sidebar - `src/components/navigation/Sidebar.astro`
 
 **Modyfikacje**:
+
 - Dodanie sekcji user info na dole sidebar (przed CTA button lub po nim)
 - Przyjmowanie props user
 - Wyświetlenie UserInfoDisplay tylko gdy user jest zalogowany
 
 **Nowa struktura**:
+
 ```astro
 ---
 interface Props {
@@ -522,16 +592,19 @@ interface Props {
   };
 }
 ---
+
 <aside class="sidebar">
   <!-- Logo, Navigation (bez zmian) -->
-  
+
   <!-- User Section (nowe) -->
-  {user && (
-    <div class="sidebar-user">
-      <UserInfoDisplay user={user} variant="sidebar" client:load />
-    </div>
-  )}
-  
+  {
+    user && (
+      <div class="sidebar-user">
+        <UserInfoDisplay user={user} variant="sidebar" client:load />
+      </div>
+    )
+  }
+
   <!-- CTA Button -->
   <div class="sidebar-footer">
     <!-- ... -->
@@ -542,10 +615,12 @@ interface Props {
 #### 1.4.2. BottomNavigation - `src/components/navigation/BottomNavigation.astro`
 
 **Modyfikacje**:
+
 - Zmiana linku "Profil" z /login na /profile
 - Link aktywny gdy jesteśmy na /profile
 
 **Zmiana w navItems**:
+
 ```typescript
 {
   href: '/profile',  // zmienione z /login
@@ -574,18 +649,21 @@ export const loginSchema = z.object({
 });
 
 // Schema dla rejestracji (MVP - bez termsAccepted)
-export const registerSchema = z.object({
-  email: z.string().email("Nieprawidłowy format email"),
-  password: z.string()
-    .min(8, "Hasło musi mieć minimum 8 znaków")
-    .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
-    .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
-    .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
-  passwordConfirm: z.string(),
-}).refine(data => data.password === data.passwordConfirm, {
-  message: "Hasła nie są zgodne",
-  path: ["passwordConfirm"],
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email("Nieprawidłowy format email"),
+    password: z
+      .string()
+      .min(8, "Hasło musi mieć minimum 8 znaków")
+      .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
+      .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
+      .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
+    passwordConfirm: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Hasła nie są zgodne",
+    path: ["passwordConfirm"],
+  });
 
 // Schema dla zapomnienia hasła
 export const forgotPasswordSchema = z.object({
@@ -593,18 +671,21 @@ export const forgotPasswordSchema = z.object({
 });
 
 // Schema dla resetowania hasła
-export const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Token jest wymagany"),
-  password: z.string()
-    .min(8, "Hasło musi mieć minimum 8 znaków")
-    .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
-    .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
-    .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
-  passwordConfirm: z.string(),
-}).refine(data => data.password === data.passwordConfirm, {
-  message: "Hasła nie są zgodne",
-  path: ["passwordConfirm"],
-});
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Token jest wymagany"),
+    password: z
+      .string()
+      .min(8, "Hasło musi mieć minimum 8 znaków")
+      .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
+      .regex(/[a-z]/, "Hasło musi zawierać przynajmniej jedną małą literę")
+      .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę"),
+    passwordConfirm: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Hasła nie są zgodne",
+    path: ["passwordConfirm"],
+  });
 
 // Typy TypeScript dla validacji
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -618,12 +699,14 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 Wykorzystanie biblioteki Sonner (już zintegrowanej w projekcie):
 
 **Typy komunikatów**:
+
 - `toast.success()` - dla operacji zakończonych sukcesem
 - `toast.error()` - dla błędów
 - `toast.info()` - dla informacji
 - `toast.loading()` - dla operacji w toku
 
 **Przykłady (MVP - Zaktualizowane)**:
+
 ```typescript
 // Sukces logowania
 toast.success("Zalogowano pomyślnie!");
@@ -757,6 +840,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Cel**: Logowanie użytkownika
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -765,6 +849,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 ```
 
 **Response Success (200)**:
+
 ```typescript
 {
   success: true;
@@ -772,28 +857,30 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
     user: {
       id: string;
       email: string;
-    };
+    }
     session: {
       access_token: string;
       refresh_token: string;
       expires_at: number;
-    };
-  };
+    }
+  }
 }
 ```
 
 **Response Error (401)**:
+
 ```typescript
 {
   success: false;
   error: {
     message: string;
     code: "INVALID_CREDENTIALS";
-  };
+  }
 }
 ```
 
 **Logika (MVP - Uproszczona)**:
+
 1. Walidacja danych wejściowych (Zod)
 2. Wywołanie authService.login(email, password)
 3. Utworzenie sesji w Supabase Auth (Supabase zarządza automatycznie)
@@ -801,6 +888,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 5. Zwrócenie danych użytkownika z auth.users
 
 **Obsługa błędów**:
+
 - 400 Bad Request - nieprawidłowe dane wejściowe
 - 401 Unauthorized - złe hasło lub email
 - 500 Internal Server Error - błąd serwera
@@ -812,6 +900,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Cel**: Rejestracja nowego użytkownika
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -821,6 +910,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 ```
 
 **Response Success (201)**:
+
 ```typescript
 {
   success: true;
@@ -829,23 +919,25 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
     user: {
       id: string;
       email: string;
-    };
-  };
+    }
+  }
 }
 ```
 
 **Response Error (409)**:
+
 ```typescript
 {
   success: false;
   error: {
     message: string;
     code: "EMAIL_ALREADY_EXISTS";
-  };
+  }
 }
 ```
 
 **Logika**:
+
 1. Walidacja danych wejściowych (Zod)
 2. Sprawdzenie czy email już istnieje
 3. Wywołanie authService.register(email, password)
@@ -853,6 +945,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 5. Zwrócenie sukcesu (user musi potwierdzić email)
 
 **Obsługa błędów**:
+
 - 400 Bad Request - nieprawidłowe dane
 - 409 Conflict - email już istnieje
 - 500 Internal Server Error - błąd serwera
@@ -864,22 +957,25 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Request**: Brak body (sesja z cookies)
 
 **Response Success (200)**:
+
 ```typescript
 {
   success: true;
   data: {
     message: "Wylogowano pomyślnie";
-  };
+  }
 }
 ```
 
 **Logika**:
+
 1. Pobranie sesji z cookies
 2. Wywołanie authService.logout()
 3. Usunięcie cookies
 4. Zwrócenie sukcesu
 
 **Obsługa błędów**:
+
 - 401 Unauthorized - brak sesji
 - 500 Internal Server Error
 
@@ -888,6 +984,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Cel**: Wysłanie linku resetującego hasło
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -895,22 +992,25 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 ```
 
 **Response Success (200)**:
+
 ```typescript
 {
   success: true;
   data: {
     message: string; // Zawsze ten sam komunikat (security)
-  };
+  }
 }
 ```
 
 **Logika**:
+
 1. Walidacja email (Zod)
 2. Wywołanie authService.forgotPassword(email)
 3. Supabase wysyła email z linkiem resetującym (jeśli email istnieje)
 4. Zawsze zwracamy sukces (nie ujawniamy czy email istnieje)
 
 **Obsługa błędów**:
+
 - 400 Bad Request - nieprawidłowy email
 - 500 Internal Server Error
 
@@ -919,6 +1019,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Cel**: Zmiana hasła używając tokenu z emaila
 
 **Request Body**:
+
 ```typescript
 {
   token: string;
@@ -928,27 +1029,30 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 ```
 
 **Response Success (200)**:
+
 ```typescript
 {
   success: true;
   data: {
     message: "Hasło zostało zmienione";
-  };
+  }
 }
 ```
 
 **Response Error (400)**:
+
 ```typescript
 {
   success: false;
   error: {
     message: string;
     code: "INVALID_TOKEN" | "TOKEN_EXPIRED";
-  };
+  }
 }
 ```
 
 **Logika**:
+
 1. Walidacja danych (Zod)
 2. Weryfikacja tokenu
 3. Wywołanie authService.resetPassword(token, newPassword)
@@ -956,6 +1060,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 5. Zwrócenie sukcesu
 
 **Obsługa błędów**:
+
 - 400 Bad Request - nieprawidłowy token lub dane
 - 500 Internal Server Error
 
@@ -966,10 +1071,12 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Request**: Query params z tokenem (obsługiwane przez Supabase)
 
 **Response**:
+
 - Redirect do /login?verified=true (sukces)
 - Redirect do /login?error=verification_failed (błąd)
 
 **Logika**:
+
 1. Supabase automatycznie obsługuje weryfikację
 2. Endpoint tylko przekierowuje z odpowiednimi parametrami
 
@@ -980,6 +1087,7 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Request**: Brak (sesja z cookies)
 
 **Response Success (200)**:
+
 ```typescript
 {
   success: true;
@@ -998,11 +1106,13 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 ```
 
 **Logika**:
+
 1. Pobranie sesji z cookies
 2. Walidacja sesji w Supabase
 3. Zwrócenie danych użytkownika lub null
 
 **Użycie**:
+
 - Client-side dla sprawdzenia czy użytkownik jest zalogowany
 - Refresh komponentów wymagających danych użytkownika
 
@@ -1013,32 +1123,33 @@ Wszystkie endpointy autentykacji będą w katalogu `src/pages/api/auth/`
 **Cel**: Centralizacja logiki autentykacji z Supabase Auth
 
 **Interface**:
+
 ```typescript
 export interface AuthService {
   // Logowanie
   login(email: string, password: string): Promise<AuthResponse>;
-  
+
   // Rejestracja
   register(email: string, password: string): Promise<AuthResponse>;
-  
+
   // Wylogowanie
   logout(): Promise<void>;
-  
+
   // Zapomnienie hasła
   forgotPassword(email: string): Promise<void>;
-  
+
   // Reset hasła
   resetPassword(token: string, newPassword: string): Promise<void>;
-  
+
   // Pobranie aktualnej sesji
   getSession(): Promise<Session | null>;
-  
+
   // Pobranie użytkownika
   getUser(): Promise<User | null>;
-  
+
   // Sprawdzenie czy użytkownik jest zalogowany
   isAuthenticated(): Promise<boolean>;
-  
+
   // Refresh tokenu
   refreshSession(): Promise<Session | null>;
 }
@@ -1047,33 +1158,32 @@ export interface AuthService {
 **Implementacja kluczowych metod**:
 
 ```typescript
-import { supabaseClient } from '@/db/supabase.client';
-import type { User, Session } from '@supabase/supabase-js';
+import { supabaseClient } from "@/db/supabase.client";
+import type { User, Session } from "@supabase/supabase-js";
 
 class AuthServiceImpl implements AuthService {
-  
   async login(email: string, password: string): Promise<AuthResponse> {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email,
       password,
     });
-    
+
     if (error) {
-      throw new AuthError(error.message, 'INVALID_CREDENTIALS');
+      throw new AuthError(error.message, "INVALID_CREDENTIALS");
     }
-    
+
     // MVP: Nie sprawdzamy email_confirmed_at - użytkownik może się zalogować bez weryfikacji
     // W przyszłości można dodać:
     // if (!data.user.email_confirmed_at) {
     //   throw new AuthError('Email nie został zweryfikowany', 'EMAIL_NOT_VERIFIED');
     // }
-    
+
     return {
       user: data.user,
       session: data.session,
     };
   }
-  
+
   async register(email: string, password: string): Promise<AuthResponse> {
     const { data, error } = await supabaseClient.auth.signUp({
       email,
@@ -1082,82 +1192,82 @@ class AuthServiceImpl implements AuthService {
         emailRedirectTo: `${import.meta.env.PUBLIC_APP_URL}/api/auth/verify`,
       },
     });
-    
+
     if (error) {
-      if (error.message.includes('already registered')) {
-        throw new AuthError('Ten email jest już zarejestrowany', 'EMAIL_ALREADY_EXISTS');
+      if (error.message.includes("already registered")) {
+        throw new AuthError("Ten email jest już zarejestrowany", "EMAIL_ALREADY_EXISTS");
       }
-      throw new AuthError(error.message, 'REGISTRATION_FAILED');
+      throw new AuthError(error.message, "REGISTRATION_FAILED");
     }
-    
+
     return {
       user: data.user,
       session: data.session,
     };
   }
-  
+
   async logout(): Promise<void> {
     const { error } = await supabaseClient.auth.signOut();
-    
+
     if (error) {
-      throw new AuthError(error.message, 'LOGOUT_FAILED');
+      throw new AuthError(error.message, "LOGOUT_FAILED");
     }
   }
-  
+
   async forgotPassword(email: string): Promise<void> {
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: `${import.meta.env.PUBLIC_APP_URL}/reset-password`,
     });
-    
+
     // Nie rzucamy błędu nawet jeśli email nie istnieje (security)
-    if (error && !error.message.includes('not found')) {
-      throw new AuthError(error.message, 'FORGOT_PASSWORD_FAILED');
+    if (error && !error.message.includes("not found")) {
+      throw new AuthError(error.message, "FORGOT_PASSWORD_FAILED");
     }
   }
-  
+
   async resetPassword(token: string, newPassword: string): Promise<void> {
     // Najpierw weryfikujemy token i ustawiamy sesję
     const { error: verifyError } = await supabaseClient.auth.verifyOtp({
       token_hash: token,
-      type: 'recovery',
+      type: "recovery",
     });
-    
+
     if (verifyError) {
-      throw new AuthError('Token jest nieprawidłowy lub wygasł', 'INVALID_TOKEN');
+      throw new AuthError("Token jest nieprawidłowy lub wygasł", "INVALID_TOKEN");
     }
-    
+
     // Następnie zmieniamy hasło
     const { error: updateError } = await supabaseClient.auth.updateUser({
       password: newPassword,
     });
-    
+
     if (updateError) {
-      throw new AuthError(updateError.message, 'RESET_PASSWORD_FAILED');
+      throw new AuthError(updateError.message, "RESET_PASSWORD_FAILED");
     }
   }
-  
+
   async getSession(): Promise<Session | null> {
     const { data } = await supabaseClient.auth.getSession();
     return data.session;
   }
-  
+
   async getUser(): Promise<User | null> {
     const { data } = await supabaseClient.auth.getUser();
     return data.user;
   }
-  
+
   async isAuthenticated(): Promise<boolean> {
     const session = await this.getSession();
     return session !== null;
   }
-  
+
   async refreshSession(): Promise<Session | null> {
     const { data, error } = await supabaseClient.auth.refreshSession();
-    
+
     if (error) {
       return null;
     }
-    
+
     return data.session;
   }
 }
@@ -1176,21 +1286,21 @@ export class AuthError extends Error {
     public statusCode: number = 400
   ) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 }
 
 export type AuthErrorCode =
-  | 'INVALID_CREDENTIALS'
-  | 'EMAIL_ALREADY_EXISTS'
-  | 'REGISTRATION_FAILED'
-  | 'LOGOUT_FAILED'
-  | 'FORGOT_PASSWORD_FAILED'
-  | 'INVALID_TOKEN'
-  | 'TOKEN_EXPIRED'
-  | 'RESET_PASSWORD_FAILED'
-  | 'SESSION_EXPIRED'
-  | 'UNAUTHORIZED';
+  | "INVALID_CREDENTIALS"
+  | "EMAIL_ALREADY_EXISTS"
+  | "REGISTRATION_FAILED"
+  | "LOGOUT_FAILED"
+  | "FORGOT_PASSWORD_FAILED"
+  | "INVALID_TOKEN"
+  | "TOKEN_EXPIRED"
+  | "RESET_PASSWORD_FAILED"
+  | "SESSION_EXPIRED"
+  | "UNAUTHORIZED";
 
 // Uwaga MVP: EMAIL_NOT_VERIFIED usunięte - weryfikacja email opcjonalna dla MVP
 ```
@@ -1204,65 +1314,62 @@ export type AuthErrorCode =
 **Rozszerzona implementacja**:
 
 ```typescript
-import { defineMiddleware } from 'astro:middleware';
-import { supabaseClient } from '../db/supabase.client.ts';
+import { defineMiddleware } from "astro:middleware";
+import { supabaseClient } from "../db/supabase.client.ts";
 
 // Publiczne ścieżki (nie wymagają autentykacji)
 const PUBLIC_PATHS = [
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/forgot-password',
-  '/api/auth/reset-password',
-  '/api/auth/verify',
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/verify",
 ];
 
 // Ścieżki tylko dla niezalogowanych (redirect jeśli zalogowany)
-const AUTH_ONLY_PATHS = [
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-];
+const AUTH_ONLY_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // Dodaj supabase do locals
   context.locals.supabase = supabaseClient;
-  
+
   const { pathname } = context.url;
-  
+
   // Sprawdź sesję użytkownika
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabaseClient.auth.getSession();
+
   // Dodaj sesję i user do locals
   context.locals.session = session;
   context.locals.user = session?.user || null;
-  
+
   // Jeśli użytkownik zalogowany próbuje wejść na stronę auth → redirect do /fridge
-  if (session && AUTH_ONLY_PATHS.some(path => pathname.startsWith(path))) {
-    return context.redirect('/fridge');
+  if (session && AUTH_ONLY_PATHS.some((path) => pathname.startsWith(path))) {
+    return context.redirect("/fridge");
   }
-  
+
   // Jeśli ścieżka jest publiczna → kontynuuj
-  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return next();
   }
-  
+
   // Jeśli ścieżka chroniona i brak sesji → redirect do /login
   if (!session) {
     const redirectUrl = encodeURIComponent(pathname);
     return context.redirect(`/login?redirect=${redirectUrl}`);
   }
-  
+
   // MVP: Weryfikacja email WYŁĄCZONA - użytkownik może korzystać z aplikacji bez potwierdzenia emaila
   // W przyszłości można dodać:
   // if (session.user && !session.user.email_confirmed_at) {
   //   return context.redirect('/verify-email');
   // }
-  
+
   // Kontynuuj request
   return next();
 });
@@ -1276,9 +1383,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 declare namespace App {
   interface Locals {
-    supabase: import('@/db/supabase.client').SupabaseClient;
-    session: import('@supabase/supabase-js').Session | null;
-    user: import('@supabase/supabase-js').User | null;
+    supabase: import("@/db/supabase.client").SupabaseClient;
+    session: import("@supabase/supabase-js").Session | null;
+    user: import("@supabase/supabase-js").User | null;
   }
 }
 ```
@@ -1301,7 +1408,7 @@ const user = Astro.locals.user;
 
 // Opcjonalnie: dodatkowa walidacja (middleware już to robi)
 if (!user) {
-  return Astro.redirect('/login?redirect=/fridge');
+  return Astro.redirect("/login?redirect=/fridge");
 }
 
 // Przygotuj dane użytkownika dla Layout (MVP - tylko email)
@@ -1317,6 +1424,7 @@ const userData = {
 ```
 
 **Podobnie dla innych stron**:
+
 - recipes.astro
 - recipes/[id].astro
 - recipes/search.astro
@@ -1335,12 +1443,13 @@ const cookieOptions = {
   maxAge: 60 * 60 * 24 * 7, // 7 dni
   httpOnly: true,
   secure: import.meta.env.PROD, // tylko HTTPS w produkcji
-  sameSite: 'lax' as const,
-  path: '/',
+  sameSite: "lax" as const,
+  path: "/",
 };
 ```
 
 **Cookies używane przez Supabase Auth**:
+
 - `sb-access-token` - JWT access token
 - `sb-refresh-token` - refresh token
 - `sb-auth-token` - combined token (w niektórych konfiguracjach)
@@ -1356,29 +1465,27 @@ const cookieOptions = {
 **Plik**: `src/db/supabase.client.ts` (aktualizacja)
 
 **Aktualna konfiguracja**:
+
 ```typescript
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
 
-export const supabaseClient = createSupabaseClient<Database>(
-  supabaseUrl, 
-  supabaseAnonKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-    },
-  }
-);
+export const supabaseClient = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
 
 export type SupabaseClient = typeof supabaseClient;
 ```
 
 **Zmienne środowiskowe** (`.env`):
+
 ```env
 # Supabase
 SUPABASE_URL=https://your-project.supabase.co
@@ -1395,14 +1502,17 @@ PUBLIC_APP_URL=http://localhost:3000
 W panelu Supabase (Authentication > Email Templates) skonfigurować:
 
 **1. Confirm signup (Email verification)**:
+
 - Subject: "Potwierdź swoje konto w Foodnager"
 - Redirect URL: `{{ .SiteURL }}/api/auth/verify?token={{ .TokenHash }}`
 
 **2. Reset password**:
+
 - Subject: "Resetowanie hasła - Foodnager"
 - Redirect URL: `{{ .SiteURL }}/reset-password?token={{ .TokenHash }}`
 
 **3. Magic link** (opcjonalnie dla przyszłości):
+
 - Subject: "Twój link do logowania - Foodnager"
 
 ### 3.2. Baza Danych - BRAK Dodatkowych Tabel dla MVP
@@ -1410,12 +1520,14 @@ W panelu Supabase (Authentication > Email Templates) skonfigurować:
 **⚠️ WAŻNE**: Dla MVP **NIE TWORZYMY** tabeli `profiles`.
 
 **Uzasadnienie**:
+
 - Wszystkie potrzebne dane są już w `auth.users` (zarządzane przez Supabase Auth)
 - Supabase Auth zapewnia: `id`, `email`, `created_at`, `updated_at`, `email_confirmed_at`
 - MVP nie wymaga żadnych dodatkowych pól użytkownika
 - Upraszcza to architekturę i zmniejsza liczbę migracji
 
 **Dostęp do danych użytkownika**:
+
 ```typescript
 // Z session object (w middleware lub API endpoints)
 const user = Astro.locals.user;
@@ -1425,17 +1537,21 @@ const user = Astro.locals.user;
 // user.email_confirmed_at - data weryfikacji (opcjonalnie)
 
 // Lub bezpośrednio z Supabase
-const { data: { user } } = await supabaseClient.auth.getUser();
+const {
+  data: { user },
+} = await supabaseClient.auth.getUser();
 ```
 
 **Przyszłość** (Post-MVP):
+
 - Jeśli będą potrzebne dodatkowe pola (avatar, bio, preferences), można wtedy utworzyć tabelę `profiles`
 - Alternatywnie: można używać `user_metadata` w `auth.users` dla prostych dodatkowych danych
 
 **Typy TypeScript**:
+
 ```typescript
 // Używamy typów z @supabase/supabase-js
-import type { User } from '@supabase/supabase-js';
+import type { User } from "@supabase/supabase-js";
 
 // User zawiera już wszystkie potrzebne pola
 interface User {
@@ -1636,7 +1752,7 @@ CREATE POLICY "cooking_history_delete_policy"
 -- PRODUCTS - produkty globalne i prywatne
 -- ============================================================================
 
--- Polityka SELECT: użytkownik widzi produkty globalne (user_id IS NULL) 
+-- Polityka SELECT: użytkownik widzi produkty globalne (user_id IS NULL)
 -- i swoje prywatne (user_id = auth.uid())
 CREATE POLICY "products_select_policy"
   ON public.products
@@ -1685,23 +1801,19 @@ Wszystkie istniejące serwisy muszą zostać zaktualizowane aby używały `user_
 #### 3.4.1. Przykład - Fridge Service
 
 **Przed**:
+
 ```typescript
 export async function getUserProducts() {
-  const { data, error } = await supabaseClient
-    .from('user_products')
-    .select('*')
-    .eq('user_id', DEFAULT_USER_ID);
+  const { data, error } = await supabaseClient.from("user_products").select("*").eq("user_id", DEFAULT_USER_ID);
   // ...
 }
 ```
 
 **Po**:
+
 ```typescript
 export async function getUserProducts(userId: string) {
-  const { data, error } = await supabaseClient
-    .from('user_products')
-    .select('*')
-    .eq('user_id', userId);
+  const { data, error } = await supabaseClient.from("user_products").select("*").eq("user_id", userId);
   // ...
 }
 ```
@@ -1713,6 +1825,7 @@ Wszystkie endpointy API muszą pobierać `user_id` z sesji w `Astro.locals`:
 **Przykład - /api/fridge/index.ts**:
 
 **Przed**:
+
 ```typescript
 export async function GET() {
   const products = await fridgeService.getUserProducts();
@@ -1721,17 +1834,21 @@ export async function GET() {
 ```
 
 **Po**:
+
 ```typescript
 export async function GET(context: APIContext) {
   const user = context.locals.user;
-  
+
   if (!user) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: { message: 'Unauthorized', code: 'UNAUTHORIZED' }
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { message: "Unauthorized", code: "UNAUTHORIZED" },
+      }),
+      { status: 401 }
+    );
   }
-  
+
   const products = await fridgeService.getUserProducts(user.id);
   // ...
 }
@@ -1752,11 +1869,13 @@ export async function GET(context: APIContext) {
 Supabase Auth ma wbudowany rate limiting, ale można dodatkowo skonfigurować:
 
 **Konfiguracja w Supabase Dashboard**:
+
 - Max failed login attempts: 5
 - Lockout duration: 15 minut
 - Rate limit per hour: 20 requests
 
 **Opcjonalnie - custom rate limiting w middleware**:
+
 ```typescript
 // Można dodać prostą implementację rate limiting dla endpointów auth
 // Użycie Redis lub in-memory cache (dla MVP można pominąć)
@@ -1787,7 +1906,8 @@ export default defineConfig({
   vite: {
     server: {
       headers: {
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+        "Content-Security-Policy":
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
       },
     },
   },
@@ -1844,7 +1964,7 @@ const { data, error } = await supabaseClient.auth.refreshSession();
 
 if (error) {
   // Sesja wygasła → redirect do login
-  return context.redirect('/login?session_expired=true');
+  return context.redirect("/login?session_expired=true");
 }
 ```
 
@@ -1859,6 +1979,7 @@ if (error) {
 **MVP: Funkcjonalność "Remember Me" USUNIĘTA**
 
 Supabase automatycznie persystuje sesje zgodnie z konfiguracją:
+
 - `persistSession: true` - włączone domyślnie w konfiguracji klienta
 - Sesje są automatycznie zapisywane w localStorage
 - Użytkownik pozostaje zalogowany do wygaśnięcia refresh tokenu (7 dni domyślnie)
@@ -1874,35 +1995,37 @@ Supabase automatycznie persystuje sesje zgodnie z konfiguracją:
 **Narzędzia**: Vitest
 
 **Co testować**:
+
 - Walidacja Zod schemas
 - AuthService methods
 - Error handling
 
 **Przykład testu**:
+
 ```typescript
 // src/lib/services/__tests__/auth.service.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { authService } from '../auth.service';
+import { describe, it, expect, vi } from "vitest";
+import { authService } from "../auth.service";
 
-describe('AuthService', () => {
-  it('should login with valid credentials', async () => {
+describe("AuthService", () => {
+  it("should login with valid credentials", async () => {
     // Mock Supabase response
-    vi.mock('@/db/supabase.client', () => ({
+    vi.mock("@/db/supabase.client", () => ({
       supabaseClient: {
         auth: {
           signInWithPassword: vi.fn().mockResolvedValue({
-            data: { user: { id: '123', email: 'test@example.com' } },
+            data: { user: { id: "123", email: "test@example.com" } },
             error: null,
           }),
         },
       },
     }));
-    
-    const result = await authService.login('test@example.com', 'password123');
+
+    const result = await authService.login("test@example.com", "password123");
     expect(result.user).toBeDefined();
   });
-  
-  it('should throw error for invalid credentials', async () => {
+
+  it("should throw error for invalid credentials", async () => {
     // Test błędnych danych
   });
 });
@@ -1911,6 +2034,7 @@ describe('AuthService', () => {
 ### 4.2. Testy Integracyjne
 
 **Co testować**:
+
 - Pełny flow rejestracji
 - Pełny flow logowania
 - Pełny flow reset hasła
@@ -1921,6 +2045,7 @@ describe('AuthService', () => {
 **Narzędzia**: Playwright (opcjonalnie)
 
 **Scenariusze**:
+
 - Rejestracja → weryfikacja → logowanie
 - Logowanie → wylogowanie
 - Zapomnienie hasła → reset → logowanie
@@ -1932,6 +2057,7 @@ describe('AuthService', () => {
 ### 5.1. Plan Migracji
 
 **Krok 1: Przygotowanie bazy danych**
+
 ```bash
 # Uruchom migrację RLS policies
 npx supabase db push
@@ -1943,23 +2069,27 @@ psql $DATABASE_URL -f supabase/migrations/20251031000000_update_rls_policies.sql
 **Uwaga**: Nie ma potrzeby tworzenia tabeli `profiles` dla MVP - wszystkie dane są w `auth.users`
 
 **Krok 2: Aktualizacja kodu**
+
 - Implementacja wszystkich komponentów auth
 - Aktualizacja middleware
 - Aktualizacja istniejących serwisów
 - Aktualizacja API endpoints
 
 **Krok 3: Konfiguracja Supabase**
+
 - Email templates
 - Redirect URLs
 - Rate limiting
 - SMTP settings (dla emaili)
 
 **Krok 4: Testowanie**
+
 - Testy jednostkowe
 - Testy integracyjne
 - Testy manualne
 
 **Krok 5: Deployment**
+
 - Deploy do staging
 - Testy E2E
 - Deploy do production
@@ -1967,6 +2097,7 @@ psql $DATABASE_URL -f supabase/migrations/20251031000000_update_rls_policies.sql
 ### 5.2. Zmienne Środowiskowe
 
 **Development** (`.env`):
+
 ```env
 # Supabase
 SUPABASE_URL=https://your-project.supabase.co
@@ -1980,6 +2111,7 @@ NODE_ENV=development
 ```
 
 **Production** (DigitalOcean env vars):
+
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
@@ -1994,7 +2126,8 @@ NODE_ENV=production
 W przypadku problemów:
 
 1. **Rollback kodu**: Powrót do poprzedniej wersji (git revert)
-2. **Rollback bazy danych**: 
+2. **Rollback bazy danych**:
+
    ```sql
    -- Usunięcie nowych polityk RLS
    DROP POLICY IF EXISTS "user_products_select_policy" ON public.user_products;
@@ -2002,10 +2135,11 @@ W przypadku problemów:
    DROP POLICY IF EXISTS "user_products_update_policy" ON public.user_products;
    DROP POLICY IF EXISTS "user_products_delete_policy" ON public.user_products;
    -- itd. dla pozostałych tabel
-   
+
    -- Przywrócenie starych polityk (disable)
    -- ...
    ```
+
 3. **Tymczasowe wyłączenie RLS** (ostateczność):
    ```sql
    ALTER TABLE public.user_products DISABLE ROW LEVEL SECURITY;
@@ -2115,6 +2249,7 @@ supabase/
 ### 7.1. Kluczowe Komponenty
 
 **Frontend**:
+
 1. **AuthLayout** - dedykowany layout dla stron auth bez nawigacji
 2. **LoginForm, RegisterForm, ForgotPasswordForm, ResetPasswordForm** - formularze React z walidacją
 3. **ProfileView** - strona profilu użytkownika
@@ -2122,12 +2257,14 @@ supabase/
 5. **Sidebar + BottomNavigation** - modyfikacje dla wyświetlania user info
 
 **Backend**:
+
 1. **AuthService** - centralna logika autentykacji z Supabase Auth
 2. **API Endpoints** - `/api/auth/*` dla login, register, logout, forgot, reset
 3. **Middleware** - sprawdzanie sesji, przekierowania, ochrona route'ów
 4. **Walidacje Zod** - schematy dla wszystkich formularzy auth
 
 **Database**:
+
 1. **BRAK dodatkowych tabel** - używamy `auth.users` z Supabase Auth
 2. **RLS Policies** - zabezpieczenie wszystkich tabel używając `auth.uid()`
 3. **Dane użytkownika** - pobierane bezpośrednio z session/user object
@@ -2135,32 +2272,37 @@ supabase/
 ### 7.2. Przepływ Danych
 
 **Rejestracja**:
+
 ```
-RegisterForm → POST /api/auth/register → authService.register() 
+RegisterForm → POST /api/auth/register → authService.register()
 → Supabase Auth → Email verification → Login
 ```
 
 **Logowanie**:
+
 ```
-LoginForm → POST /api/auth/login → authService.login() 
+LoginForm → POST /api/auth/login → authService.login()
 → Supabase Auth → Set cookies → Redirect to /fridge
 ```
 
 **Protected Route**:
+
 ```
-User → /fridge → Middleware → Check session → 
+User → /fridge → Middleware → Check session →
 If OK: render page | If NOT: redirect to /login
 ```
 
 **Wylogowanie**:
+
 ```
-LogoutButton → POST /api/auth/logout → authService.logout() 
+LogoutButton → POST /api/auth/logout → authService.logout()
 → Supabase Auth → Clear cookies → Redirect to /login
 ```
 
 ### 7.3. Zgodność z Wymaganiami PRD
 
 **US-001: Rejestracja i logowanie** ✅
+
 - [x] Rejestracja z email i hasłem
 - [x] Walidacja danych
 - [x] Bezpieczne przechowywanie haseł (Supabase Auth)
@@ -2172,11 +2314,13 @@ LogoutButton → POST /api/auth/logout → authService.logout()
 - [x] Profil i wylogowanie w zakładce mobilnej (US-001.6)
 
 **Uwagi MVP**:
+
 - Email verification wysyła email, ale NIE blokuje logowania (PRD tego nie wymaga)
 - Usunięto: terms checkbox, remember me, avatar, display name UI (nadmiarowości)
 - Uproszczono: profil bez statystyk, profiles table bez avatar_url
 
 **Pozostałe US (US-002 - US-007)**: Nie naruszone
+
 - Istniejąca funkcjonalność lodówki, przepisów, historii pozostaje bez zmian
 - Wszystkie endpointy zaktualizowane do używania `userId` z sesji
 - RLS policies zapewniają izolację danych między użytkownikami
@@ -2195,6 +2339,7 @@ LogoutButton → POST /api/auth/logout → authService.logout()
 ### 7.5. Następne Kroki (Post-MVP)
 
 **Funkcjonalności usunięte z MVP (do dodania w przyszłości)**:
+
 1. **Email verification enforcement** - wymuszenie kliknięcia linku przed logowaniem
 2. **"Remember Me" checkbox** - przedłużona sesja (30 dni)
 3. **Terms & Conditions acceptance** - checkbox z linkiem do regulaminu
@@ -2203,17 +2348,7 @@ LogoutButton → POST /api/auth/logout → authService.logout()
 6. **Profile statistics** - liczba przepisów, produktów, historia gotowania
 7. **Resend verification email** - ponowne wysłanie linku weryfikacyjnego
 
-**Dodatkowe funkcjonalności do rozważenia**:
-8. **Tabela `profiles`** - jeśli będą potrzebne dodatkowe pola (avatar, bio, preferences, ustawienia)
-9. **OAuth providers** (Google, Facebook login)
-10. **Two-factor authentication** (2FA)
-11. **Email change** z weryfikacją
-12. **Account deletion** z potwierdzeniem
-13. **Session management** - wyświetlenie aktywnych sesji
-14. **Security logs** - historia logowań
-15. **Password strength meter** w formularzu rejestracji
-16. **Remember device** - trusted devices
-17. **Magic links** zamiast hasła (passwordless)
+**Dodatkowe funkcjonalności do rozważenia**: 8. **Tabela `profiles`** - jeśli będą potrzebne dodatkowe pola (avatar, bio, preferences, ustawienia) 9. **OAuth providers** (Google, Facebook login) 10. **Two-factor authentication** (2FA) 11. **Email change** z weryfikacją 12. **Account deletion** z potwierdzeniem 13. **Session management** - wyświetlenie aktywnych sesji 14. **Security logs** - historia logowań 15. **Password strength meter** w formularzu rejestracji 16. **Remember device** - trusted devices 17. **Magic links** zamiast hasła (passwordless)
 
 ---
 
@@ -2222,6 +2357,7 @@ LogoutButton → POST /api/auth/logout → authService.logout()
 Ta specyfikacja zawiera wszystkie niezbędne informacje do implementacji modułu autentykacji w aplikacji Foodnager zgodnie z wymaganiami PRD (US-001) oraz stackiem technologicznym (Astro 5, React 19, TypeScript 5, Tailwind 4, Shadcn/ui, Supabase).
 
 Specyfikacja zapewnia:
+
 - ✅ Pełną zgodność z wymaganiami funkcjonalnymi
 - ✅ Bezpieczeństwo i walidację danych
 - ✅ Izolację użytkowników poprzez RLS
@@ -2230,4 +2366,3 @@ Specyfikacja zapewnia:
 - ✅ Brak naruszenia istniejącej funkcjonalności
 
 Dokument gotowy do przekazania zespołowi deweloperów w celu implementacji.
-

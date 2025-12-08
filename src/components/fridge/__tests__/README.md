@@ -12,21 +12,26 @@
 ## 📝 Zakres Testów
 
 ### 1. **Basic Rendering** (5 testów)
+
 - Renderowanie komponentu Badge
 - Wyświetlanie sformatowanej daty
 - Obsługa braku daty (null)
 - Dostępność (aria-label)
 
 ### 2. **Expired Status** (6 testów)
+
 Status dla produktów przeterminowanych (< 0 dni):
+
 - Variant: `destructive` (czerwony)
 - Custom class: brak (domyślny styl destructive)
 - Tekst z `showDaysCount`: "(przeterminowany)"
 - Testy dla różnych offsetów: -1, -5, -30 dni
 
 ### 3. **Expiring Soon Status** (11 testów)
+
 Status dla produktów wkrótce przeterminowanych (0-3 dni):
-- Variant: `outline` 
+
+- Variant: `outline`
 - Custom class: pomarańczowy (`border-orange-500`, `bg-orange-50`, etc.)
 - Testy dla granic: 0, 1, 2, 3 dni
 - Tekst z `showDaysCount`:
@@ -35,26 +40,34 @@ Status dla produktów wkrótce przeterminowanych (0-3 dni):
   - 2-3 dni: "(X dni)"
 
 ### 4. **Fresh Status** (6 testów)
+
 Status dla świeżych produktów (> 3 dni):
+
 - Variant: `default`
 - Custom class: zielony (`border-green-500`, `bg-green-50`, etc.)
 - Testy dla granic: 4, 10, 30, 365 dni
 - Brak informacji o dniach nawet z `showDaysCount`
 
 ### 5. **No Expiry Status** (4 testy)
+
 Status dla produktów bez daty ważności:
+
 - Variant: `secondary`
 - Custom class: brak
 - Tekst: "Brak daty ważności"
 
 ### 6. **showDaysCount Prop** (4 testy)
+
 Testowanie flagi wyświetlania licznika dni:
+
 - Domyślna wartość: `false`
 - Zachowanie z `true` / `false`
 - Logika warunkowa (tylko dla expiring-soon i expired)
 
 ### 7. **Edge Cases & Boundary Conditions** (12 testów)
+
 Warunki brzegowe i przypadki szczególne:
+
 - Granica między expiring-soon a fresh (3 vs 4 dni)
 - Daty dzisiaj, jutro, wczoraj
 - Daty odległe (1000, -1000 dni)
@@ -62,26 +75,34 @@ Warunki brzegowe i przypadki szczególne:
 - Obsługa null
 
 ### 8. **Date Formatting** (5 testów)
+
 Formatowanie daty do DD.MM.YYYY:
+
 - Padding zer dla dni i miesięcy
 - Daty graniczne (początek/koniec roku)
 - Różne formaty wejściowe
 
 ### 9. **Integration with Utility Functions** (4 testy)
+
 Integracja z funkcjami pomocniczymi:
+
 - Wywołania `getExpiryStatus()`
 - Wywołania `formatExpiryDate()`
 - Wywołania `getDaysUntilExpiry()`
 - Obsługa null we wszystkich funkcjach
 
 ### 10. **Accessibility** (4 testy)
+
 Dostępność dla użytkowników korzystających z czytników ekranu:
+
 - Prawidłowe aria-label z datą
 - Spójność aria-label niezależnie od `showDaysCount`
 - Semantyczna struktura HTML
 
 ### 11. **Business Logic Validation** (3 testy)
+
 Walidacja kluczowych reguł biznesowych:
+
 - Kategoryzacja produktów według timeline
 - Poprawne stosowanie stylów wizualnych
 - Wyświetlanie kontekstowych informacji
@@ -89,15 +110,18 @@ Walidacja kluczowych reguł biznesowych:
 ## 🎯 Kluczowe Reguły Biznesowe
 
 ### Kolorystyka Statusów
-| Status | Wariant Badge | Custom Class | Opis |
-|--------|---------------|--------------|------|
-| **Expired** | `destructive` | - | Czerwony - przeterminowany (< 0 dni) |
-| **Expiring Soon** | `outline` | Pomarańczowy | Wkrótce przeterminowany (0-3 dni) |
-| **Fresh** | `default` | Zielony | Świeży (> 3 dni) |
-| **No Expiry** | `secondary` | - | Szary - brak daty |
+
+| Status            | Wariant Badge | Custom Class | Opis                                 |
+| ----------------- | ------------- | ------------ | ------------------------------------ |
+| **Expired**       | `destructive` | -            | Czerwony - przeterminowany (< 0 dni) |
+| **Expiring Soon** | `outline`     | Pomarańczowy | Wkrótce przeterminowany (0-3 dni)    |
+| **Fresh**         | `default`     | Zielony      | Świeży (> 3 dni)                     |
+| **No Expiry**     | `secondary`   | -            | Szary - brak daty                    |
 
 ### Logika showDaysCount
+
 Gdy `showDaysCount={true}`:
+
 - **< 0 dni**: "{data} (przeterminowany)"
 - **0 dni**: "{data} (dzisiaj)"
 - **1 dzień**: "{data} (jutro)"
@@ -107,32 +131,38 @@ Gdy `showDaysCount={true}`:
 ## 🛠️ Struktura Testów
 
 ### Organizacja
+
 ```
 src/components/fridge/__tests__/
 └── ExpiryDateBadge.test.tsx (59 testów)
 ```
 
 ### Mocki
+
 - **Badge Component**: Zmockowany do testowania props (variant, className, aria-label)
 - **Utility Functions**: Testowane przez spyOn dla weryfikacji wywołań
 
 ### Utility Functions
+
 - `getRelativeDate(offset)`: Generuje datę względem dzisiaj
 - `formatTestDate(isoDate)`: Formatuje datę do DD.MM.YYYY dla asercji
 
 ## 🚀 Uruchamianie Testów
 
 ### Wszystkie testy
+
 ```bash
 npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx
 ```
 
 ### Z coverage
+
 ```bash
 npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx --coverage --coverage.include=src/components/fridge/ExpiryDateBadge.tsx
 ```
 
 ### Watch mode
+
 ```bash
 npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx --watch
 ```
@@ -153,6 +183,7 @@ npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx --watch
 ## 💡 Kluczowe Wnioski
 
 ### Co zostało przetestowane:
+
 1. **Logika renderowania**: Wszystkie ścieżki renderowania komponentu
 2. **Logika biznesowa**: Kategoryzacja statusów zgodnie z regułami
 3. **Formatowanie**: Poprawne formatowanie dat
@@ -161,6 +192,7 @@ npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx --watch
 6. **Edge cases**: Obsługa nietypowych przypadków
 
 ### Czego nie testujemy:
+
 - **Wizualnego wyglądu**: To zadanie dla testów E2E/wizualnych
 - **Badge component internals**: Badge jest zmockowany
 - **Browser compatibility**: To zadanie dla testów E2E
@@ -175,6 +207,7 @@ npm run test -- src/components/fridge/__tests__/ExpiryDateBadge.test.tsx --watch
 ## 📚 Zgodność z Wytycznymi
 
 Testy zostały stworzone zgodnie z:
+
 - ✅ `.ai/test/comprehensive-test-plan.md` - strategia testowania
 - ✅ `vitest.config.ts` - konfiguracja środowiska
 - ✅ Przykład: `AddProductModal.test.tsx` - struktura i styl
@@ -190,4 +223,3 @@ Testy zostały stworzone zgodnie z:
 6. **Business logic focus**: Testy koncentrują się na regułach biznesowych
 7. **Helper functions**: Reużywalne funkcje pomocnicze
 8. **Clear organization**: Logiczne grupowanie testów w describe blocks
-

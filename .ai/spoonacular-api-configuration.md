@@ -14,11 +14,13 @@ Aplikacja Foodnager wykorzystuje Spoonacular API jako Tier 2 w hierarchicznym wy
 ## Plany i limity
 
 ### Darmowy plan
+
 - 150 requestów dziennie
 - Dostęp do wszystkich podstawowych endpointów
 - Idealny do testowania i MVP
 
 ### Płatne plany
+
 - Basic: $19.99/miesiąc (500 req/dzień)
 - Mega: $49.99/miesiąc (5000 req/dzień)
 - Ultra: $149.99/miesiąc (50000 req/dzień)
@@ -39,22 +41,26 @@ TIER2_TIMEOUT_MS=10000
 ## Wykorzystywane endpointy
 
 ### 1. Find Recipes by Ingredients
+
 **Endpoint:** `GET /recipes/findByIngredients`
 
 **Opis:** Wyszukuje przepisy na podstawie listy składników
 
 **Parametry:**
+
 - `ingredients` (string) - Comma-separated lista składników (np. "tomato,pasta,cheese")
 - `number` (integer) - Liczba wyników (domyślnie: 5)
 - `ranking` (integer) - 1 = maksymalizuj użyte składniki, 2 = minimalizuj brakujące
 - `ignorePantry` (boolean) - Ignoruj podstawowe składniki jak sól, pieprz
 
 **Przykład:**
+
 ```
 GET /recipes/findByIngredients?ingredients=tomato,pasta&number=5&ranking=1&ignorePantry=true&apiKey=YOUR_KEY
 ```
 
 **Odpowiedź:**
+
 ```json
 [
   {
@@ -72,19 +78,23 @@ GET /recipes/findByIngredients?ingredients=tomato,pasta&number=5&ranking=1&ignor
 ```
 
 ### 2. Get Recipe Information
+
 **Endpoint:** `GET /recipes/{id}/information`
 
 **Opis:** Pobiera szczegółowe informacje o przepisie
 
 **Parametry:**
+
 - `id` (integer) - ID przepisu
 
 **Przykład:**
+
 ```
 GET /recipes/654959/information?apiKey=YOUR_KEY
 ```
 
 **Odpowiedź:**
+
 ```json
 {
   "id": 654959,
@@ -138,6 +148,7 @@ GET /recipes/654959/information?apiKey=YOUR_KEY
 ### Mapowanie danych
 
 #### Składniki
+
 ```typescript
 // Spoonacular → Internal format
 {
@@ -148,12 +159,16 @@ GET /recipes/654959/information?apiKey=YOUR_KEY
 ```
 
 #### Trudność przepisu
+
 Obliczana na podstawie:
+
 - Liczby składników (1-5: easy, 6-10: medium, 11+: hard)
 - Czasu gotowania (≤30min: easy, 31-60min: medium, 61+min: hard)
 
 #### Tagi
+
 Zbierane z:
+
 - `diets` (vegetarian, vegan, gluten-free, etc.)
 - `cuisines` (Italian, Asian, Mexican, etc.)
 - `dishTypes` (main course, dessert, appetizer, etc.)
@@ -161,14 +176,16 @@ Zbierane z:
 ### Obsługa błędów
 
 #### Brak klucza API
+
 ```typescript
 if (!this.config.apiKey) {
-  console.warn('Spoonacular API key not configured, skipping external API search');
+  console.warn("Spoonacular API key not configured, skipping external API search");
   return [];
 }
 ```
 
 #### Przekroczenie limitu requestów
+
 ```json
 {
   "status": 402,
@@ -177,6 +194,7 @@ if (!this.config.apiKey) {
 ```
 
 #### Timeout
+
 - Domyślny timeout: 10 sekund
 - Konfigurowalne przez `TIER2_TIMEOUT_MS`
 - Fallback do Tier 3 (AI) w przypadku timeout
@@ -184,26 +202,31 @@ if (!this.config.apiKey) {
 ## Optymalizacja kosztów
 
 ### 1. Cachowanie wyników
+
 - Klucz cache: `search:{userId}:{productsHash}:{preferencesHash}`
 - TTL: 1 godzina
 - Znacznie redukuje liczbę requestów dla powtarzalnych wyszukiwań
 
 ### 2. Limit wyników
+
 - Pobieramy maksymalnie 5 przepisów na wyszukiwanie
 - Zapisujemy tylko top 3 do bazy
 - Minimalizuje zużycie API calls
 
 ### 3. Fallback do Tier 1
+
 - Zawsze najpierw przeszukujemy przepisy użytkownika
 - Tier 2 uruchamiany tylko gdy Tier 1 nie zwróci dobrych wyników (match_score < 0.7)
 
 ### 4. Rate limiting po stronie aplikacji
+
 - Implementacja rate limiter przed wywołaniem API
 - Ochrona przed przypadkowym wyczerpaniem limitu
 
 ## Monitoring
 
 ### Metryki do śledzenia
+
 1. Liczba requestów do Spoonacular dziennie
 2. Średni czas odpowiedzi API
 3. Liczba błędów / timeoutów
@@ -211,6 +234,7 @@ if (!this.config.apiKey) {
 5. Procent wyszukiwań kończących się na Tier 2
 
 ### Alerty
+
 - Zużycie > 80% dziennego limitu
 - Error rate > 10%
 - Średni czas odpowiedzi > 5s
@@ -218,6 +242,7 @@ if (!this.config.apiKey) {
 ## Testy
 
 ### Testowanie z mock API
+
 W testach jednostkowych używamy mock responses:
 
 ```typescript
@@ -245,25 +270,31 @@ const mockRecipeDetails = {
 ## Problemy i rozwiązania
 
 ### Problem: HTML w summary/instructions
+
 **Rozwiązanie:** Metoda `stripHtmlTags()` usuwa tagi HTML
 
 ### Problem: Brak instrukcji w plain text
+
 **Rozwiązanie:** Parsowanie `analyzedInstructions` do tekstu
 
 ### Problem: Różne jednostki miary
+
 **Rozwiązanie:** Używamy `measures.metric` dla spójności
 
 ### Problem: Duplikaty tagów
+
 **Rozwiązanie:** `[...new Set(tags)]` usuwa duplikaty
 
 ## Przykładowe zapytania
 
 ### Wyszukiwanie przepisów z pomidorami i serem
+
 ```bash
 curl "https://api.spoonacular.com/recipes/findByIngredients?ingredients=tomato,cheese&number=5&ranking=1&ignorePantry=true&apiKey=YOUR_KEY"
 ```
 
 ### Szczegóły przepisu
+
 ```bash
 curl "https://api.spoonacular.com/recipes/654959/information?apiKey=YOUR_KEY"
 ```
@@ -271,6 +302,7 @@ curl "https://api.spoonacular.com/recipes/654959/information?apiKey=YOUR_KEY"
 ## Dokumentacja API
 
 Pełna dokumentacja Spoonacular API:
+
 - [Official Docs](https://spoonacular.com/food-api/docs)
 - [API Console](https://spoonacular.com/food-api/console)
 - [Recipe Endpoints](https://spoonacular.com/food-api/docs#Search-Recipes-by-Ingredients)
@@ -282,4 +314,3 @@ Pełna dokumentacja Spoonacular API:
 3. Przetestuj integrację: `npm run dev`
 4. Monitoruj zużycie w Spoonacular Dashboard
 5. Rozważ upgrade planu jeśli potrzeba więcej requestów
-

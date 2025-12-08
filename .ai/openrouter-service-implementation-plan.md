@@ -3,6 +3,7 @@
 ## 1. Opis Usługi
 
 ### Przeznaczenie
+
 `OpenRouterClient` to dedykowany klient HTTP do komunikacji z API OpenRouter.ai, zapewniający dostęp do różnych modeli językowych (LLM) w celu generowania przepisów kulinarnych. Usługa stanowi warstwę abstrakcji między aplikacją Foodnager a zewnętrznym API, zapewniając:
 
 - Spójny interfejs komunikacji z modelami AI
@@ -12,11 +13,14 @@
 - Monitoring użycia tokenów
 
 ### Kontekst Użycia
+
 Usługa jest wykorzystywana przez:
+
 - `AIRecipeService` - bezpośrednie generowanie przepisów (Tier 3)
 - `RecipeDiscoveryService` - hierarchiczne wyszukiwanie przepisów (fallback do AI)
 
 ### Stack Technologiczny
+
 - **Runtime**: Astro 5 (Node.js/Server-side)
 - **Język**: TypeScript 5
 - **HTTP Client**: Native Fetch API
@@ -28,6 +32,7 @@ Usługa jest wykorzystywana przez:
 ## 2. Opis Konstruktora
 
 ### Sygnatura
+
 ```typescript
 constructor(config?: Partial<OpenRouterConfig>)
 ```
@@ -35,38 +40,40 @@ constructor(config?: Partial<OpenRouterConfig>)
 ### Parametry
 
 #### `config` (opcjonalny): `Partial<OpenRouterConfig>`
+
 Częściowa konfiguracja umożliwiająca nadpisanie wartości domyślnych.
 
 ```typescript
 interface OpenRouterConfig {
-  apiUrl: string;           // URL endpointu API
-  apiKey: string;           // Klucz autoryzacyjny
-  model: string;            // Nazwa modelu (np. 'anthropic/claude-3-haiku')
-  timeout: number;          // Timeout w milisekundach
-  temperature?: number;     // Kreatywność modelu (0.0-2.0)
-  maxTokens?: number;       // Maksymalna długość odpowiedzi
-  topP?: number;           // Nucleus sampling (0.0-1.0)
+  apiUrl: string; // URL endpointu API
+  apiKey: string; // Klucz autoryzacyjny
+  model: string; // Nazwa modelu (np. 'anthropic/claude-3-haiku')
+  timeout: number; // Timeout w milisekundach
+  temperature?: number; // Kreatywność modelu (0.0-2.0)
+  maxTokens?: number; // Maksymalna długość odpowiedzi
+  topP?: number; // Nucleus sampling (0.0-1.0)
   frequencyPenalty?: number; // Kara za powtórzenia (-2.0 - 2.0)
-  presencePenalty?: number;  // Kara za obecność tokenów (-2.0 - 2.0)
+  presencePenalty?: number; // Kara za obecność tokenów (-2.0 - 2.0)
 }
 ```
 
 ### Wartości Domyślne
+
 Konfiguracja wykorzystuje zmienne środowiskowe z fallback'ami:
 
-1. **apiUrl**: 
+1. **apiUrl**:
    - Źródło: `import.meta.env.OPENROUTER_API_URL`
    - Domyślnie: `'https://openrouter.ai/api/v1/chat/completions'`
 
-2. **apiKey**: 
+2. **apiKey**:
    - Źródło: `import.meta.env.OPENROUTER_API_KEY`
    - Domyślnie: `''` (puste - wymaga konfiguracji)
 
-3. **model**: 
+3. **model**:
    - Źródło: `import.meta.env.OPENROUTER_MODEL`
    - Domyślnie: `'anthropic/claude-3-haiku'`
 
-4. **timeout**: 
+4. **timeout**:
    - Źródło: `import.meta.env.TIER3_TIMEOUT_MS`
    - Domyślnie: `30000` (30 sekund)
 
@@ -84,6 +91,7 @@ Konfiguracja wykorzystuje zmienne środowiskowe z fallback'ami:
    - Domyślnie: `1.0`
 
 ### Logika Konstrukcji
+
 ```typescript
 constructor(config?: Partial<OpenRouterConfig>) {
   this.config = {
@@ -107,7 +115,9 @@ constructor(config?: Partial<OpenRouterConfig>) {
 ```
 
 ### Walidacja Konstruktora
+
 Konstruktor NIE rzuca błędów - zamiast tego:
+
 - Loguje ostrzeżenie przy braku `apiKey`
 - Błędy walidacji są obsługiwane w metodach publicznych przed wywołaniem API
 
@@ -118,6 +128,7 @@ Konstruktor NIE rzuca błędów - zamiast tego:
 ### 3.1 Metoda: `generateRecipe`
 
 #### Sygnatura
+
 ```typescript
 async generateRecipe(prompt: string, options?: GenerateRecipeOptions): Promise<unknown>
 ```
@@ -131,7 +142,7 @@ async generateRecipe(prompt: string, options?: GenerateRecipeOptions): Promise<u
 
 2. **options**: `GenerateRecipeOptions` (opcjonalny)
    - Umożliwia nadpisanie parametrów modelu dla konkretnego wywołania
-   
+
 ```typescript
 interface GenerateRecipeOptions {
   temperature?: number;
@@ -142,41 +153,48 @@ interface GenerateRecipeOptions {
 ```
 
 #### Zwracana Wartość
+
 - **Typ**: `Promise<unknown>`
 - **Zawartość**: Sparsowany JSON z odpowiedzi modelu
 - **Format**: Zależy od `response_format` - domyślnie obiekt zgodny z JSON Schema dla przepisu
 
 #### Obsługa Błędów
+
 Metoda rzuca błędy w następujących scenariuszach:
 
 1. **Brak klucza API**:
+
    ```typescript
-   throw new Error('OpenRouter API key not configured');
+   throw new Error("OpenRouter API key not configured");
    ```
 
 2. **Timeout żądania**:
+
    ```typescript
-   throw new Error('OpenRouter API request timed out');
+   throw new Error("OpenRouter API request timed out");
    ```
 
 3. **Błąd HTTP (status !== 2xx)**:
+
    ```typescript
    throw new Error(`OpenRouter API returned ${response.status}: ${errorText}`);
    ```
 
 4. **Brak choices w odpowiedzi**:
+
    ```typescript
-   throw new Error('OpenRouter API returned no choices');
+   throw new Error("OpenRouter API returned no choices");
    ```
 
 5. **Nieprawidłowy JSON w odpowiedzi**:
    ```typescript
-   throw new Error('AI response is not valid JSON');
+   throw new Error("AI response is not valid JSON");
    ```
 
 #### Przykłady Użycia
 
 **Przykład 1: Podstawowe użycie**
+
 ```typescript
 const client = new OpenRouterClient();
 const prompt = promptBuilder.build(products, preferences);
@@ -186,47 +204,49 @@ try {
   const validatedRecipe = validator.validate(aiResponse);
   // Przetwarzanie przepisu...
 } catch (error) {
-  console.error('Failed to generate recipe:', error);
+  console.error("Failed to generate recipe:", error);
 }
 ```
 
 **Przykład 2: Z nadpisaniem parametrów**
+
 ```typescript
 const client = new OpenRouterClient();
 const aiResponse = await client.generateRecipe(prompt, {
   temperature: 0.9, // Więcej kreatywności
-  maxTokens: 3000,  // Dłuższa odpowiedź
-  systemMessage: 'You are a Michelin-starred chef specializing in French cuisine.',
+  maxTokens: 3000, // Dłuższa odpowiedź
+  systemMessage: "You are a Michelin-starred chef specializing in French cuisine.",
 });
 ```
 
 **Przykład 3: Z własnym JSON Schema**
+
 ```typescript
 const customSchema: ResponseSchema = {
-  type: 'json_schema',
+  type: "json_schema",
   json_schema: {
-    name: 'detailed_recipe',
+    name: "detailed_recipe",
     strict: true,
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        title: { type: 'string' },
-        description: { type: 'string' },
+        title: { type: "string" },
+        description: { type: "string" },
         ingredients: {
-          type: 'array',
+          type: "array",
           items: {
-            type: 'object',
+            type: "object",
             properties: {
-              name: { type: 'string' },
-              quantity: { type: 'number' },
-              unit: { type: 'string' },
+              name: { type: "string" },
+              quantity: { type: "number" },
+              unit: { type: "string" },
             },
-            required: ['name', 'quantity', 'unit'],
+            required: ["name", "quantity", "unit"],
             additionalProperties: false,
           },
         },
       },
-      required: ['title', 'ingredients'],
+      required: ["title", "ingredients"],
       additionalProperties: false,
     },
   },
@@ -240,19 +260,22 @@ const aiResponse = await client.generateRecipe(prompt, {
 #### Szczegóły Implementacji
 
 **Krok 1: Walidacja konfiguracji**
+
 ```typescript
 if (!this.config.apiKey) {
-  throw new Error('OpenRouter API key not configured');
+  throw new Error("OpenRouter API key not configured");
 }
 ```
 
 **Krok 2: Przygotowanie kontrolera timeout**
+
 ```typescript
 const controller = new AbortController();
 const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 ```
 
 **Krok 3: Budowanie payload'u żądania**
+
 ```typescript
 const requestBody = {
   model: this.config.model,
@@ -267,9 +290,10 @@ const requestBody = {
 ```
 
 **Krok 4: Wywołanie API**
+
 ```typescript
 const response = await fetch(this.config.apiUrl, {
-  method: 'POST',
+  method: "POST",
   headers: this.buildHeaders(),
   body: JSON.stringify(requestBody),
   signal: controller.signal,
@@ -279,34 +303,36 @@ clearTimeout(timeoutId);
 ```
 
 **Krok 5: Obsługa odpowiedzi**
+
 ```typescript
 if (!response.ok) {
   const errorText = await response.text();
-  console.error('OpenRouter API error:', response.status, errorText);
+  console.error("OpenRouter API error:", response.status, errorText);
   throw new Error(`OpenRouter API returned ${response.status}: ${errorText}`);
 }
 
 const data: OpenRouterResponse = await response.json();
 
 if (!data.choices || data.choices.length === 0) {
-  throw new Error('OpenRouter API returned no choices');
+  throw new Error("OpenRouter API returned no choices");
 }
 
 const content = data.choices[0].message.content;
 
 // Logowanie użycia tokenów
 if (data.usage) {
-  console.log('OpenRouter token usage:', data.usage);
+  console.log("OpenRouter token usage:", data.usage);
 }
 ```
 
 **Krok 6: Parsowanie JSON**
+
 ```typescript
 try {
   return JSON.parse(content);
 } catch (parseError) {
-  console.error('Failed to parse AI response as JSON:', content);
-  throw new Error('AI response is not valid JSON');
+  console.error("Failed to parse AI response as JSON:", content);
+  throw new Error("AI response is not valid JSON");
 }
 ```
 
@@ -315,21 +341,24 @@ try {
 ### 3.2 Metoda: `isConfigured`
 
 #### Sygnatura
+
 ```typescript
 isConfigured(): boolean
 ```
 
 #### Zwracana Wartość
+
 - **Typ**: `boolean`
 - `true` - jeśli `apiKey` jest skonfigurowany (niepusty string)
 - `false` - jeśli `apiKey` jest pusty
 
 #### Przykład Użycia
+
 ```typescript
 const client = new OpenRouterClient();
 
 if (!client.isConfigured()) {
-  console.warn('OpenRouter is not configured - skipping AI generation');
+  console.warn("OpenRouter is not configured - skipping AI generation");
   return null;
 }
 
@@ -341,11 +370,13 @@ if (!client.isConfigured()) {
 ### 3.3 Metoda: `healthCheck` (nowa)
 
 #### Sygnatura
+
 ```typescript
 async healthCheck(): Promise<HealthCheckResult>
 ```
 
 #### Zwracana Wartość
+
 ```typescript
 interface HealthCheckResult {
   isHealthy: boolean;
@@ -356,15 +387,17 @@ interface HealthCheckResult {
 ```
 
 #### Opis
+
 Sprawdza połączenie z OpenRouter API poprzez wysłanie testowego żądania.
 
 #### Przykład Użycia
+
 ```typescript
 const client = new OpenRouterClient();
 const health = await client.healthCheck();
 
 if (!health.isHealthy) {
-  console.error('OpenRouter is unavailable:', health.error);
+  console.error("OpenRouter is unavailable:", health.error);
 }
 ```
 
@@ -385,11 +418,13 @@ private config: OpenRouterConfig;
 ### 4.2 Metoda: `buildHeaders`
 
 #### Sygnatura
+
 ```typescript
 private buildHeaders(): HeadersInit
 ```
 
 #### Zwracana Wartość
+
 ```typescript
 {
   'Content-Type': 'application/json',
@@ -400,12 +435,14 @@ private buildHeaders(): HeadersInit
 ```
 
 #### Wymagania OpenRouter API
+
 1. **Authorization**: Bearer token (wymagany)
 2. **HTTP-Referer**: Identyfikacja źródła żądania (wymagany przez OpenRouter)
 3. **X-Title**: Opcjonalna nazwa aplikacji (zalecane dla analytics)
 4. **Content-Type**: `application/json` (standard)
 
 #### Bezpieczeństwo
+
 - `apiKey` NIE jest logowany w konsoli
 - Nagłówki są budowane świeżo przy każdym żądaniu (uniemożliwia mutation)
 
@@ -414,18 +451,21 @@ private buildHeaders(): HeadersInit
 ### 4.3 Metoda: `buildMessages` (nowa)
 
 #### Sygnatura
+
 ```typescript
 private buildMessages(userPrompt: string, systemMessage?: string): MessageArray
 ```
 
 #### Parametry
+
 1. **userPrompt**: `string` - główny prompt użytkownika
 2. **systemMessage**: `string` (opcjonalny) - instrukcje systemowe dla modelu
 
 #### Zwracana Wartość
+
 ```typescript
 type MessageArray = Array<{
-  role: 'system' | 'user';
+  role: "system" | "user";
   content: string;
 }>;
 ```
@@ -433,30 +473,33 @@ type MessageArray = Array<{
 #### Przykłady
 
 **Bez system message:**
+
 ```typescript
 [
   {
-    role: 'user',
-    content: 'You are a professional chef. Generate a recipe...',
+    role: "user",
+    content: "You are a professional chef. Generate a recipe...",
   },
-]
+];
 ```
 
 **Z system message:**
+
 ```typescript
 [
   {
-    role: 'system',
-    content: 'You are a Michelin-starred chef with expertise in molecular gastronomy.',
+    role: "system",
+    content: "You are a Michelin-starred chef with expertise in molecular gastronomy.",
   },
   {
-    role: 'user',
-    content: 'Generate a recipe using tomatoes, basil, and mozzarella.',
+    role: "user",
+    content: "Generate a recipe using tomatoes, basil, and mozzarella.",
   },
-]
+];
 ```
 
 #### Best Practices dla System Messages
+
 1. **Jasna rola**: Określ, kim jest model ("You are a professional chef...")
 2. **Kontekst**: Dodaj istotne ograniczenia ("specializing in vegetarian cuisine")
 3. **Ton**: Wskaż oczekiwany styl odpowiedzi ("Be concise and practical")
@@ -467,11 +510,13 @@ type MessageArray = Array<{
 ### 4.4 Metoda: `getDefaultResponseSchema` (nowa)
 
 #### Sygnatura
+
 ```typescript
 private getDefaultResponseSchema(): ResponseSchema
 ```
 
 #### Zwracana Wartość
+
 ```typescript
 {
   type: 'json_schema',
@@ -541,6 +586,7 @@ private getDefaultResponseSchema(): ResponseSchema
 ```
 
 #### Dlaczego JSON Schema?
+
 1. **Gwarancja struktury**: Model MUSI zwrócić dane w określonym formacie
 2. **Walidacja na poziomie API**: Błędne struktury są odrzucane przed zwróceniem
 3. **Eliminacja parsingu**: Brak potrzeby regex/pattern matching w kodzie
@@ -548,9 +594,11 @@ private getDefaultResponseSchema(): ResponseSchema
 5. **Strict mode**: `strict: true` wymusza ścisłe przestrzeganie schematu
 
 #### Alternatywne Schematy
+
 W zależności od przypadku użycia można definiować różne schematy:
 
 **Przykład: Uproszczony przepis**
+
 ```typescript
 {
   type: 'json_schema',
@@ -582,20 +630,23 @@ W zależności od przypadku użycia można definiować różne schematy:
 ### 4.5 Metoda: `handleApiError` (nowa)
 
 #### Sygnatura
+
 ```typescript
 private async handleApiError(response: Response): Promise<never>
 ```
 
 #### Parametry
+
 - **response**: `Response` - obiekt Response z nieudanego żądania fetch
 
 #### Logika
+
 ```typescript
 const errorText = await response.text();
 const errorData = this.tryParseErrorJson(errorText);
 
 // Logowanie szczegółów błędu
-console.error('OpenRouter API error:', {
+console.error("OpenRouter API error:", {
   status: response.status,
   statusText: response.statusText,
   error: errorData || errorText,
@@ -604,19 +655,20 @@ console.error('OpenRouter API error:', {
 // Specjalne przypadki
 switch (response.status) {
   case 401:
-    throw new Error('Invalid API key - check OPENROUTER_API_KEY');
+    throw new Error("Invalid API key - check OPENROUTER_API_KEY");
   case 429:
-    throw new Error('Rate limit exceeded - try again later');
+    throw new Error("Rate limit exceeded - try again later");
   case 500:
   case 502:
   case 503:
-    throw new Error('OpenRouter service is temporarily unavailable');
+    throw new Error("OpenRouter service is temporarily unavailable");
   default:
     throw new Error(`OpenRouter API error (${response.status}): ${errorText}`);
 }
 ```
 
 #### Typowe Kody Błędów OpenRouter
+
 - **400**: Nieprawidłowe żądanie (błędny format payload)
 - **401**: Nieautoryzowany (nieprawidłowy API key)
 - **402**: Brak kredytów (payment required)
@@ -629,21 +681,24 @@ switch (response.status) {
 ### 4.6 Metoda: `tryParseErrorJson`
 
 #### Sygnatura
+
 ```typescript
 private tryParseErrorJson(errorText: string): unknown | null
 ```
 
 #### Opis
+
 Próbuje sparsować tekst błędu jako JSON. Jeśli się powiedzie, zwraca obiekt; w przeciwnym razie `null`.
 
 #### Przykład
+
 ```typescript
 // OpenRouter zwraca błędy w formacie:
 // { "error": { "message": "Invalid API key", "code": "invalid_api_key" } }
 
 const errorObj = this.tryParseErrorJson(errorText);
 if (errorObj && errorObj.error?.message) {
-  console.error('OpenRouter error:', errorObj.error.message);
+  console.error("OpenRouter error:", errorObj.error.message);
 }
 ```
 
@@ -654,36 +709,42 @@ if (errorObj && errorObj.error?.message) {
 ### 5.1 Kategorie Błędów
 
 #### Błędy Konfiguracji
+
 **Scenariusz**: Brak klucza API  
 **Wykrywanie**: W konstruktorze (ostrzeżenie) i w `generateRecipe` (błąd)  
 **Komunikat**: `'OpenRouter API key not configured'`  
 **Akcja**: Skonfiguruj `OPENROUTER_API_KEY` w zmiennych środowiskowych
 
 #### Błędy Sieciowe
+
 **Scenariusz**: Timeout żądania  
 **Wykrywanie**: AbortController timeout  
 **Komunikat**: `'OpenRouter API request timed out'`  
 **Akcja**: Zwiększ `TIER3_TIMEOUT_MS` lub sprawdź połączenie sieciowe
 
 #### Błędy Autoryzacji
+
 **Scenariusz**: Nieprawidłowy API key (401)  
 **Wykrywanie**: Status HTTP 401  
 **Komunikat**: `'Invalid API key - check OPENROUTER_API_KEY'`  
 **Akcja**: Zweryfikuj poprawność klucza API
 
 #### Błędy Rate Limiting
+
 **Scenariusz**: Przekroczono limit żądań (429)  
 **Wykrywanie**: Status HTTP 429  
 **Komunikat**: `'Rate limit exceeded - try again later'`  
 **Akcja**: Implementuj exponential backoff lub zwiększ limity w planie OpenRouter
 
 #### Błędy Walidacji Odpowiedzi
+
 **Scenariusz**: Model zwrócił nieprawidłowy JSON  
 **Wykrywanie**: `JSON.parse()` rzuca błąd  
 **Komunikat**: `'AI response is not valid JSON'`  
 **Akcja**: Sprawdź prompt i response_format; model może nie wspierać JSON Schema
 
 #### Błędy Serwera OpenRouter
+
 **Scenariusz**: 500/502/503  
 **Wykrywanie**: Status HTTP 5xx  
 **Komunikat**: `'OpenRouter service is temporarily unavailable'`  
@@ -694,9 +755,11 @@ if (errorObj && errorObj.error?.message) {
 ### 5.2 Strategia Retry
 
 #### Implementacja w Wywołującym Kodzie
+
 Klient NIE implementuje retry automatycznie - to odpowiedzialność wywołującego serwisu.
 
 **Przykład: AIRecipeService z retry**
+
 ```typescript
 async generateRecipeWithRetry(
   userId: string,
@@ -710,9 +773,9 @@ async generateRecipeWithRetry(
       return await this.generateRecipe(userId, generateDto);
     } catch (error) {
       lastError = error as Error;
-      
+
       // Nie retry dla błędów konfiguracji
-      if (error.message.includes('not configured') || 
+      if (error.message.includes('not configured') ||
           error.message.includes('Invalid API key')) {
         throw error;
       }
@@ -737,8 +800,9 @@ async generateRecipeWithRetry(
 #### Poziomy Logowania
 
 **DEBUG**: Szczegółowe informacje o żądaniach
+
 ```typescript
-console.debug('OpenRouter request:', {
+console.debug("OpenRouter request:", {
   model: this.config.model,
   promptLength: prompt.length,
   options,
@@ -746,9 +810,10 @@ console.debug('OpenRouter request:', {
 ```
 
 **INFO**: Użycie tokenów
+
 ```typescript
 if (data.usage) {
-  console.log('OpenRouter token usage:', {
+  console.log("OpenRouter token usage:", {
     prompt_tokens: data.usage.prompt_tokens,
     completion_tokens: data.usage.completion_tokens,
     total_tokens: data.usage.total_tokens,
@@ -758,13 +823,15 @@ if (data.usage) {
 ```
 
 **WARN**: Problemy konfiguracji
+
 ```typescript
-console.warn('OpenRouter API key not configured - AI features will not work');
+console.warn("OpenRouter API key not configured - AI features will not work");
 ```
 
 **ERROR**: Błędy API
+
 ```typescript
-console.error('OpenRouter API error:', {
+console.error("OpenRouter API error:", {
   status: response.status,
   error: errorText,
   model: this.config.model,
@@ -772,6 +839,7 @@ console.error('OpenRouter API error:', {
 ```
 
 #### Metryki do Monitorowania
+
 1. **Latencja**: Czas odpowiedzi API (użyj `performance.now()`)
 2. **Użycie tokenów**: `prompt_tokens`, `completion_tokens`, `total_tokens`
 3. **Częstość błędów**: Liczba nieudanych żądań / całkowita liczba żądań
@@ -785,9 +853,11 @@ console.error('OpenRouter API error:', {
 ### 6.1 Ochrona Klucza API
 
 #### Zmienne Środowiskowe
+
 **NIGDY** nie hard-koduj klucza API w kodzie źródłowym.
 
 **✅ Poprawnie:**
+
 ```typescript
 // .env (NIE commituj do repo!)
 OPENROUTER_API_KEY=sk-or-v1-abc123...
@@ -797,16 +867,20 @@ apiKey: import.meta.env.OPENROUTER_API_KEY || ''
 ```
 
 **❌ Niepoprawnie:**
+
 ```typescript
-apiKey: 'sk-or-v1-abc123...' // NIGDY TAK NIE RÓB!
+apiKey: "sk-or-v1-abc123..."; // NIGDY TAK NIE RÓB!
 ```
 
 #### Dostęp do Klucza
+
 Klucz API powinien być dostępny TYLKO:
+
 1. W zmiennych środowiskowych serwera
 2. W kodzie server-side (Astro endpoints, middleware)
 
 **❌ Klucz NIE może być:**
+
 - Eksportowany do client-side kodu
 - Wysyłany w response HTML
 - Logowany w konsoli (w produkcji)
@@ -816,30 +890,33 @@ Klucz API powinien być dostępny TYLKO:
 ### 6.2 Walidacja Inputów
 
 #### User Prompts
+
 Choć OpenRouter API filtruje złośliwe prompty, zawsze:
 
 1. **Limituj długość promptu:**
+
 ```typescript
 const MAX_PROMPT_LENGTH = 10000;
 
 if (prompt.length > MAX_PROMPT_LENGTH) {
-  throw new Error('Prompt exceeds maximum allowed length');
+  throw new Error("Prompt exceeds maximum allowed length");
 }
 ```
 
 2. **Sanityzuj dane użytkownika:**
+
 ```typescript
 // W RecipePromptBuilder
-const sanitizedProducts = products.map(p => ({
+const sanitizedProducts = products.map((p) => ({
   name: p.name.trim().slice(0, 100), // Limit długości
 }));
 ```
 
 3. **Waliduj preferencje:**
+
 ```typescript
-if (preferences?.max_cooking_time && 
-    (preferences.max_cooking_time < 1 || preferences.max_cooking_time > 1440)) {
-  throw new Error('Invalid cooking time preference');
+if (preferences?.max_cooking_time && (preferences.max_cooking_time < 1 || preferences.max_cooking_time > 1440)) {
+  throw new Error("Invalid cooking time preference");
 }
 ```
 
@@ -853,18 +930,18 @@ Implementuj własny rate limiter dla ochrony przed nadużyciami:
 // rate-limiter.ts
 export class RateLimiter {
   private requests: Map<string, number[]> = new Map();
-  
+
   async checkLimit(userId: string, maxRequests: number, windowMs: number): Promise<void> {
     const now = Date.now();
     const userRequests = this.requests.get(userId) || [];
-    
+
     // Usuń stare żądania poza oknem
     const recentRequests = userRequests.filter(time => now - time < windowMs);
-    
+
     if (recentRequests.length >= maxRequests) {
       throw new Error('Rate limit exceeded - please try again later');
     }
-    
+
     recentRequests.push(now);
     this.requests.set(userId, recentRequests);
   }
@@ -876,7 +953,7 @@ const rateLimiter = new RateLimiter();
 async generateRecipe(userId: string, generateDto: GenerateRecipeDTO) {
   // Max 10 żądań na minutę per użytkownik
   await rateLimiter.checkLimit(userId, 10, 60000);
-  
+
   // ... reszta logiki
 }
 ```
@@ -886,6 +963,7 @@ async generateRecipe(userId: string, generateDto: GenerateRecipeDTO) {
 ### 6.4 Timeout i Resource Management
 
 #### Timeout na poziomie żądania
+
 ```typescript
 const controller = new AbortController();
 const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
@@ -901,15 +979,13 @@ try {
 ```
 
 #### Limit Max Tokens
+
 Ogranicz `max_tokens` aby uniknąć nieoczekiwanie wysokich kosztów:
 
 ```typescript
 const ABSOLUTE_MAX_TOKENS = 5000;
 
-const maxTokens = Math.min(
-  options?.maxTokens ?? this.config.maxTokens,
-  ABSOLUTE_MAX_TOKENS
-);
+const maxTokens = Math.min(options?.maxTokens ?? this.config.maxTokens, ABSOLUTE_MAX_TOKENS);
 ```
 
 ---
@@ -919,19 +995,21 @@ const maxTokens = Math.min(
 OpenRouter automatycznie filtruje nieodpowiednie treści, ale dodatkowo:
 
 1. **Waliduj odpowiedzi AI:**
+
 ```typescript
 const validatedRecipe = this.aiValidator.validate(aiResponse);
 
 // Dodatkowa walidacja content safety
 if (this.containsInappropriateContent(validatedRecipe.title)) {
-  throw new Error('Generated content failed safety check');
+  throw new Error("Generated content failed safety check");
 }
 ```
 
 2. **Loguj podejrzane przypadki:**
+
 ```typescript
 if (validatedRecipe.title.match(/inappropriate-pattern/i)) {
-  console.warn('Content safety warning:', {
+  console.warn("Content safety warning:", {
     userId,
     recipeTitle: validatedRecipe.title,
     timestamp: new Date().toISOString(),
@@ -948,6 +1026,7 @@ if (validatedRecipe.title.match(/inappropriate-pattern/i)) {
 #### Lokalizacja: `src/lib/services/ai/openrouter.client.ts`
 
 **1.1 Dodaj rozszerzone typy konfiguracji:**
+
 ```typescript
 /**
  * OpenRouter API configuration
@@ -978,7 +1057,7 @@ interface GenerateRecipeOptions {
  * Response format schema following OpenRouter spec
  */
 interface ResponseSchema {
-  type: 'json_schema';
+  type: "json_schema";
   json_schema: {
     name: string;
     strict: boolean;
@@ -990,7 +1069,7 @@ interface ResponseSchema {
  * JSON Schema object structure
  */
 interface JsonSchemaObject {
-  type: 'object';
+  type: "object";
   properties: Record<string, JsonSchemaProperty>;
   required?: string[];
   additionalProperties: boolean;
@@ -999,18 +1078,18 @@ interface JsonSchemaObject {
 /**
  * JSON Schema property definition
  */
-type JsonSchemaProperty = 
-  | { type: 'string'; description?: string; enum?: string[] }
-  | { type: 'number'; description?: string }
-  | { type: 'boolean'; description?: string }
-  | { type: 'array'; items: JsonSchemaProperty; description?: string }
+type JsonSchemaProperty =
+  | { type: "string"; description?: string; enum?: string[] }
+  | { type: "number"; description?: string }
+  | { type: "boolean"; description?: string }
+  | { type: "array"; items: JsonSchemaProperty; description?: string }
   | JsonSchemaObject;
 
 /**
  * Message for chat completions
  */
 interface Message {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -1030,6 +1109,7 @@ interface HealthCheckResult {
 ### Krok 2: Aktualizacja Konstruktora
 
 **2.1 Rozszerz parsowanie konfiguracji:**
+
 ```typescript
 constructor(config?: Partial<OpenRouterConfig>) {
   this.config = {
@@ -1037,14 +1117,14 @@ constructor(config?: Partial<OpenRouterConfig>) {
     apiKey: import.meta.env.OPENROUTER_API_KEY || '',
     model: import.meta.env.OPENROUTER_MODEL || 'anthropic/claude-3-haiku',
     timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || '30000', 10),
-    
+
     // Nowe parametry
     temperature: parseFloat(import.meta.env.OPENROUTER_TEMPERATURE || '0.7'),
     maxTokens: parseInt(import.meta.env.OPENROUTER_MAX_TOKENS || '2000', 10),
     topP: parseFloat(import.meta.env.OPENROUTER_TOP_P || '1.0'),
     frequencyPenalty: parseFloat(import.meta.env.OPENROUTER_FREQUENCY_PENALTY || '0'),
     presencePenalty: parseFloat(import.meta.env.OPENROUTER_PRESENCE_PENALTY || '0'),
-    
+
     ...config,
   };
 
@@ -1059,10 +1139,11 @@ constructor(config?: Partial<OpenRouterConfig>) {
 ### Krok 3: Implementacja Prywatnych Metod
 
 **3.1 Metoda `buildMessages`:**
+
 ```typescript
 /**
  * Build message array for chat completion
- * 
+ *
  * @param userPrompt - User's prompt
  * @param systemMessage - Optional system message
  * @returns Array of messages
@@ -1087,10 +1168,11 @@ private buildMessages(userPrompt: string, systemMessage?: string): Message[] {
 ```
 
 **3.2 Metoda `getDefaultResponseSchema`:**
+
 ```typescript
 /**
  * Get default JSON schema for recipe generation
- * 
+ *
  * @returns Response schema for structured output
  */
 private getDefaultResponseSchema(): ResponseSchema {
@@ -1163,10 +1245,11 @@ private getDefaultResponseSchema(): ResponseSchema {
 ```
 
 **3.3 Metoda `tryParseErrorJson`:**
+
 ```typescript
 /**
  * Try to parse error response as JSON
- * 
+ *
  * @param errorText - Raw error text
  * @returns Parsed error object or null
  */
@@ -1180,10 +1263,11 @@ private tryParseErrorJson(errorText: string): unknown | null {
 ```
 
 **3.4 Metoda `handleApiError`:**
+
 ```typescript
 /**
  * Handle API error response
- * 
+ *
  * @param response - Failed response object
  * @throws Error with descriptive message
  */
@@ -1221,10 +1305,11 @@ private async handleApiError(response: Response): Promise<never> {
 ### Krok 4: Aktualizacja Metody `generateRecipe`
 
 **4.1 Pełna implementacja z nowymi funkcjonalnościami:**
+
 ```typescript
 /**
  * Generate recipe using AI
- * 
+ *
  * @param prompt - Structured prompt for recipe generation
  * @param options - Optional parameters to override defaults
  * @returns Parsed AI response (structured JSON)
@@ -1310,14 +1395,14 @@ async generateRecipe(prompt: string, options?: GenerateRecipeOptions): Promise<u
       console.error('Failed to parse AI response as JSON:', content);
       throw new Error('AI response is not valid JSON - check response_format configuration');
     }
-    
+
   } catch (error: any) {
     clearTimeout(timeoutId);
-    
+
     if (error.name === 'AbortError') {
       throw new Error(`OpenRouter API request timed out after ${this.config.timeout}ms`);
     }
-    
+
     throw error;
   }
 }
@@ -1328,10 +1413,11 @@ async generateRecipe(prompt: string, options?: GenerateRecipeOptions): Promise<u
 ### Krok 5: Implementacja Metody `healthCheck`
 
 **5.1 Dodaj metodę health check:**
+
 ```typescript
 /**
  * Check OpenRouter API health
- * 
+ *
  * @returns Health check result with latency
  */
 async healthCheck(): Promise<HealthCheckResult> {
@@ -1344,10 +1430,10 @@ async healthCheck(): Promise<HealthCheckResult> {
   }
 
   const startTime = performance.now();
-  
+
   try {
     const testPrompt = 'Respond with a single word: "OK"';
-    
+
     const response = await fetch(this.config.apiUrl, {
       method: 'POST',
       headers: this.buildHeaders(),
@@ -1377,7 +1463,7 @@ async healthCheck(): Promise<HealthCheckResult> {
     };
   } catch (error: any) {
     const latency = performance.now() - startTime;
-    
+
     return {
       isHealthy: false,
       model: this.config.model,
@@ -1393,6 +1479,7 @@ async healthCheck(): Promise<HealthCheckResult> {
 ### Krok 6: Konfiguracja Zmiennych Środowiskowych
 
 **6.1 Utwórz plik `.env` (local development):**
+
 ```bash
 # OpenRouter API Configuration
 OPENROUTER_API_URL=https://openrouter.ai/api/v1/chat/completions
@@ -1411,6 +1498,7 @@ TIER3_TIMEOUT_MS=30000
 ```
 
 **6.2 Aktualizuj `src/env.d.ts`:**
+
 ```typescript
 /// <reference types="astro/client" />
 
@@ -1424,10 +1512,10 @@ interface ImportMetaEnv {
   readonly OPENROUTER_TOP_P: string;
   readonly OPENROUTER_FREQUENCY_PENALTY: string;
   readonly OPENROUTER_PRESENCE_PENALTY: string;
-  
+
   // Timeout Configuration
   readonly TIER3_TIMEOUT_MS: string;
-  
+
   // Supabase Configuration
   readonly SUPABASE_URL: string;
   readonly SUPABASE_ANON_KEY: string;
@@ -1439,6 +1527,7 @@ interface ImportMeta {
 ```
 
 **6.3 Dodaj do `.gitignore`:**
+
 ```
 # Environment variables
 .env
@@ -1451,6 +1540,7 @@ interface ImportMeta {
 ### Krok 7: Aktualizacja AIRecipeService
 
 **7.1 Użyj nowych opcji w `AIRecipeService`:**
+
 ```typescript
 // src/lib/services/ai-recipe.service.ts
 
@@ -1488,18 +1578,18 @@ async generateRecipe(
  */
 private buildSystemMessage(preferences?: GenerateRecipeDTO['preferences']): string {
   let message = 'You are a professional chef with expertise in creating delicious and practical recipes.';
-  
+
   if (preferences?.cuisine) {
     message += ` You specialize in ${preferences.cuisine} cuisine.`;
   }
-  
+
   if (preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0) {
     const restrictions = preferences.dietary_restrictions.join(', ');
     message += ` All recipes must be ${restrictions}.`;
   }
-  
+
   message += ' Focus on clear instructions and accurate ingredient measurements.';
-  
+
   return message;
 }
 
@@ -1511,7 +1601,7 @@ private buildPromptWithCuisine(
   preferences?: GenerateRecipeDTO['preferences']
 ): string {
   const productList = products.map(p => `- ${p.name}`).join('\n');
-  
+
   const preferenceParts: string[] = [];
 
   if (preferences?.max_cooking_time) {
@@ -1542,61 +1632,58 @@ You may add common pantry items (salt, pepper, oil, water) if needed, but priori
 ### Krok 8: Testy Jednostkowe
 
 **8.1 Utwórz plik testowy: `src/lib/services/ai/openrouter.client.test.ts`:**
-```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { OpenRouterClient } from './openrouter.client';
 
-describe('OpenRouterClient', () => {
+```typescript
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { OpenRouterClient } from "./openrouter.client";
+
+describe("OpenRouterClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('constructor', () => {
-    it('should use default config when no config provided', () => {
+  describe("constructor", () => {
+    it("should use default config when no config provided", () => {
       const client = new OpenRouterClient();
       expect(client.isConfigured()).toBe(false); // No API key in test env
     });
 
-    it('should merge provided config with defaults', () => {
+    it("should merge provided config with defaults", () => {
       const client = new OpenRouterClient({
-        apiKey: 'test-key',
-        model: 'test-model',
+        apiKey: "test-key",
+        model: "test-model",
       });
       expect(client.isConfigured()).toBe(true);
     });
   });
 
-  describe('isConfigured', () => {
-    it('should return false when apiKey is empty', () => {
-      const client = new OpenRouterClient({ apiKey: '' });
+  describe("isConfigured", () => {
+    it("should return false when apiKey is empty", () => {
+      const client = new OpenRouterClient({ apiKey: "" });
       expect(client.isConfigured()).toBe(false);
     });
 
-    it('should return true when apiKey is provided', () => {
-      const client = new OpenRouterClient({ apiKey: 'sk-test' });
+    it("should return true when apiKey is provided", () => {
+      const client = new OpenRouterClient({ apiKey: "sk-test" });
       expect(client.isConfigured()).toBe(true);
     });
   });
 
-  describe('generateRecipe', () => {
-    it('should throw error when not configured', async () => {
-      const client = new OpenRouterClient({ apiKey: '' });
-      await expect(client.generateRecipe('test prompt')).rejects.toThrow(
-        'OpenRouter API key not configured'
-      );
+  describe("generateRecipe", () => {
+    it("should throw error when not configured", async () => {
+      const client = new OpenRouterClient({ apiKey: "" });
+      await expect(client.generateRecipe("test prompt")).rejects.toThrow("OpenRouter API key not configured");
     });
 
-    it('should throw error when prompt exceeds max length', async () => {
-      const client = new OpenRouterClient({ apiKey: 'sk-test' });
-      const longPrompt = 'a'.repeat(10001);
-      
-      await expect(client.generateRecipe(longPrompt)).rejects.toThrow(
-        'Prompt exceeds maximum length'
-      );
+    it("should throw error when prompt exceeds max length", async () => {
+      const client = new OpenRouterClient({ apiKey: "sk-test" });
+      const longPrompt = "a".repeat(10001);
+
+      await expect(client.generateRecipe(longPrompt)).rejects.toThrow("Prompt exceeds maximum length");
     });
 
     // Mock fetch dla pozostałych testów
-    it('should successfully generate recipe', async () => {
+    it("should successfully generate recipe", async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -1604,11 +1691,9 @@ describe('OpenRouterClient', () => {
             {
               message: {
                 content: JSON.stringify({
-                  title: 'Test Recipe',
-                  instructions: 'Mix and cook',
-                  ingredients: [
-                    { product_name: 'Tomato', quantity: 2, unit: 'piece' },
-                  ],
+                  title: "Test Recipe",
+                  instructions: "Mix and cook",
+                  ingredients: [{ product_name: "Tomato", quantity: 2, unit: "piece" }],
                 }),
               },
             },
@@ -1621,40 +1706,40 @@ describe('OpenRouterClient', () => {
         }),
       });
 
-      const client = new OpenRouterClient({ apiKey: 'sk-test' });
-      const result = await client.generateRecipe('Generate a recipe');
+      const client = new OpenRouterClient({ apiKey: "sk-test" });
+      const result = await client.generateRecipe("Generate a recipe");
 
-      expect(result).toHaveProperty('title', 'Test Recipe');
+      expect(result).toHaveProperty("title", "Test Recipe");
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          method: 'POST',
+          method: "POST",
           headers: expect.objectContaining({
-            'Authorization': 'Bearer sk-test',
+            Authorization: "Bearer sk-test",
           }),
         })
       );
     });
   });
 
-  describe('healthCheck', () => {
-    it('should return unhealthy when not configured', async () => {
-      const client = new OpenRouterClient({ apiKey: '' });
+  describe("healthCheck", () => {
+    it("should return unhealthy when not configured", async () => {
+      const client = new OpenRouterClient({ apiKey: "" });
       const result = await client.healthCheck();
 
       expect(result.isHealthy).toBe(false);
-      expect(result.error).toContain('not configured');
+      expect(result.error).toContain("not configured");
     });
 
-    it('should return healthy when API responds', async () => {
+    it("should return healthy when API responds", async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [{ message: { content: 'OK' } }],
+          choices: [{ message: { content: "OK" } }],
         }),
       });
 
-      const client = new OpenRouterClient({ apiKey: 'sk-test' });
+      const client = new OpenRouterClient({ apiKey: "sk-test" });
       const result = await client.healthCheck();
 
       expect(result.isHealthy).toBe(true);
@@ -1665,6 +1750,7 @@ describe('OpenRouterClient', () => {
 ```
 
 **8.2 Uruchom testy:**
+
 ```bash
 npm run test
 ```
@@ -1674,15 +1760,18 @@ npm run test
 ### Krok 9: Dokumentacja API
 
 **9.1 Utwórz plik dokumentacji: `src/lib/services/ai/README.md`:**
-```markdown
+
+````markdown
 # OpenRouter Client Service
 
 ## Przegląd
+
 Klient do komunikacji z OpenRouter API dla generowania przepisów AI.
 
 ## Użycie
 
 ### Podstawowe Użycie
+
 \```typescript
 import { openRouterClient } from './openrouter.client';
 
@@ -1691,32 +1780,36 @@ const recipe = await openRouterClient.generateRecipe(prompt);
 \```
 
 ### Z Opcjami
+
 \```typescript
 const recipe = await openRouterClient.generateRecipe(prompt, {
-  temperature: 0.9,
-  systemMessage: 'You are a Italian chef.',
-  maxTokens: 3000,
+temperature: 0.9,
+systemMessage: 'You are a Italian chef.',
+maxTokens: 3000,
 });
 \```
 
 ### Health Check
+
 \```typescript
 const health = await openRouterClient.healthCheck();
 
 if (!health.isHealthy) {
-  console.error('OpenRouter unavailable:', health.error);
+console.error('OpenRouter unavailable:', health.error);
 }
 \```
 
 ## Konfiguracja
 
 ### Zmienne Środowiskowe
+
 - `OPENROUTER_API_KEY` (wymagane)
 - `OPENROUTER_MODEL` (opcjonalne, domyślnie: claude-3-haiku)
 - `OPENROUTER_TEMPERATURE` (opcjonalne, domyślnie: 0.7)
 - `OPENROUTER_MAX_TOKENS` (opcjonalne, domyślnie: 2000)
 
 ## Obsługa Błędów
+
 Wszystkie błędy API rzucają wyjątki z opisowymi komunikatami.
 
 Zobacz [openrouter-service-implementation-plan.md](../../../.ai/openrouter-service-implementation-plan.md) dla pełnej dokumentacji.
@@ -1729,6 +1822,7 @@ Zobacz [openrouter-service-implementation-plan.md](../../../.ai/openrouter-servi
 **10.1 Konfiguracja DigitalOcean App Platform:**
 
 W panelu DigitalOcean dodaj zmienne środowiskowe:
+
 - `OPENROUTER_API_KEY` - klucz API (encrypted)
 - `OPENROUTER_MODEL` - nazwa modelu
 - `OPENROUTER_TEMPERATURE` - parametr temperatury
@@ -1736,25 +1830,23 @@ W panelu DigitalOcean dodaj zmienne środowiskowe:
 **10.2 Monitoring:**
 
 Zintegruj z narzędziem monitoringu (np. Sentry, LogRocket):
+
 ```typescript
 // src/lib/monitoring.ts
-export function logOpenRouterMetrics(data: {
-  latency: number;
-  tokens: number;
-  model: string;
-  success: boolean;
-}) {
+export function logOpenRouterMetrics(data: { latency: number; tokens: number; model: string; success: boolean }) {
   // Wyślij do systemu monitoringu
-  console.log('OpenRouter metrics:', data);
+  console.log("OpenRouter metrics:", data);
 }
 ```
+````
 
 **10.3 Rate Limiting:**
 
 Implementuj redis-based rate limiter dla production:
+
 ```typescript
 // src/middleware/rate-limit.ts
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit } from "express-rate-limit";
 
 export const openRouterRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minuta
@@ -1768,6 +1860,7 @@ export const openRouterRateLimit = rateLimit({
 ## Podsumowanie
 
 ### Kluczowe Zalety Nowej Implementacji
+
 1. ✅ **JSON Schema** - gwarancja struktury odpowiedzi
 2. ✅ **System Messages** - lepsza kontrola zachowania modelu
 3. ✅ **Konfigurowalne Parametry** - elastyczność bez zmian kodu
@@ -1777,12 +1870,13 @@ export const openRouterRateLimit = rateLimit({
 7. ✅ **Logging & Monitoring** - tracking użycia tokenów i kosztów
 
 ### Następne Kroki
+
 1. Implementuj wszystkie kroki 1-10 po kolei
-3. Testuj ręcznie z rzeczywistym API (używaj modeli z darmowym tierem)
-4. Wdróż na staging i zweryfikuj działanie
+2. Testuj ręcznie z rzeczywistym API (używaj modeli z darmowym tierem)
+3. Wdróż na staging i zweryfikuj działanie
 
 ### Referencje
+
 - [OpenRouter API Documentation](https://openrouter.ai/docs)
 - [JSON Schema Specification](https://json-schema.org/)
 - [OpenAI Chat Completions API](https://platform.openai.com/docs/api-reference/chat) (kompatybilny format)
-

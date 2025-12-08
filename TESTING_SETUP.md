@@ -73,6 +73,7 @@ npm run test:coverage
 ### 6. Uruchom przykładowe testy E2E
 
 **UWAGA**: Przed uruchomieniem upewnij się, że:
+
 - Zainstalowałeś przeglądarki Playwright (`npx playwright install chromium`)
 - Masz uruchomioną aplikację (`npm run dev`) LUB pozwól Playwright uruchomić ją automatycznie
 
@@ -120,11 +121,13 @@ foodnager/
 ### 1. Dostosuj konfigurację do swoich potrzeb
 
 **`vitest.config.ts`**:
+
 - Dostosuj progi pokrycia kodu (`coverage.thresholds`)
 - Dodaj więcej katalogów do wykluczenia z pokrycia
 - Zmień environment na `jsdom` jeśli happy-dom sprawia problemy
 
 **`playwright.config.ts`**:
+
 - Dostosuj `baseURL` jeśli używasz innego portu
 - Dodaj więcej przeglądarek (Firefox, WebKit) jeśli potrzeba
 - Skonfiguruj retry strategy dla CI
@@ -132,6 +135,7 @@ foodnager/
 ### 2. Napisz pierwsze prawdziwe testy
 
 Zacznij od testowania kluczowych komponentów:
+
 - Formularze (logowanie, rejestracja)
 - Komponenty UI (przyciski, inputy)
 - Logika biznesowa (utils, helpers)
@@ -139,6 +143,7 @@ Zacznij od testowania kluczowych komponentów:
 ### 3. Skonfiguruj MSW dla swoich API endpoints
 
 Edytuj `src/tests/mocks/handlers.ts` i dodaj handlery dla:
+
 - `/api/products`
 - `/api/recipes`
 - `/api/fridge`
@@ -151,15 +156,15 @@ Przykład:
 
 ```typescript
 // e2e/pages/login.page.ts
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
 export class LoginPage {
   constructor(private page: Page) {}
-  
+
   async goto() {
-    await this.page.goto('/login');
+    await this.page.goto("/login");
   }
-  
+
   async login(email: string, password: string) {
     await this.page.fill('[name="email"]', email);
     await this.page.fill('[name="password"]', password);
@@ -184,20 +189,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      
+          node-version: "22"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit tests
         run: npm run test:run
-      
+
       - name: Install Playwright
         run: npx playwright install chromium --with-deps
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -241,9 +246,11 @@ npm install -D @testing-library/react @testing-library/jest-dom @testing-library
 ## 📚 Dokumentacja
 
 Pełna dokumentacja testów znajduje się w:
+
 - `src/tests/README.md` - szczegółowe instrukcje pisania testów
 
 Zewnętrzne zasoby:
+
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)
 - [Testing Library](https://testing-library.com/)
@@ -263,4 +270,3 @@ Zewnętrzne zasoby:
 **Środowisko testowe jest gotowe do użycia!** 🎉
 
 Jeśli masz pytania lub problemy, sprawdź dokumentację lub otwórz issue w repozytorium.
-

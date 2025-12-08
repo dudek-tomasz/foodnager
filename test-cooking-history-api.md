@@ -1,9 +1,11 @@
 # Cooking History API - Test Guide
 
 ## Overview
+
 This guide provides test scenarios and examples for the Cooking History API endpoints.
 
 ## Prerequisites
+
 - Authenticated user with valid JWT token
 - At least one recipe in the database
 - Products in the virtual fridge matching recipe ingredients
@@ -17,6 +19,7 @@ Creates a new cooking history entry and automatically updates fridge quantities.
 #### Success Case
 
 **Request:**
+
 ```http
 POST /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -29,6 +32,7 @@ Content-Type: application/json
 ```
 
 **Expected Response (201 Created):**
+
 ```json
 {
   "id": 1,
@@ -89,6 +93,7 @@ Content-Type: application/json
 #### Error Cases
 
 **401 Unauthorized - No Token:**
+
 ```http
 POST /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -100,6 +105,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -110,6 +116,7 @@ Content-Type: application/json
 ```
 
 **400 Bad Request - Invalid Body:**
+
 ```http
 POST /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -122,6 +129,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -135,6 +143,7 @@ Content-Type: application/json
 ```
 
 **404 Not Found - Recipe Doesn't Exist:**
+
 ```http
 POST /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -147,6 +156,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -157,6 +167,7 @@ Content-Type: application/json
 ```
 
 **400 Bad Request - Insufficient Ingredients:**
+
 ```http
 POST /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -169,6 +180,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -197,6 +209,7 @@ Retrieves cooking history with optional filtering and pagination.
 #### Basic Request
 
 **Request:**
+
 ```http
 GET /api/cooking-history HTTP/1.1
 Host: localhost:4321
@@ -204,6 +217,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Expected Response (200 OK):**
+
 ```json
 {
   "data": [
@@ -276,6 +290,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 #### Filtered Requests
 
 **Filter by Recipe:**
+
 ```http
 GET /api/cooking-history?recipe_id=1 HTTP/1.1
 Host: localhost:4321
@@ -283,6 +298,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Filter by Date Range:**
+
 ```http
 GET /api/cooking-history?from_date=2025-10-01&to_date=2025-10-31 HTTP/1.1
 Host: localhost:4321
@@ -290,6 +306,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Pagination:**
+
 ```http
 GET /api/cooking-history?page=2&limit=10 HTTP/1.1
 Host: localhost:4321
@@ -297,6 +314,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Combined Filters:**
+
 ```http
 GET /api/cooking-history?recipe_id=1&from_date=2025-10-15&page=1&limit=20 HTTP/1.1
 Host: localhost:4321
@@ -306,12 +324,14 @@ Authorization: Bearer YOUR_JWT_TOKEN
 #### Error Cases
 
 **401 Unauthorized:**
+
 ```http
 GET /api/cooking-history HTTP/1.1
 Host: localhost:4321
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -322,6 +342,7 @@ Host: localhost:4321
 ```
 
 **422 Unprocessable Entity - Invalid Date Format:**
+
 ```http
 GET /api/cooking-history?from_date=2025/10/01 HTTP/1.1
 Host: localhost:4321
@@ -329,6 +350,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -342,6 +364,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **422 Unprocessable Entity - from_date After to_date:**
+
 ```http
 GET /api/cooking-history?from_date=2025-10-20&to_date=2025-10-10 HTTP/1.1
 Host: localhost:4321
@@ -349,6 +372,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -362,6 +386,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **422 Unprocessable Entity - Invalid Limit:**
+
 ```http
 GET /api/cooking-history?limit=150 HTTP/1.1
 Host: localhost:4321
@@ -369,6 +394,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -388,6 +414,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ### Complete Flow Test
 
 1. **Setup: Add products to fridge**
+
    ```http
    POST /api/fridge
    {
@@ -398,6 +425,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
    ```
 
 2. **Setup: Create a recipe**
+
    ```http
    POST /api/recipes
    {
@@ -414,6 +442,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
    ```
 
 3. **Test: Cook the recipe**
+
    ```http
    POST /api/cooking-history
    {
@@ -422,15 +451,19 @@ Authorization: Bearer YOUR_JWT_TOKEN
    ```
 
 4. **Verify: Check fridge updated**
+
    ```http
    GET /api/fridge
    ```
+
    Expected: Product quantity should be 5 (10 - 5)
 
 5. **Verify: Check history recorded**
+
    ```http
    GET /api/cooking-history
    ```
+
    Expected: Entry with before=10, after=5
 
 6. **Test: Try to cook again with insufficient ingredients**
@@ -453,14 +486,14 @@ After creating cooking history, verify in database:
 SELECT * FROM cooking_history WHERE user_id = 'YOUR_USER_ID' ORDER BY cooked_at DESC;
 
 -- Check fridge updated
-SELECT up.*, p.name, u.abbreviation 
+SELECT up.*, p.name, u.abbreviation
 FROM user_products up
 JOIN products p ON up.product_id = p.id
 JOIN units u ON up.unit_id = u.id
 WHERE up.user_id = 'YOUR_USER_ID';
 
 -- Verify JSONB structure
-SELECT 
+SELECT
   id,
   recipe_id,
   fridge_state_before->'items' as before_items,
@@ -480,4 +513,3 @@ LIMIT 1;
 - Fridge states are immutable snapshots stored as JSONB
 - Items with quantity = 0 are automatically removed from fridge
 - Timestamps are in UTC format (ISO 8601)
-

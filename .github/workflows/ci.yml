@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       skip_e2e:
-        description: 'Pomiń testy E2E'
+        description: "Pomiń testy E2E"
         required: false
         type: boolean
         default: false
-  
+
   # Automatyczne uruchomienie po pushu do master
   push:
     branches:
@@ -17,26 +17,26 @@ on:
 
 # Zmienne środowiskowe globalne
 env:
-  NODE_VERSION_FILE: '.nvmrc'
+  NODE_VERSION_FILE: ".nvmrc"
 
 jobs:
   ci:
     name: Lint, Build & Tests
     runs-on: ubuntu-latest
-    
+
     # Zmienne środowiskowe dla tego joba
     env:
       # Zmienne z .env potrzebne do buildu
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      
+
       # Zmienne z .env.test potrzebne do testów E2E
       E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
       E2E_TEST_USER_ID: ${{ secrets.E2E_USERNAME_ID }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
-      
+      PLAYWRIGHT_TEST_BASE_URL: "http://localhost:3000"
+
       # Flaga CI dla Playwright
       CI: true
 
@@ -50,7 +50,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ${{ env.NODE_VERSION_FILE }}
-          cache: 'npm'
+          cache: "npm"
 
       # 3. Instalacja zależności
       - name: 📦 Install dependencies
@@ -129,4 +129,3 @@ jobs:
           else
             echo "  ⊘ Testy E2E (pominięte)"
           fi
-

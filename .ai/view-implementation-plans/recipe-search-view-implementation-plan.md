@@ -14,6 +14,7 @@ Widok wykorzystuje dwie główne ścieżki:
 - **`/recipes/search?source=X&use_all_fridge_items=true`** - Kroki 2 i 3: Ładowanie i wyniki wyszukiwania
 
 Parametry URL:
+
 - `source` - źródło wyszukiwania: `user` | `api` | `ai` | `all` (wymagane dla kroków 2-3)
 - `use_all_fridge_items` - czy użyć wszystkich produktów z lodówki: `true` | `false` (domyślnie `true`)
 
@@ -56,6 +57,7 @@ RecipeSearchPage (Astro page)
 **Opis:** Główna strona Astro odpowiedzialna za routing i przekazanie kontroli do React view. Odpowiada za SSR oraz przekazanie początkowych danych (np. liczba produktów w lodówce).
 
 **Główne elementy:**
+
 - Import Layout.astro
 - Import RecipeSearchView (React)
 - Pobranie danych o lodówce na serwerze (opcjonalnie)
@@ -78,12 +80,14 @@ RecipeSearchPage (Astro page)
 **Opis:** Główny komponent React zarządzający logiką widoku, stanem wyszukiwania i przełączaniem między krokami. Obsługuje routing na poziomie klienta i wywołania API.
 
 **Główne elementy:**
+
 - Warunkowe renderowanie kroków na podstawie URL params i stanu
 - Zarządzanie stanem wyszukiwania (loading, results, errors)
 - Obsługa AbortController dla anulowania requestów
 - Kontener z padding i max-width
 
 **Obsługiwane zdarzenia:**
+
 - Montowanie komponentu: odczyt URL params, decyzja o kroku
 - Zmiana URL: przejście między krokami
 - Rozpoczęcie wyszukiwania: wywołanie API
@@ -91,10 +95,12 @@ RecipeSearchPage (Astro page)
 - Retry po błędzie
 
 **Warunki walidacji:**
+
 - Sprawdzenie czy `source` param jest prawidłowy
 - Walidacja czy użytkownik ma produkty w lodówce (dla `use_all_fridge_items=true`)
 
 **Typy:**
+
 - `SearchRecipesByFridgeDTO` (request)
 - `SearchRecipesResponseDTO` (response)
 - `GenerateRecipeDTO` (request dla AI)
@@ -102,6 +108,7 @@ RecipeSearchPage (Astro page)
 - `RecipeSearchViewState` (ViewModel - patrz sekcja 5)
 
 **Propsy:**
+
 ```typescript
 interface RecipeSearchViewProps {
   initialFridgeItemCount?: number; // liczba produktów w lodówce (opcjonalnie SSR)
@@ -115,22 +122,27 @@ interface RecipeSearchViewProps {
 **Opis:** Widok wyboru źródła wyszukiwania. Prezentuje 4 kafelki reprezentujące różne źródła przepisów oraz ostrzeżenie jeśli lodówka jest pusta.
 
 **Główne elementy:**
+
 - Nagłówek (h1): "Wybierz źródło przepisów"
 - `<FridgeStatusBanner>` - informacja o liczbie produktów
 - `<EmptyFridgeWarning>` (jeśli lodówka pusta)
 - `<SourceSelectionGrid>` - grid 2×2 (desktop) lub 1×4 (mobile)
 
 **Obsługiwane zdarzenia:**
+
 - Click na kafelek → nawigacja do `/recipes/search?source=X&use_all_fridge_items=true`
 - Click na "Dodaj produkty" w warningu → nawigacja do `/fridge`
 
 **Warunki walidacji:**
+
 - Brak (widok tylko do wyboru)
 
 **Typy:**
+
 - `FridgeItemsCount` (ViewModel)
 
 **Propsy:**
+
 ```typescript
 interface SourceSelectionViewProps {
   fridgeItemCount: number;
@@ -146,6 +158,7 @@ interface SourceSelectionViewProps {
 **Opis:** Banner wyświetlający aktualny stan lodówki użytkownika (liczba produktów).
 
 **Główne elementy:**
+
 - Ikona lodówki
 - Tekst: "W Twojej lodówce: X produktów"
 - Styling: bg-blue-50, border-blue-200, text-blue-900
@@ -157,6 +170,7 @@ interface SourceSelectionViewProps {
 **Typy:** `number` (fridgeItemCount)
 
 **Propsy:**
+
 ```typescript
 interface FridgeStatusBannerProps {
   itemCount: number;
@@ -170,20 +184,24 @@ interface FridgeStatusBannerProps {
 **Opis:** Ostrzeżenie wyświetlane gdy lodówka użytkownika jest pusta. Informuje o mniej precyzyjnym wyszukiwaniu i zachęca do dodania produktów.
 
 **Główne elementy:**
+
 - Ikona ostrzeżenia (⚠️)
 - Tekst: "Twoja lodówka jest pusta. Wyszukiwanie będzie mniej precyzyjne."
 - Link/Button: "Dodaj produkty" → `/fridge`
 - Styling: bg-yellow-50, border-yellow-300, text-yellow-900
 
 **Obsługiwane zdarzenia:**
+
 - Click na "Dodaj produkty" → nawigacja do `/fridge`
 
 **Warunki walidacji:**
+
 - Renderowany tylko gdy `fridgeItemCount === 0`
 
 **Typy:** Brak
 
 **Propsy:**
+
 ```typescript
 interface EmptyFridgeWarningProps {
   onAddProducts: () => void;
@@ -197,18 +215,22 @@ interface EmptyFridgeWarningProps {
 **Opis:** Grid zawierający 4 kafelki źródeł przepisów. Responsywny layout: 2×2 na desktop, 1×4 na mobile.
 
 **Główne elementy:**
+
 - CSS Grid container
 - 4× `<SourceCard>` dla każdego źródła
 
 **Obsługiwane zdarzenia:**
+
 - Propagacja kliknięć z SourceCard
 
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `RecipeSource` - enum źródeł
 
 **Propsy:**
+
 ```typescript
 interface SourceSelectionGridProps {
   userRecipeCount: number;
@@ -223,6 +245,7 @@ interface SourceSelectionGridProps {
 **Opis:** Kafelek reprezentujący pojedyncze źródło przepisów. Interaktywny element z hover effects i badge dla "Moje przepisy".
 
 **Główne elementy:**
+
 - Ikona źródła (64px)
 - Tytuł (h3)
 - Opis (2-3 zdania)
@@ -232,6 +255,7 @@ interface SourceSelectionGridProps {
 - Border: border-2, rounded-xl
 
 **Obsługiwane zdarzenia:**
+
 - Click → wywołanie `onSourceSelect(source)`
 - Hover → animacja scale i shadow
 - Focus → keyboard accessibility
@@ -239,10 +263,12 @@ interface SourceSelectionGridProps {
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `RecipeSource`
 - `SourceCardData` (ViewModel)
 
 **Propsy:**
+
 ```typescript
 interface SourceCardProps {
   source: RecipeSource;
@@ -261,6 +287,7 @@ interface SourceCardProps {
 **Opis:** Widok loading state podczas wyszukiwania przepisów. Wyświetla skeleton cards z shimmer animation oraz informację o postępie. Po 30 sekundach pokazuje timeout warning.
 
 **Główne elementy:**
+
 - `<SearchProgress>` - info o aktualnym źródle
 - Grid 6× `<RecipeCardSkeleton>`
 - `<TimeoutWarning>` (po 30s)
@@ -268,16 +295,20 @@ interface SourceCardProps {
 - `aria-live="polite"` dla komunikatów
 
 **Obsługiwane zdarzenia:**
+
 - Click "Anuluj" → abort request, powrót do Step 1
 - Timeout (30s) → pokazanie TimeoutWarning
 
 **Warunki walidacji:**
+
 - TimeoutWarning pokazywany tylko jeśli `searchDuration > 30000ms`
 
 **Typy:**
+
 - `SearchState` (ViewModel)
 
 **Propsy:**
+
 ```typescript
 interface SearchLoadingViewProps {
   currentSource: RecipeSource;
@@ -293,6 +324,7 @@ interface SearchLoadingViewProps {
 **Opis:** Komponent pokazujący aktualny postęp wyszukiwania (w którym źródle aktualnie szukamy).
 
 **Główne elementy:**
+
 - Animated spinner
 - Tekst: "Szukam w: [źródło]..."
 - Progress bar (opcjonalnie)
@@ -302,9 +334,11 @@ interface SearchLoadingViewProps {
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `RecipeSource`
 
 **Propsy:**
+
 ```typescript
 interface SearchProgressProps {
   currentSource: RecipeSource;
@@ -318,6 +352,7 @@ interface SearchProgressProps {
 **Opis:** Skeleton loader dla karty przepisu. Shimmer animation (gradient linear, 1.5s loop).
 
 **Główne elementy:**
+
 - Badge placeholder (top-right)
 - Title placeholder (2 linie)
 - 3-4× ingredient line placeholders
@@ -339,6 +374,7 @@ interface SearchProgressProps {
 **Opis:** Ostrzeżenie wyświetlane gdy wyszukiwanie trwa dłużej niż 30 sekund.
 
 **Główne elementy:**
+
 - Animated spinner
 - Tekst: "Generowanie trwa dłużej niż zwykle... Proszę czekać."
 - Styling: bg-orange-50, border-orange-300
@@ -346,6 +382,7 @@ interface SearchProgressProps {
 **Obsługiwane zdarzenia:** Brak (tylko informacja)
 
 **Warunki walidacji:**
+
 - Renderowany tylko gdy `searchDuration > 30000ms`
 
 **Typy:** Brak
@@ -359,23 +396,28 @@ interface SearchProgressProps {
 **Opis:** Widok prezentujący wyniki wyszukiwania. Pokazuje listę przepisów z match scores oraz metadata wyszukiwania. Obsługuje empty state.
 
 **Główne elementy:**
+
 - `<ResultsHeader>`
 - `<SearchMetadataBar>`
 - `<RecipeResultsGrid>` lub `<EmptyResults>` (warunkowo)
 
 **Obsługiwane zdarzenia:**
+
 - Click na przepis → nawigacja do `/recipes/[id]`
 - Click "Wróć" → powrót do Step 1
 - Click "Generuj AI" (w EmptyResults) → wywołanie generate endpoint
 
 **Warunki walidacji:**
+
 - Renderowanie `<EmptyResults>` gdy `results.length === 0`
 
 **Typy:**
+
 - `SearchRecipesResponseDTO`
 - `RecipeSearchResultDTO[]`
 
 **Propsy:**
+
 ```typescript
 interface SearchResultsViewProps {
   results: RecipeSearchResultDTO[];
@@ -394,18 +436,22 @@ interface SearchResultsViewProps {
 **Opis:** Nagłówek wyników wyszukiwania z przyciskiem powrotu.
 
 **Główne elementy:**
+
 - `<BackButton>` → "Wróć do wyboru źródła"
 - Tytuł (h1): "Wyniki wyszukiwania: [źródło]"
 
 **Obsługiwane zdarzenia:**
+
 - Click na BackButton → wywołanie `onBack()`
 
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `RecipeSource`
 
 **Propsy:**
+
 ```typescript
 interface ResultsHeaderProps {
   source: RecipeSource;
@@ -420,6 +466,7 @@ interface ResultsHeaderProps {
 **Opis:** Bar z informacjami o wyszukiwaniu: liczba wyników, źródło, czas wyszukiwania.
 
 **Główne elementy:**
+
 - Ikona źródła
 - Tekst: "Znaleziono X przepisów z [źródło] w Y ms"
 - Styling: bg-gray-50, border-gray-200
@@ -429,9 +476,11 @@ interface ResultsHeaderProps {
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `SearchMetadataDTO`
 
 **Propsy:**
+
 ```typescript
 interface SearchMetadataBarProps {
   metadata: SearchMetadataDTO;
@@ -445,18 +494,22 @@ interface SearchMetadataBarProps {
 **Opis:** Grid zawierający karty przepisów z wynikami wyszukiwania. Responsywny: 3 kolumny na desktop, 1 na mobile.
 
 **Główne elementy:**
+
 - CSS Grid container
 - N× `<RecipeResultCard>`
 
 **Obsługiwane zdarzenia:**
+
 - Propagacja kliknięć z RecipeResultCard
 
 **Warunki walidacji:** Brak
 
 **Typy:**
+
 - `RecipeSearchResultDTO[]`
 
 **Propsy:**
+
 ```typescript
 interface RecipeResultsGridProps {
   results: RecipeSearchResultDTO[];
@@ -471,6 +524,7 @@ interface RecipeResultsGridProps {
 **Opis:** Karta pojedynczego przepisu z wynikiem wyszukiwania. Podobna do standardowej karty przepisu, ale z match score badge i informacjami o brakujących składnikach.
 
 **Główne elementy:**
+
 - Match score badge (top-right): okrągły badge z % (np. "95%")
 - Tytuł przepisu (h3)
 - Opis (truncated, 2 linie max)
@@ -483,24 +537,28 @@ interface RecipeResultsGridProps {
 - Hover: scale(1.02), shadow-lg
 - Border color zależny od match score:
   - > 90%: green
-  - 70-90%: yellow  
+  - 70-90%: yellow
   - < 70%: red
 
 **Obsługiwane zdarzenia:**
+
 - Click na kartę → `onRecipeClick(recipe.id)`
 - Click "Zobacz przepis" → nawigacja do `/recipes/[id]`
 - Click "Lista zakupów" → nawigacja do `/shopping-list?recipe_id=[id]`
 - Hover → animacja
 
 **Warunki walidacji:**
+
 - "Lista zakupów" button wyświetlany tylko gdy `missing_ingredients.length > 0`
 - Border color zależny od `match_score`
 
 **Typy:**
+
 - `RecipeSearchResultDTO`
 - `AvailableIngredientDTO`
 
 **Propsy:**
+
 ```typescript
 interface RecipeResultCardProps {
   result: RecipeSearchResultDTO;
@@ -515,19 +573,23 @@ interface RecipeResultCardProps {
 **Opis:** Komponent wyświetlany gdy wyszukiwanie nie zwróciło żadnych wyników. Zawiera sugestie i przyciski do dalszych akcji.
 
 **Główne elementy:**
+
 - `<EmptyStateMessage>`
 - `<FallbackActions>`
 
 **Obsługiwane zdarzenia:**
+
 - Click "Wróć do wyboru źródła" → `onBack()`
 - Click "Generuj AI" → `onGenerateAI()`
 
 **Warunki walidacji:**
+
 - Renderowany tylko gdy `results.length === 0`
 
 **Typy:** Brak
 
 **Propsy:**
+
 ```typescript
 interface EmptyResultsProps {
   source: RecipeSource;
@@ -543,6 +605,7 @@ interface EmptyResultsProps {
 **Opis:** Komunikat informujący o braku wyników z sugestiami.
 
 **Główne elementy:**
+
 - Ikona pustego stanu (duża, centralna)
 - Tytuł: "Nie znaleziono przepisów"
 - Opis z sugestiami:
@@ -565,20 +628,25 @@ interface EmptyResultsProps {
 **Opis:** Przyciski akcji po pustym wyniku wyszukiwania.
 
 **Główne elementy:**
+
 - Button "Wróć do wyboru źródła" (secondary)
 - Button "Generuj AI" (primary, jeśli source !== 'ai')
 
 **Obsługiwane zdarzenia:**
+
 - Click "Wróć" → `onBack()`
 - Click "Generuj AI" → `onGenerateAI()`
 
 **Warunki walidacji:**
+
 - Button "Generuj AI" ukryty jeśli `source === 'ai'` (już próbowano AI)
 
 **Typy:**
+
 - `RecipeSource`
 
 **Propsy:**
+
 ```typescript
 interface FallbackActionsProps {
   source: RecipeSource;
@@ -594,11 +662,13 @@ interface FallbackActionsProps {
 **Opis:** Przycisk anulowania wyszukiwania podczas loading state.
 
 **Główne elementy:**
+
 - Button "Anuluj wyszukiwanie"
 - Ikona X
 - Styling: destructive variant
 
 **Obsługiwane zdarzenia:**
+
 - Click → wywołanie `onCancel()` → abort request
 
 **Warunki walidacji:** Brak
@@ -606,6 +676,7 @@ interface FallbackActionsProps {
 **Typy:** Brak
 
 **Propsy:**
+
 ```typescript
 interface CancelButtonProps {
   onCancel: () => void;
@@ -693,12 +764,12 @@ Typy pomocnicze dla widoku:
 /**
  * Enum reprezentujący źródła przepisów do wyboru
  */
-export type RecipeSource = 'user' | 'api' | 'ai' | 'all';
+export type RecipeSource = "user" | "api" | "ai" | "all";
 
 /**
  * Stan widoku wyszukiwania
  */
-export type SearchViewStep = 'source_selection' | 'loading' | 'results';
+export type SearchViewStep = "source_selection" | "loading" | "results";
 
 /**
  * Stan całego widoku
@@ -781,28 +852,28 @@ export interface UseRecipeSearchReturn {
  */
 export const RECIPE_SOURCES: SourceCardData[] = [
   {
-    source: 'user',
-    title: 'Moje przepisy',
-    description: 'Przeszukuj swoje zapisane przepisy',
-    icon: 'BookOpen',
+    source: "user",
+    title: "Moje przepisy",
+    description: "Przeszukuj swoje zapisane przepisy",
+    icon: "BookOpen",
   },
   {
-    source: 'api',
-    title: 'API przepisów',
-    description: 'Szukaj w bazie przepisów online',
-    icon: 'Globe',
+    source: "api",
+    title: "API przepisów",
+    description: "Szukaj w bazie przepisów online",
+    icon: "Globe",
   },
   {
-    source: 'ai',
-    title: 'Generuj AI',
-    description: 'Wygeneruj nowy przepis za pomocą AI',
-    icon: 'Sparkles',
+    source: "ai",
+    title: "Generuj AI",
+    description: "Wygeneruj nowy przepis za pomocą AI",
+    icon: "Sparkles",
   },
   {
-    source: 'all',
-    title: 'Wszystkie źródła',
-    description: 'Przeszukaj wszystkie dostępne źródła',
-    icon: 'Search',
+    source: "all",
+    title: "Wszystkie źródła",
+    description: "Przeszukaj wszystkie dostępne źródła",
+    icon: "Search",
   },
 ];
 
@@ -827,7 +898,7 @@ Główna logika zarządzania stanem widoku będzie zaimplementowana w custom hoo
 export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearchReturn {
   // Stan
   const [state, setState] = useState<RecipeSearchViewState>({
-    step: 'source_selection',
+    step: "source_selection",
     source: null,
     isLoading: false,
     searchStartTime: null,
@@ -837,29 +908,29 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
     error: null,
     abortController: null,
   });
-  
+
   // Timer dla search duration
   useEffect(() => {
     if (state.isLoading && state.searchStartTime) {
       const interval = setInterval(() => {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           searchDuration: Date.now() - (prev.searchStartTime || 0),
         }));
       }, 100);
-      
+
       return () => clearInterval(interval);
     }
   }, [state.isLoading, state.searchStartTime]);
-  
+
   // Funkcje akcji
   const selectSource = async (source: RecipeSource) => {
     // Utworzenie AbortController
     const controller = new AbortController();
-    
-    setState(prev => ({
+
+    setState((prev) => ({
       ...prev,
-      step: 'loading',
+      step: "loading",
       source,
       isLoading: true,
       searchStartTime: Date.now(),
@@ -867,12 +938,12 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       error: null,
       abortController: controller,
     }));
-    
+
     try {
       // Wywołanie API
-      const response = await fetch('/api/recipes/search-by-fridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/recipes/search-by-fridge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           use_all_fridge_items: true,
           max_results: 10,
@@ -880,28 +951,27 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         }),
         signal: controller.signal,
       });
-      
+
       if (!response.ok) {
-        throw new Error('Search failed');
+        throw new Error("Search failed");
       }
-      
+
       const data: SearchRecipesResponseDTO = await response.json();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
-        step: 'results',
+        step: "results",
         isLoading: false,
         results: data.results,
         searchMetadata: data.search_metadata,
         abortController: null,
       }));
-      
     } catch (error: any) {
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         // Użytkownik anulował - wróć do wyboru źródła
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
-          step: 'source_selection',
+          step: "source_selection",
           source: null,
           isLoading: false,
           searchStartTime: null,
@@ -909,13 +979,13 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
         }));
       } else {
         // Błąd API
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
-          step: 'results',
+          step: "results",
           isLoading: false,
           error: {
-            code: 'SEARCH_ERROR',
-            message: error.message || 'Nie udało się wyszukać przepisów',
+            code: "SEARCH_ERROR",
+            message: error.message || "Nie udało się wyszukać przepisów",
           },
           results: [],
           searchMetadata: null,
@@ -924,28 +994,28 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       }
     }
   };
-  
+
   const cancelSearch = () => {
     if (state.abortController) {
       state.abortController.abort();
     }
   };
-  
+
   const retrySearch = async () => {
     if (state.source) {
       await selectSource(state.source);
     }
   };
-  
+
   const generateWithAI = async () => {
     // TODO: implementacja generowania AI
     // Wywołanie POST /api/recipes/generate
   };
-  
+
   const goBack = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      step: 'source_selection',
+      step: "source_selection",
       source: null,
       isLoading: false,
       results: null,
@@ -953,21 +1023,21 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       error: null,
     }));
   };
-  
+
   // Helper functions
   const formatMatchScore = (score: number): FormattedMatchScore => {
     const percentage = Math.round(score * 100);
-    let colorClass = 'text-red-600';
-    let borderClass = 'border-red-500';
-    
+    let colorClass = "text-red-600";
+    let borderClass = "border-red-500";
+
     if (percentage >= 90) {
-      colorClass = 'text-green-600';
-      borderClass = 'border-green-500';
+      colorClass = "text-green-600";
+      borderClass = "border-green-500";
     } else if (percentage >= 70) {
-      colorClass = 'text-yellow-600';
-      borderClass = 'border-yellow-500';
+      colorClass = "text-yellow-600";
+      borderClass = "border-yellow-500";
     }
-    
+
     return {
       percentage,
       label: `${percentage}%`,
@@ -975,21 +1045,21 @@ export function useRecipeSearch(initialFridgeItemCount?: number): UseRecipeSearc
       borderClass,
     };
   };
-  
+
   const getSourceLabel = (source: RecipeSource): string => {
     const labels: Record<RecipeSource, string> = {
-      user: 'Moje przepisy',
-      api: 'API przepisów',
-      ai: 'AI',
-      all: 'Wszystkie źródła',
+      user: "Moje przepisy",
+      api: "API przepisów",
+      ai: "AI",
+      all: "Wszystkie źródła",
     };
     return labels[source];
   };
-  
+
   const isSearchTimedOut = (): boolean => {
     return state.searchDuration > SEARCH_TIMEOUTS.WARNING_THRESHOLD;
   };
-  
+
   return {
     state,
     actions: {
@@ -1168,10 +1238,10 @@ export async function searchRecipesByFridge(
   searchDto: SearchRecipesByFridgeDTO,
   signal?: AbortSignal
 ): Promise<SearchRecipesResponseDTO> {
-  const response = await fetch('/api/recipes/search-by-fridge', {
-    method: 'POST',
+  const response = await fetch("/api/recipes/search-by-fridge", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(searchDto),
     signal,
@@ -1179,7 +1249,7 @@ export async function searchRecipesByFridge(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Search failed');
+    throw new Error(error.error?.message || "Search failed");
   }
 
   return response.json();
@@ -1189,10 +1259,10 @@ export async function generateRecipeWithAI(
   generateDto: GenerateRecipeDTO,
   signal?: AbortSignal
 ): Promise<GenerateRecipeResponseDTO> {
-  const response = await fetch('/api/recipes/generate', {
-    method: 'POST',
+  const response = await fetch("/api/recipes/generate", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(generateDto),
     signal,
@@ -1200,7 +1270,7 @@ export async function generateRecipeWithAI(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error?.message || 'Generation failed');
+    throw new Error(error.error?.message || "Generation failed");
   }
 
   return response.json();
@@ -1259,40 +1329,40 @@ export async function generateRecipeWithAI(
 
 ### 8.5 Szczegółowe interakcje
 
-| Interakcja | Element | Akcja | Rezultat |
-|------------|---------|-------|----------|
-| Click kafelek "Moje przepisy" | SourceCard | selectSource('user') | Wywołanie API search-by-fridge z filtrem na user recipes |
-| Click kafelek "API przepisów" | SourceCard | selectSource('api') | Wywołanie API search-by-fridge z preferencją API tier |
-| Click kafelek "Generuj AI" | SourceCard | selectSource('ai') | Wywołanie API search-by-fridge z preferencją AI tier |
-| Click kafelek "Wszystkie źródła" | SourceCard | selectSource('all') | Wywołanie API search-by-fridge bez preferencji (hierarchiczne) |
-| Click "Dodaj produkty" | EmptyFridgeWarning | navigate('/fridge') | Nawigacja do widoku lodówki |
-| Click "Anuluj wyszukiwanie" | CancelButton | cancelSearch() | Abort request, powrót do Step 1 |
-| Click "Wróć do wyboru źródła" | BackButton | goBack() | Powrót do Step 1 |
-| Click na kartę przepisu | RecipeResultCard | navigate(`/recipes/${id}`) | Nawigacja do szczegółów przepisu |
-| Click "Zobacz przepis" | RecipeResultCard | navigate(`/recipes/${id}`) | Nawigacja do szczegółów przepisu |
-| Click "Lista zakupów" | RecipeResultCard | navigate(`/shopping-list?recipe_id=${id}`) | Nawigacja do listy zakupów |
-| Click "Generuj AI" (w EmptyResults) | FallbackActions | generateWithAI() | Wywołanie POST /api/recipes/generate |
-| Hover na karcie przepisu | RecipeResultCard | CSS hover | Scale(1.02), shadow-lg |
-| Timeout 30s podczas loading | automatyczne | setState | Wyświetlenie TimeoutWarning |
+| Interakcja                          | Element            | Akcja                                      | Rezultat                                                       |
+| ----------------------------------- | ------------------ | ------------------------------------------ | -------------------------------------------------------------- |
+| Click kafelek "Moje przepisy"       | SourceCard         | selectSource('user')                       | Wywołanie API search-by-fridge z filtrem na user recipes       |
+| Click kafelek "API przepisów"       | SourceCard         | selectSource('api')                        | Wywołanie API search-by-fridge z preferencją API tier          |
+| Click kafelek "Generuj AI"          | SourceCard         | selectSource('ai')                         | Wywołanie API search-by-fridge z preferencją AI tier           |
+| Click kafelek "Wszystkie źródła"    | SourceCard         | selectSource('all')                        | Wywołanie API search-by-fridge bez preferencji (hierarchiczne) |
+| Click "Dodaj produkty"              | EmptyFridgeWarning | navigate('/fridge')                        | Nawigacja do widoku lodówki                                    |
+| Click "Anuluj wyszukiwanie"         | CancelButton       | cancelSearch()                             | Abort request, powrót do Step 1                                |
+| Click "Wróć do wyboru źródła"       | BackButton         | goBack()                                   | Powrót do Step 1                                               |
+| Click na kartę przepisu             | RecipeResultCard   | navigate(`/recipes/${id}`)                 | Nawigacja do szczegółów przepisu                               |
+| Click "Zobacz przepis"              | RecipeResultCard   | navigate(`/recipes/${id}`)                 | Nawigacja do szczegółów przepisu                               |
+| Click "Lista zakupów"               | RecipeResultCard   | navigate(`/shopping-list?recipe_id=${id}`) | Nawigacja do listy zakupów                                     |
+| Click "Generuj AI" (w EmptyResults) | FallbackActions    | generateWithAI()                           | Wywołanie POST /api/recipes/generate                           |
+| Hover na karcie przepisu            | RecipeResultCard   | CSS hover                                  | Scale(1.02), shadow-lg                                         |
+| Timeout 30s podczas loading         | automatyczne       | setState                                   | Wyświetlenie TimeoutWarning                                    |
 
 ## 9. Warunki i walidacja
 
 ### 9.1 Warunki renderowania komponentów
 
-| Komponent | Warunek renderowania | Zależność |
-|-----------|---------------------|-----------|
-| SourceSelectionView | `step === 'source_selection'` | state.step |
-| SearchLoadingView | `step === 'loading'` | state.step |
-| SearchResultsView | `step === 'results'` | state.step |
-| EmptyFridgeWarning | `fridgeItemCount === 0` | fridgeItemCount |
-| FridgeStatusBanner | zawsze | - |
-| TimeoutWarning | `searchDuration > 30000 && isLoading` | state.searchDuration, state.isLoading |
-| RecipeResultsGrid | `results.length > 0` | state.results |
-| EmptyResults | `results.length === 0 && !error` | state.results, state.error |
-| ErrorMessage | `error !== null` | state.error |
-| Badge (liczba przepisów) | `source === 'user'` | source |
-| "Lista zakupów" button | `missing_ingredients.length > 0` | result.missing_ingredients |
-| "Generuj AI" button (EmptyResults) | `source !== 'ai'` | state.source |
+| Komponent                          | Warunek renderowania                  | Zależność                             |
+| ---------------------------------- | ------------------------------------- | ------------------------------------- |
+| SourceSelectionView                | `step === 'source_selection'`         | state.step                            |
+| SearchLoadingView                  | `step === 'loading'`                  | state.step                            |
+| SearchResultsView                  | `step === 'results'`                  | state.step                            |
+| EmptyFridgeWarning                 | `fridgeItemCount === 0`               | fridgeItemCount                       |
+| FridgeStatusBanner                 | zawsze                                | -                                     |
+| TimeoutWarning                     | `searchDuration > 30000 && isLoading` | state.searchDuration, state.isLoading |
+| RecipeResultsGrid                  | `results.length > 0`                  | state.results                         |
+| EmptyResults                       | `results.length === 0 && !error`      | state.results, state.error            |
+| ErrorMessage                       | `error !== null`                      | state.error                           |
+| Badge (liczba przepisów)           | `source === 'user'`                   | source                                |
+| "Lista zakupów" button             | `missing_ingredients.length > 0`      | result.missing_ingredients            |
+| "Generuj AI" button (EmptyResults) | `source !== 'ai'`                     | state.source                          |
 
 ### 9.2 Walidacja danych przed wysłaniem do API
 
@@ -1325,14 +1395,14 @@ export async function generateRecipeWithAI(
 ### 9.4 Walidacja UI state
 
 1. **Match score color validation:**
-   - >= 90% → zielony
+   - > = 90% → zielony
    - 70-89% → żółty
    - < 70% → czerwony
 
 2. **Search duration validation:**
    - < 30s → normalny loading
-   - >= 30s → pokazanie timeout warning
-   - >= 45s → automatyczne przerwanie (opcjonalnie)
+   - > = 30s → pokazanie timeout warning
+   - > = 45s → automatyczne przerwanie (opcjonalnie)
 
 3. **Empty state validation:**
    - `results.length === 0 && error === null` → EmptyResults
@@ -1342,33 +1412,34 @@ export async function generateRecipeWithAI(
 
 ### 10.1 Błędy API
 
-| Kod | Typ błędu | Akcja UI |
-|-----|-----------|----------|
-| 401 | Nieautoryzowany | Redirect do `/login`, komunikat "Sesja wygasła, zaloguj się ponownie" |
-| 422 | Błąd walidacji | Wyświetl details walidacji w toast/alert, zaznacz błędne pola |
-| 404 | Nie znaleziono produktu | Komunikat "Wybrane produkty nie istnieją", przycisk "Wróć" |
-| 429 | Rate limit | Komunikat "Zbyt wiele zapytań, spróbuj za X sekund", countdown timer |
-| 500 | Błąd serwera | Komunikat "Wystąpił błąd serwera", przycisk "Spróbuj ponownie" |
-| 503 | Service unavailable | Komunikat "Usługa AI jest niedostępna", przycisk "Wróć" lub "Spróbuj innego źródła" |
+| Kod | Typ błędu               | Akcja UI                                                                            |
+| --- | ----------------------- | ----------------------------------------------------------------------------------- |
+| 401 | Nieautoryzowany         | Redirect do `/login`, komunikat "Sesja wygasła, zaloguj się ponownie"               |
+| 422 | Błąd walidacji          | Wyświetl details walidacji w toast/alert, zaznacz błędne pola                       |
+| 404 | Nie znaleziono produktu | Komunikat "Wybrane produkty nie istnieją", przycisk "Wróć"                          |
+| 429 | Rate limit              | Komunikat "Zbyt wiele zapytań, spróbuj za X sekund", countdown timer                |
+| 500 | Błąd serwera            | Komunikat "Wystąpił błąd serwera", przycisk "Spróbuj ponownie"                      |
+| 503 | Service unavailable     | Komunikat "Usługa AI jest niedostępna", przycisk "Wróć" lub "Spróbuj innego źródła" |
 
 ### 10.2 Błędy sieciowe
 
-| Błąd | Scenariusz | Akcja UI |
-|------|------------|----------|
-| Network error | Brak połączenia | Komunikat "Brak połączenia z internetem", przycisk "Spróbuj ponownie" |
-| Timeout | Request > 45s | Komunikat "Zapytanie trwa zbyt długo", przycisk "Anuluj" lub "Spróbuj ponownie" |
-| AbortError | Użytkownik anulował | Powrót do Step 1, brak komunikatu błędu |
+| Błąd          | Scenariusz          | Akcja UI                                                                        |
+| ------------- | ------------------- | ------------------------------------------------------------------------------- |
+| Network error | Brak połączenia     | Komunikat "Brak połączenia z internetem", przycisk "Spróbuj ponownie"           |
+| Timeout       | Request > 45s       | Komunikat "Zapytanie trwa zbyt długo", przycisk "Anuluj" lub "Spróbuj ponownie" |
+| AbortError    | Użytkownik anulował | Powrót do Step 1, brak komunikatu błędu                                         |
 
 ### 10.3 Błędy walidacji lokalnej
 
-| Błąd | Scenariusz | Akcja UI |
-|------|------------|----------|
-| Pusta lodówka | `fridgeItemCount === 0 && use_all_fridge_items = true` | Wyświetl EmptyFridgeWarning, pozwól na kontynuację (mniej precyzyjne wyniki) |
-| Invalid source | URL param `source` nie jest valid | Redirect do Step 1, komunikat "Nieprawidłowe źródło" |
+| Błąd           | Scenariusz                                             | Akcja UI                                                                     |
+| -------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Pusta lodówka  | `fridgeItemCount === 0 && use_all_fridge_items = true` | Wyświetl EmptyFridgeWarning, pozwól na kontynuację (mniej precyzyjne wyniki) |
+| Invalid source | URL param `source` nie jest valid                      | Redirect do Step 1, komunikat "Nieprawidłowe źródło"                         |
 
 ### 10.4 Komponenty obsługi błędów
 
 **ErrorBoundary (React):**
+
 ```typescript
 // Owinąć RecipeSearchView w ErrorBoundary
 <ErrorBoundary fallback={<ErrorFallback />}>
@@ -1377,6 +1448,7 @@ export async function generateRecipeWithAI(
 ```
 
 **ErrorMessage component:**
+
 ```typescript
 interface ErrorMessageProps {
   error: SearchError;
@@ -1392,6 +1464,7 @@ interface ErrorMessageProps {
 ```
 
 **Toast notifications (Shadcn/ui):**
+
 - Sukces wyszukiwania: "Znaleziono X przepisów"
 - Błąd: komunikat z error.message
 - Warning: "Wyszukiwanie trwa dłużej niż zwykle"
@@ -1401,7 +1474,7 @@ interface ErrorMessageProps {
 Wszystkie błędy powinny być logowane do konsoli:
 
 ```typescript
-console.error('Recipe search error:', {
+console.error("Recipe search error:", {
   source: state.source,
   error: error.message,
   timestamp: new Date().toISOString(),
@@ -1416,6 +1489,7 @@ Opcjonalnie: integracja z zewnętrznym serwisem (np. Sentry) dla produkcji.
 ### Faza 1: Setup projektu (1-2h)
 
 1. **Utworzenie struktury plików:**
+
    ```
    src/
    ├── pages/
@@ -1447,15 +1521,16 @@ Opcjonalnie: integracja z zewnętrznym serwisem (np. Sentry) dla produkcji.
 ### Faza 2: Implementacja Astro page (0.5h)
 
 4. **Utworzenie `search.astro`:**
+
    ```astro
    ---
-   import Layout from '../../layouts/Layout.astro';
-   import RecipeSearchView from '../../components/recipe-search/RecipeSearchView';
-   
+   import Layout from "../../layouts/Layout.astro";
+   import RecipeSearchView from "../../components/recipe-search/RecipeSearchView";
+
    // Opcjonalnie: pobranie liczby produktów w lodówce na serwerze
    // const fridgeItemCount = await getFridgeItemCount();
    ---
-   
+
    <Layout title="Wyszukiwanie przepisów">
      <RecipeSearchView client:load />
    </Layout>
@@ -1662,6 +1737,7 @@ Opcjonalnie: integracja z zewnętrznym serwisem (np. Sentry) dla produkcji.
 Plan implementacji widoku wyszukiwania przepisów obejmuje 34 kroki pogrupowane w 10 faz. Szacowany czas implementacji: **24-32 godziny** pracy programisty frontendowego.
 
 Kluczowe aspekty implementacji:
+
 - **Trzy kroki widoku:** wybór źródła, loading, wyniki
 - **Custom hook** `useRecipeSearch` dla zarządzania stanem
 - **Hierarchiczne wyszukiwanie:** user recipes → API → AI
@@ -1671,10 +1747,10 @@ Kluczowe aspekty implementacji:
 - **UX:** skeleton loading, match scores, fallback actions
 
 Najważniejsze zależności:
+
 - Endpointy API: `/api/recipes/search-by-fridge`, `/api/recipes/generate` (już zaimplementowane)
 - Typy: `types.ts` (już zdefiniowane)
 - Shadcn/ui components: Button, Card (do wykorzystania)
 - Lucide React icons: dla ikon
 
 Po implementacji widok będzie w pełni funkcjonalny i gotowy do integracji z resztą aplikacji Foodnager.
-

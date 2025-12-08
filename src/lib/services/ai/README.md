@@ -19,17 +19,17 @@
 ### Prosta generacja przepisu
 
 ```typescript
-import { OpenRouterClient } from './ai/openrouter.client';
+import { OpenRouterClient } from "./ai/openrouter.client";
 
 const client = new OpenRouterClient();
 
 // Sprawdź, czy klient jest skonfigurowany
 if (!client.isConfigured()) {
-  console.error('OpenRouter API key not configured');
+  console.error("OpenRouter API key not configured");
   return;
 }
 
-const prompt = 'Generate a recipe using tomatoes and basil';
+const prompt = "Generate a recipe using tomatoes and basil";
 const recipe = await client.generateRecipe(prompt);
 console.log(recipe);
 ```
@@ -38,9 +38,9 @@ console.log(recipe);
 
 ```typescript
 const recipe = await client.generateRecipe(prompt, {
-  temperature: 0.9,              // Więcej kreatywności
-  maxTokens: 3000,               // Dłuższa odpowiedź
-  systemMessage: 'You are an Italian chef specializing in traditional cuisine.',
+  temperature: 0.9, // Więcej kreatywności
+  maxTokens: 3000, // Dłuższa odpowiedź
+  systemMessage: "You are an Italian chef specializing in traditional cuisine.",
 });
 ```
 
@@ -48,24 +48,24 @@ const recipe = await client.generateRecipe(prompt, {
 
 ```typescript
 const customSchema = {
-  type: 'json_schema',
+  type: "json_schema",
   json_schema: {
-    name: 'simple_recipe',
+    name: "simple_recipe",
     strict: true,
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        title: { type: 'string' },
+        title: { type: "string" },
         ingredients: {
-          type: 'array',
-          items: { type: 'string' },
+          type: "array",
+          items: { type: "string" },
         },
         steps: {
-          type: 'array',
-          items: { type: 'string' },
+          type: "array",
+          items: { type: "string" },
         },
       },
-      required: ['title', 'ingredients', 'steps'],
+      required: ["title", "ingredients", "steps"],
       additionalProperties: false,
     },
   },
@@ -84,7 +84,7 @@ Sprawdź dostępność API przed wykonaniem kosztownych operacji:
 const health = await client.healthCheck();
 
 if (!health.isHealthy) {
-  console.error('OpenRouter unavailable:', health.error);
+  console.error("OpenRouter unavailable:", health.error);
   // Obsłuż błąd (np. fallback do cached recipes)
 } else {
   console.log(`OpenRouter available (latency: ${health.latency}ms)`);
@@ -117,23 +117,25 @@ TIER3_TIMEOUT_MS=45000
 
 ### Parametry Modelu
 
-| Parametr | Domyślnie | Opis | Zakres |
-|----------|-----------|------|--------|
-| `temperature` | 0.7 | Kontroluje kreatywność/losowość | 0.0 (deterministyczny) - 2.0 (bardzo kreatywny) |
-| `maxTokens` | 2000 | Maksymalna długość odpowiedzi | 1 - 5000 (hard limit w kodzie) |
-| `topP` | 1.0 | Nucleus sampling | 0.0 - 1.0 |
-| `frequencyPenalty` | 0 | Kara za powtórzenia | -2.0 - 2.0 |
-| `presencePenalty` | 0 | Kara za obecność tokenów | -2.0 - 2.0 |
+| Parametr           | Domyślnie | Opis                            | Zakres                                          |
+| ------------------ | --------- | ------------------------------- | ----------------------------------------------- |
+| `temperature`      | 0.7       | Kontroluje kreatywność/losowość | 0.0 (deterministyczny) - 2.0 (bardzo kreatywny) |
+| `maxTokens`        | 2000      | Maksymalna długość odpowiedzi   | 1 - 5000 (hard limit w kodzie)                  |
+| `topP`             | 1.0       | Nucleus sampling                | 0.0 - 1.0                                       |
+| `frequencyPenalty` | 0         | Kara za powtórzenia             | -2.0 - 2.0                                      |
+| `presencePenalty`  | 0         | Kara za obecność tokenów        | -2.0 - 2.0                                      |
 
 ### Dostępne Modele
 
 Rekomendowane dla przepisów:
 
 **Z dostępem do internetu (web search):**
+
 - `perplexity/sonar-pro` ⭐ - **Domyślny** - Ma dostęp do internetu, prawdziwe linki do przepisów
 - `perplexity/sonar` - Podstawowa wersja z web search (tańsza)
 
 **Bez dostępu do internetu (standardowe):**
+
 - `anthropic/claude-3-haiku` - Szybki, ekonomiczny
 - `anthropic/claude-3-sonnet` - Zbalansowany
 - `anthropic/claude-3-opus` - Najbardziej zaawansowany
@@ -154,17 +156,17 @@ Klient rzuca szczegółowe błędy dla różnych scenariuszy:
 try {
   const recipe = await client.generateRecipe(prompt);
 } catch (error) {
-  if (error.message.includes('not configured')) {
+  if (error.message.includes("not configured")) {
     // Brak API key - błąd konfiguracji
-  } else if (error.message.includes('Rate limit exceeded')) {
+  } else if (error.message.includes("Rate limit exceeded")) {
     // 429 - zbyt wiele żądań, retry później
-  } else if (error.message.includes('timed out')) {
+  } else if (error.message.includes("timed out")) {
     // Timeout - zwiększ TIER3_TIMEOUT_MS
-  } else if (error.message.includes('temporarily unavailable')) {
+  } else if (error.message.includes("temporarily unavailable")) {
     // 500/502/503 - serwis niedostępny, retry z backoff
-  } else if (error.message.includes('Invalid API key')) {
+  } else if (error.message.includes("Invalid API key")) {
     // 401 - nieprawidłowy klucz API
-  } else if (error.message.includes('Insufficient credits')) {
+  } else if (error.message.includes("Insufficient credits")) {
     // 402 - brak kredytów w koncie OpenRouter
   }
 }
@@ -181,19 +183,18 @@ async function generateWithRetry(prompt: string, maxRetries = 3) {
       return await client.generateRecipe(prompt);
     } catch (error) {
       // Nie retry dla błędów konfiguracji
-      if (error.message.includes('not configured') || 
-          error.message.includes('Invalid API key')) {
+      if (error.message.includes("not configured") || error.message.includes("Invalid API key")) {
         throw error;
       }
 
       // Exponential backoff
       if (attempt < maxRetries) {
         const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 ```
 
@@ -222,16 +223,16 @@ Implementuj własny rate limiter dla ochrony kosztów:
 // rate-limiter.ts
 export class RateLimiter {
   private requests: Map<string, number[]> = new Map();
-  
+
   async checkLimit(userId: string, maxRequests: number, windowMs: number) {
     const now = Date.now();
     const userRequests = this.requests.get(userId) || [];
-    const recentRequests = userRequests.filter(time => now - time < windowMs);
-    
+    const recentRequests = userRequests.filter((time) => now - time < windowMs);
+
     if (recentRequests.length >= maxRequests) {
-      throw new Error('Rate limit exceeded');
+      throw new Error("Rate limit exceeded");
     }
-    
+
     recentRequests.push(now);
     this.requests.set(userId, recentRequests);
   }
@@ -288,7 +289,7 @@ Domyślna schema dla przepisów:
         "description": { "type": "string" },
         "instructions": { "type": "string" },
         "cooking_time": { "type": "number" },
-        "difficulty": { 
+        "difficulty": {
           "type": "string",
           "enum": ["easy", "medium", "hard"]
         },
@@ -328,10 +329,10 @@ All recipes must be vegetarian.
 Focus on clear instructions and accurate measurements.`;
 
 // ❌ Zbyt ogólny
-const systemMessage = 'You are a chef';
+const systemMessage = "You are a chef";
 
 // ❌ Zbyt szczegółowy (lepiej w user prompt)
-const systemMessage = 'Make a recipe with tomatoes...';
+const systemMessage = "Make a recipe with tomatoes...";
 ```
 
 ### Temperature dla Przepisów
@@ -361,4 +362,3 @@ Jeśli napotkasz problemy:
 2. Zweryfikuj klucz API na [OpenRouter Dashboard](https://openrouter.ai/keys)
 3. Sprawdź stan kredytów w [OpenRouter Billing](https://openrouter.ai/credits)
 4. Użyj `healthCheck()` do diagnostyki
-

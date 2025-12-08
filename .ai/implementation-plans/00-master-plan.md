@@ -9,6 +9,7 @@ Ten dokument zawiera kompleksowy plan implementacji wszystkich endpointów REST 
 ## Spis Planów Implementacji
 
 ### 1. [Products Management](./01-products-endpoints-plan.md) - 5 endpointów
+
 - `GET /api/products` - List Products
 - `GET /api/products/:id` - Get Product by ID
 - `POST /api/products` - Create Product
@@ -16,6 +17,7 @@ Ten dokument zawiera kompleksowy plan implementacji wszystkich endpointów REST 
 - `DELETE /api/products/:id` - Delete Product
 
 ### 2. [Virtual Fridge Management](./02-fridge-endpoints-plan.md) - 5 endpointów
+
 - `GET /api/fridge` - List Fridge Items
 - `GET /api/fridge/:id` - Get Fridge Item by ID
 - `POST /api/fridge` - Add Item to Fridge
@@ -23,6 +25,7 @@ Ten dokument zawiera kompleksowy plan implementacji wszystkich endpointów REST 
 - `DELETE /api/fridge/:id` - Delete Fridge Item
 
 ### 3. [Recipes Management](./03-recipes-endpoints-plan.md) - 5 endpointów
+
 - `GET /api/recipes` - List Recipes
 - `GET /api/recipes/:id` - Get Recipe by ID
 - `POST /api/recipes` - Create Recipe
@@ -30,20 +33,25 @@ Ten dokument zawiera kompleksowy plan implementacji wszystkich endpointów REST 
 - `DELETE /api/recipes/:id` - Delete Recipe
 
 ### 4. [Recipe Discovery & AI Integration](./04-recipe-discovery-endpoints-plan.md) - 2 endpointy
+
 - `POST /api/recipes/search-by-fridge` - Search Recipes by Fridge Contents (3-tier: User → API → AI)
 - `POST /api/recipes/generate` - Generate Recipe with AI
 
 ### 5. [Shopping List](./05-shopping-list-endpoints-plan.md) - 1 endpoint
+
 - `POST /api/shopping-list/generate` - Generate Shopping List
 
 ### 6. [Cooking History](./06-cooking-history-endpoints-plan.md) - 2 endpointy
+
 - `GET /api/cooking-history` - List Cooking History
 - `POST /api/cooking-history` - Create Cooking History Entry (with automatic fridge update)
 
 ### 7. [Units Dictionary](./07-units-endpoints-plan.md) - 1 endpoint
+
 - `GET /api/units` - List Units
 
 ### 8. [Tags Dictionary](./08-tags-endpoints-plan.md) - 2 endpointy
+
 - `GET /api/tags` - List Tags
 - `POST /api/tags` - Create Tag
 
@@ -87,8 +95,9 @@ Ten dokument zawiera kompleksowy plan implementacji wszystkich endpointów REST 
 ## Zależności między Modułami
 
 ### Core Dependencies (Muszą być zaimplementowane najpierw)
+
 ```
-Units (słownik) 
+Units (słownik)
   └─> Products
       └─> Virtual Fridge
           └─> Recipes
@@ -98,12 +107,14 @@ Units (słownik)
 ```
 
 ### Tags (Niezależny, ale używany przez Recipes)
+
 ```
 Tags (słownik)
   └─> Recipes (opcjonalne tagi)
 ```
 
 ### AI Integration (Wymaga Products i Units)
+
 ```
 Products + Units
   └─> AI Recipe Generation
@@ -118,6 +129,7 @@ Products + Units
 **Priority: CRITICAL**
 
 #### Week 1: Infrastructure Setup
+
 1. **Setup Infrastructure** (2 days)
    - Error handling system (`src/lib/errors/`)
    - API response helpers (`src/lib/utils/api-response.ts`)
@@ -138,6 +150,7 @@ Products + Units
    - ✓ `DELETE /api/products/:id` (1h)
 
 #### Week 2: Core Features
+
 4. **Virtual Fridge Module** (3 days)
    - ✓ `GET /api/fridge` (4h) - Complex filtering
    - ✓ `POST /api/fridge` (3h)
@@ -159,6 +172,7 @@ Products + Units
 **Priority: HIGH**
 
 #### Week 3: Recipe Operations
+
 6. **Recipe Updates & Deletion** (2 days)
    - ✓ `PATCH /api/recipes/:id` (4h) - Complex update with transaction
    - ✓ `DELETE /api/recipes/:id` (2h)
@@ -182,6 +196,7 @@ Products + Units
 **Priority: MEDIUM-HIGH**
 
 #### Week 4: Cooking Automation
+
 9. **Cooking History - POST** (3 days)
    - PostgreSQL function for fridge update (8h) - Most complex function
    - ✓ `POST /api/cooking-history` (4h)
@@ -191,6 +206,7 @@ Products + Units
 **Deliverable**: Automatic fridge updates when cooking
 
 #### Week 5: AI Integration - Part 1
+
 10. **Recipe Discovery Infrastructure** (2 days)
     - Rate limiter setup (3h)
     - Cache strategies (2h)
@@ -210,6 +226,7 @@ Products + Units
 **Priority: MEDIUM**
 
 #### Week 6: External Integration
+
 12. **Tier 2: External API** (3 days)
     - External API client (4h)
     - Recipe mapper (external → internal) (4h)
@@ -217,6 +234,7 @@ Products + Units
     - Error handling & fallback (4h)
 
 #### Week 7: AI Generation
+
 13. **Tier 3: AI Generation** (3 days)
     - OpenRouter client (4h)
     - Prompt engineering (4h)
@@ -236,6 +254,7 @@ Products + Units
 **Priority: LOW-MEDIUM**
 
 #### Week 8: AI Recipe Generation
+
 15. **Direct AI Generation** (3 days)
     - ✓ `POST /api/recipes/generate` (6h) - Reuse AI components
     - Tag auto-assignment (3h)
@@ -255,25 +274,25 @@ Products + Units
 
 ### Summary by Module
 
-| Moduł | Endpointy | Szacowany Czas | Priorytet |
-|-------|-----------|----------------|-----------|
-| Infrastructure | - | 2 dni | CRITICAL |
-| Units | 1 | 2h | CRITICAL |
-| Tags | 2 | 4h | CRITICAL |
-| Products | 5 | 9h | CRITICAL |
-| Virtual Fridge | 5 | 11h | CRITICAL |
-| Recipes (Basic) | 3 | 11h | HIGH |
-| Recipes (Update/Delete) | 2 | 6h | HIGH |
-| Shopping List | 1 | 6h | HIGH |
-| Cooking History (GET) | 1 | 9h | MEDIUM-HIGH |
-| Cooking History (POST) | 1 | 16h | MEDIUM-HIGH |
-| Recipe Discovery (Infra) | - | 12h | MEDIUM |
-| Recipe Discovery (Tier 1) | - | 6h | MEDIUM |
-| Recipe Discovery (Tier 2) | - | 16h | MEDIUM |
-| Recipe Discovery (Tier 3) | - | 15h | MEDIUM |
-| Recipe Discovery (Integration) | 1 | 8h | MEDIUM |
-| AI Recipe Generation | 1 | 13h | LOW-MEDIUM |
-| **TOTAL** | **23** | **~144h** | **(18 dni roboczych)** |
+| Moduł                          | Endpointy | Szacowany Czas | Priorytet              |
+| ------------------------------ | --------- | -------------- | ---------------------- |
+| Infrastructure                 | -         | 2 dni          | CRITICAL               |
+| Units                          | 1         | 2h             | CRITICAL               |
+| Tags                           | 2         | 4h             | CRITICAL               |
+| Products                       | 5         | 9h             | CRITICAL               |
+| Virtual Fridge                 | 5         | 11h            | CRITICAL               |
+| Recipes (Basic)                | 3         | 11h            | HIGH                   |
+| Recipes (Update/Delete)        | 2         | 6h             | HIGH                   |
+| Shopping List                  | 1         | 6h             | HIGH                   |
+| Cooking History (GET)          | 1         | 9h             | MEDIUM-HIGH            |
+| Cooking History (POST)         | 1         | 16h            | MEDIUM-HIGH            |
+| Recipe Discovery (Infra)       | -         | 12h            | MEDIUM                 |
+| Recipe Discovery (Tier 1)      | -         | 6h             | MEDIUM                 |
+| Recipe Discovery (Tier 2)      | -         | 16h            | MEDIUM                 |
+| Recipe Discovery (Tier 3)      | -         | 15h            | MEDIUM                 |
+| Recipe Discovery (Integration) | 1         | 8h             | MEDIUM                 |
+| AI Recipe Generation           | 1         | 13h            | LOW-MEDIUM             |
+| **TOTAL**                      | **23**    | **~144h**      | **(18 dni roboczych)** |
 
 ### Timeline
 
@@ -290,6 +309,7 @@ Products + Units
 ## Complexity Ratings
 
 ### Simple (1-2h each)
+
 - `GET /api/units`
 - `GET /api/products/:id`
 - `GET /api/fridge/:id`
@@ -299,6 +319,7 @@ Products + Units
 - `DELETE /api/recipes/:id`
 
 ### Medium (3-4h each)
+
 - `GET /api/tags`
 - `POST /api/tags`
 - `POST /api/products`
@@ -307,6 +328,7 @@ Products + Units
 - `PATCH /api/fridge/:id`
 
 ### Complex (5-8h each)
+
 - `GET /api/products` (filtering, search)
 - `GET /api/fridge` (complex filtering, expiry)
 - `GET /api/recipes` (joins, nested data)
@@ -316,6 +338,7 @@ Products + Units
 - `GET /api/cooking-history` (JSONB, filtering)
 
 ### Very Complex (10-20h each)
+
 - `POST /api/cooking-history` (PostgreSQL function, transaction, FIFO)
 - `POST /api/recipes/search-by-fridge` (3-tier orchestration)
 - `POST /api/recipes/generate` (AI integration, mapping)
@@ -339,6 +362,7 @@ Units → Products → Virtual Fridge → Recipes (CRUD)
 ```
 
 **Bottlenecks:**
+
 1. Infrastructure (everything depends on it)
 2. Products (fridge and recipes depend on it)
 3. Recipes CRUD (shopping list, history, discovery depend on it)
@@ -349,23 +373,27 @@ Units → Products → Virtual Fridge → Recipes (CRUD)
 ## Testing Strategy
 
 ### Unit Tests (Per Module)
+
 - Service logic
 - Validation schemas
 - Utility functions
 - Transformers
 
 ### Integration Tests (Per Endpoint)
+
 - Happy path
 - Error scenarios
 - Edge cases
 - Auth checks
 
 ### E2E Tests (User Flows)
+
 1. **User onboarding**: Register → Add products to fridge → Create recipe
 2. **Recipe discovery**: Search by fridge → Get shopping list → Cook recipe
 3. **AI flow**: Generate recipe → Save → Use in cooking history
 
 ### Performance Tests
+
 - Load testing (concurrent requests)
 - Stress testing (high volume)
 - Cache efficiency
@@ -410,23 +438,27 @@ Units → Products → Virtual Fridge → Recipes (CRUD)
 ### Key Metrics to Track
 
 **Performance:**
+
 - Response times (p50, p95, p99)
 - Database query times
 - Cache hit rates
 - Transaction durations
 
 **Business:**
+
 - Recipes created (user vs AI vs API)
 - Shopping lists generated
 - Cooking events logged
 - Fridge usage patterns
 
 **Costs:**
+
 - AI API calls (count, tokens)
 - External API calls
 - Database operations
 
 **Errors:**
+
 - Error rates by endpoint
 - AI generation failures
 - Transaction rollbacks
@@ -435,12 +467,14 @@ Units → Products → Virtual Fridge → Recipes (CRUD)
 ### Alerts
 
 **Critical:**
+
 - Error rate > 5%
 - Response time p95 > 2s
 - AI generation error rate > 20%
 - Transaction rollback rate > 5%
 
 **Warning:**
+
 - Cache hit rate < 80%
 - AI cost > budget threshold
 - Database query time > 500ms
@@ -494,6 +528,7 @@ AI_RECIPE_CACHE_TTL=86400
 ## Success Criteria
 
 ### MVP (Phase 1-2)
+
 - [ ] All CRUD operations working
 - [ ] Authentication & authorization
 - [ ] Basic error handling
@@ -501,6 +536,7 @@ AI_RECIPE_CACHE_TTL=86400
 - [ ] Unit tests coverage > 70%
 
 ### Complete (Phase 3-4)
+
 - [ ] Cooking history with fridge updates
 - [ ] Recipe discovery (3-tier)
 - [ ] AI recipe generation
@@ -508,6 +544,7 @@ AI_RECIPE_CACHE_TTL=86400
 - [ ] Performance benchmarks met
 
 ### Production Ready (Phase 5)
+
 - [ ] All tests passing
 - [ ] Documentation complete
 - [ ] Monitoring & alerts configured
@@ -519,6 +556,7 @@ AI_RECIPE_CACHE_TTL=86400
 ## Team Recommendations
 
 ### Suggested Team Structure
+
 - **Backend Developer 1**: Products, Fridge, Units, Tags (Foundation)
 - **Backend Developer 2**: Recipes CRUD, Shopping List (Core Features)
 - **Backend Developer 3**: Cooking History, PostgreSQL functions (Complex Logic)
@@ -565,5 +603,4 @@ This master plan provides a comprehensive roadmap for implementing all 23 API en
 
 ---
 
-*For detailed implementation instructions for each endpoint, refer to the individual plan documents listed at the beginning of this master plan.*
-
+_For detailed implementation instructions for each endpoint, refer to the individual plan documents listed at the beginning of this master plan._

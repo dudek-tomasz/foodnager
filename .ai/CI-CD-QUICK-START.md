@@ -3,6 +3,7 @@
 ## 🎯 Cel
 
 Minimalny setup GitHub Actions dla weryfikacji kodu:
+
 - ✅ Lint (ESLint + Prettier)
 - ✅ Build (produkcyjny)
 - ✅ Unit Tests (Vitest)
@@ -26,12 +27,14 @@ Przejdź do: **GitHub Repository** → **Settings** → **Secrets and variables*
 Dodaj następujące secrets:
 
 #### Build (z twojego pliku `.env`)
+
 ```
 SUPABASE_URL            = <twój URL>
 SUPABASE_ANON_KEY       = <twój anon key>
 ```
 
 #### E2E Tests (z twojego pliku `.env.test`)
+
 ```
 E2E_USERNAME                 = test@foodnager.pl
 E2E_PASSWORD                 = TestPassword123!
@@ -58,12 +61,15 @@ git push origin master
 ## 🎮 Użycie
 
 ### Automatyczne uruchomienie
+
 Workflow uruchamia się automatycznie przy każdym pushu do `master`:
+
 ```bash
 git push origin master
 ```
 
 ### Manualne uruchomienie
+
 1. GitHub → **Actions** → **CI - Tests & Build**
 2. Kliknij **"Run workflow"**
 3. (Opcjonalnie) Zaznacz **"Pomiń testy E2E"** dla szybszej weryfikacji
@@ -72,13 +78,16 @@ git push origin master
 ## 🔧 Wyłączanie E2E (jeśli potrzeba)
 
 ### Tymczasowo (jeden run)
+
 - Użyj checkboxa "Pomiń testy E2E" podczas manualnego uruchomienia
 
 ### Trwale
+
 Edytuj `.github/workflows/ci.yml` i zmień:
+
 ```yaml
 - name: 🎬 Run E2E tests
-  if: false  # ← Zmień z '${{ !inputs.skip_e2e }}' na 'false'
+  if: false # ← Zmień z '${{ !inputs.skip_e2e }}' na 'false'
   run: npm run test:e2e
 ```
 
@@ -106,27 +115,32 @@ Workflow wykonuje następujące kroki:
 ## 🎯 Interpretacja wyników
 
 ### ✅ Wszystko zielone
+
 Kod jest gotowy do merge/deploy!
 
 ### ❌ Czerwony status
 
 **Lint failed:**
+
 ```bash
 npm run lint         # Sprawdź błędy lokalnie
 npm run lint:fix     # Auto-fix
 ```
 
 **Build failed:**
+
 - Sprawdź czy wszystkie zmienne środowiskowe są w secrets
 - Sprawdź błędy kompilacji TypeScript
 
 **Unit tests failed:**
+
 ```bash
 npm run test:run     # Uruchom lokalnie
 npm run test:ui      # Debuguj w UI
 ```
 
 **E2E tests failed:**
+
 - Sprawdź czy użytkownik testowy istnieje
 - Sprawdź czy credentials są poprawne
 - Pobierz artifacts "playwright-report" i "test-videos"
@@ -151,6 +165,7 @@ Przed pierwszym uruchomieniem upewnij się, że:
 ## 🎉 Gotowe!
 
 Po pierwszym uruchomieniu możesz:
+
 - 👀 Monitorować każdy push w zakładce Actions
 - 📊 Pobierać raporty coverage
 - 🎬 Debugować E2E testy przez videos
@@ -159,4 +174,3 @@ Po pierwszym uruchomieniu możesz:
 ---
 
 **Problemy?** Zobacz `.ai/github-actions-setup.md` → sekcja "Troubleshooting"
-

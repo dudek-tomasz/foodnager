@@ -49,6 +49,7 @@ http://localhost:4321/api/auth/test
 ```
 
 **Spodziewany rezultat:**
+
 ```json
 {
   "success": true,
@@ -72,6 +73,7 @@ http://localhost:4321/login
 ```
 
 **Powinno się pokazać:**
+
 - 🍳 Logo Foodnager
 - Formularz z polami Email i Hasło
 - Link "Zapomniałeś hasła?"
@@ -84,20 +86,24 @@ http://localhost:4321/login
 ### Metoda 3: Pełny Flow Logowania
 
 **Wymagania:**
+
 - Masz użytkownika w Supabase (Authentication → Users)
 - Znasz email i hasło
 
 **Kroki:**
+
 1. Otwórz `http://localhost:4321/login`
 2. Wpisz email i hasło
 3. Kliknij "Zaloguj się"
 4. **Oczekiwany rezultat**: Przekierowanie do `/fridge`
 
 **W DevTools (F12 → Network):**
+
 - POST `/api/auth/login` → Status 200
 - Response: `{ success: true, data: { user: {...} } }`
 
 **W DevTools (F12 → Application → Cookies):**
+
 - Powinny pojawić się cookies Supabase: `sb-*-auth-token`
 
 ✅ Jeśli wszystko powyższe → **Pełna integracja działa!**
@@ -111,6 +117,7 @@ http://localhost:4321/login
 Ten endpoint pokazuje aktualny status autentykacji:
 
 **Nie zalogowany:**
+
 ```json
 {
   "is_authenticated": false,
@@ -120,6 +127,7 @@ Ten endpoint pokazuje aktualny status autentykacji:
 ```
 
 **Zalogowany:**
+
 ```json
 {
   "is_authenticated": true,
@@ -151,12 +159,16 @@ Ten endpoint pokazuje aktualny status autentykacji:
 ## ❌ Co Zrobić Jeśli Nie Działa?
 
 ### Problem: "Cannot GET /api/auth/test"
+
 **Fix**: Upewnij się że serwer jest uruchomiony (`npm run dev`)
 
 ### Problem: "Invalid login credentials"
-**Fix**: 
+
+**Fix**:
+
 1. Sprawdź czy user istnieje: Supabase Dashboard → Authentication → Users
 2. Jeśli nie ma - utwórz: "Invite user" lub SQL:
+
 ```sql
 -- W Supabase SQL Editor
 INSERT INTO auth.users (email, encrypted_password)
@@ -164,12 +176,15 @@ VALUES ('test@test.pl', crypt('password123', gen_salt('bf')));
 ```
 
 ### Problem: Redirect loop (ciągłe przekierowania)
-**Fix**: 
+
+**Fix**:
+
 1. Wyczyść cookies przeglądarki
 2. Sprawdź console browser (F12) - szukaj błędów
 3. Sprawdź middleware logs (dodaj `console.log` w middleware)
 
 ### Problem: "Module not found"
+
 **Fix**: `npm install` (zainstaluj wszystkie zależności ponownie)
 
 ---
@@ -197,17 +212,20 @@ Po zweryfikowaniu że logowanie działa, możesz:
 ## ✅ Podsumowanie
 
 ### Co Działa:
+
 ✅ Backend infrastructure (Supabase client, auth service, errors)  
 ✅ Middleware (session check, redirects)  
 ✅ API endpoint `/api/auth/login`  
 ✅ Frontend (LoginForm z API call)  
 ✅ Test endpoint `/api/auth/test`  
-✅ TypeScript types i validation  
+✅ TypeScript types i validation
 
 ### Co Trzeba:
+
 ⚠️ Dodać `PUBLIC_APP_URL=http://localhost:4321` do `.env`
 
 ### Ready to Test:
+
 🚀 Po dodaniu zmiennej → `npm run dev` → test!
 
 ---
@@ -215,4 +233,3 @@ Po zweryfikowaniu że logowanie działa, możesz:
 **Status**: ✅ IMPLEMENTACJA ZAKOŃCZONA  
 **Testy**: ⏳ CZEKA NA WERYFIKACJĘ  
 **Czas potrzebny**: ~2 minuty (dodać zmienną + uruchomić serwer)
-

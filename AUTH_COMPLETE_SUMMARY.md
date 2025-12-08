@@ -9,6 +9,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ## 📦 Co Zostało Zaimplementowane
 
 ### 1. **Login Flow** ✅ (Już Działa!)
+
 - ✅ `/api/auth/login` - Endpoint logowania
 - ✅ `LoginForm.tsx` - Formularz z API integration
 - ✅ `/login` - Strona logowania z server-side logic
@@ -16,6 +17,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Redirect po sukcesie do `/fridge`
 
 ### 2. **Logout Flow** ✅ (Nowe!)
+
 - ✅ `/api/auth/logout` - Endpoint wylogowania
 - ✅ `LogoutButton.tsx` - Uniwersalny przycisk logout
 - ✅ Desktop: Przycisk w Sidebar (w `UserInfoDisplay`)
@@ -23,6 +25,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Toast notifications + redirect do `/login`
 
 ### 3. **Register Flow** ✅ (Nowe!)
+
 - ✅ `/api/auth/register` - Endpoint rejestracji
 - ✅ `RegisterForm.tsx` - Formularz z API integration
 - ✅ `/register` - Strona rejestracji z server-side logic
@@ -31,6 +34,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Walidacja hasła (8+ znaków, wielka/mała litera, cyfra)
 
 ### 4. **Profile Page** ✅ (Nowe! - US-001.6)
+
 - ✅ `/profile` - Protected strona profilu
 - ✅ `ProfileView.tsx` - Komponent wyświetlający dane użytkownika
 - ✅ Wyświetla: email, data rejestracji, ID
@@ -38,12 +42,14 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Info box o planowanych funkcjach
 
 ### 5. **User Info Display** ✅ (Nowe! - US-001.6)
+
 - ✅ `UserInfoDisplay.tsx` - Komponent dla Sidebar
 - ✅ Desktop: W Sidebar na dole (z avatarem z inicjałów)
 - ✅ Mobile: Link do `/profile` w BottomNavigation
 - ✅ Przycisk logout w wersji desktop
 
 ### 6. **Forgot Password Flow** ✅ (Nowe! - US-001.7)
+
 - ✅ `/api/auth/forgot-password` - Endpoint wysyłania linku
 - ✅ `ForgotPasswordForm.tsx` - Formularz z email
 - ✅ `/forgot-password` - Strona odzyskiwania hasła
@@ -51,6 +57,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Success state + auto-redirect do `/login`
 
 ### 7. **Reset Password Flow** ✅ (Nowe! - US-001.7)
+
 - ✅ `/api/auth/reset-password` - Endpoint zmiany hasła
 - ✅ `ResetPasswordForm.tsx` - Formularz z nowym hasłem
 - ✅ `/reset-password` - Strona resetowania hasła
@@ -58,11 +65,13 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ✅ Success state + redirect do `/login?reset=success`
 
 ### 8. **Email Verification** ✅ (Nowe! - US-001.3)
+
 - ✅ `/api/auth/verify` - Callback endpoint z Supabase
 - ✅ MVP: Weryfikacja opcjonalna (user może się zalogować bez kliknięcia)
 - ✅ Redirect do `/login?verified=true` po weryfikacji
 
 ### 9. **Navigation Updates** ✅ (Nowe! - US-001.6)
+
 - ✅ `Sidebar.astro` - Dodany `UserInfoDisplay` + user props
 - ✅ `BottomNavigation.astro` - Link zmieniony z `/login` na `/profile`
 - ✅ `Layout.astro` - Przekazywanie `user` data do Sidebar
@@ -120,34 +129,35 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 
 ### PRD US-001: Rejestracja i logowanie
 
-| Wymaganie | Status | Implementacja |
-|-----------|--------|---------------|
-| **US-001.1** - Rejestracja z email/hasłem | ✅ | `/api/auth/register` + RegisterForm |
-| **US-001.2** - Walidacja danych | ✅ | Zod client + server side |
-| **US-001.2** - Bezpieczne hasła | ✅ | Supabase Auth + regex (8+ znaków, wielka/mała, cyfra) |
-| **US-001.3** - Potwierdzenie rejestracji | ✅ | Email wysyłany (MVP: kliknięcie opcjonalne) |
-| **US-001.4** - Dostęp po zalogowaniu | ✅ | Middleware protection |
-| **US-001.5** - Publiczne: login/register | ✅ | + forgot/reset (dla US-001.7) |
-| **US-001.6** - Desktop: user info + logout | ✅ | UserInfoDisplay w Sidebar |
-| **US-001.6** - Mobile: profil + logout | ✅ | /profile page + BottomNav link |
-| **US-001.7** - Odzyskiwanie hasła | ✅ | Forgot + Reset Password flow |
+| Wymaganie                                  | Status | Implementacja                                         |
+| ------------------------------------------ | ------ | ----------------------------------------------------- |
+| **US-001.1** - Rejestracja z email/hasłem  | ✅     | `/api/auth/register` + RegisterForm                   |
+| **US-001.2** - Walidacja danych            | ✅     | Zod client + server side                              |
+| **US-001.2** - Bezpieczne hasła            | ✅     | Supabase Auth + regex (8+ znaków, wielka/mała, cyfra) |
+| **US-001.3** - Potwierdzenie rejestracji   | ✅     | Email wysyłany (MVP: kliknięcie opcjonalne)           |
+| **US-001.4** - Dostęp po zalogowaniu       | ✅     | Middleware protection                                 |
+| **US-001.5** - Publiczne: login/register   | ✅     | + forgot/reset (dla US-001.7)                         |
+| **US-001.6** - Desktop: user info + logout | ✅     | UserInfoDisplay w Sidebar                             |
+| **US-001.6** - Mobile: profil + logout     | ✅     | /profile page + BottomNav link                        |
+| **US-001.7** - Odzyskiwanie hasła          | ✅     | Forgot + Reset Password flow                          |
 
 ### auth-spec.md MVP Simplifications
 
-| Uproszczenie MVP | Status | Implementacja |
-|------------------|--------|---------------|
-| Email verification opcjonalna | ✅ | User może się zalogować bez kliknięcia linku |
-| Brak "Remember Me" checkbox | ✅ | Sesje persist automatycznie (Supabase) |
-| Brak "Terms & Conditions" | ✅ | Pole usunięte z RegisterForm |
-| Brak Avatar URL | ✅ | Używamy inicjałów z email |
-| Brak Display Name | ✅ | Używamy tylko email |
-| Prosty profil bez statystyk | ✅ | ProfileView pokazuje tylko podstawowe dane |
+| Uproszczenie MVP              | Status | Implementacja                                |
+| ----------------------------- | ------ | -------------------------------------------- |
+| Email verification opcjonalna | ✅     | User może się zalogować bez kliknięcia linku |
+| Brak "Remember Me" checkbox   | ✅     | Sesje persist automatycznie (Supabase)       |
+| Brak "Terms & Conditions"     | ✅     | Pole usunięte z RegisterForm                 |
+| Brak Avatar URL               | ✅     | Używamy inicjałów z email                    |
+| Brak Display Name             | ✅     | Używamy tylko email                          |
+| Prosty profil bez statystyk   | ✅     | ProfileView pokazuje tylko podstawowe dane   |
 
 ---
 
 ## 🧪 Jak Testować
 
 ### 1. **Test Register Flow**
+
 ```
 1. Otwórz http://localhost:4321/register
 2. Wpisz nowy email i hasło (8+ znaków, wielka/mała, cyfra)
@@ -157,11 +167,13 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 **Oczekiwany rezultat:**
+
 - ✅ Email wysłany (sprawdź skrzynkę)
 - ✅ Możesz się zalogować OD RAZU (bez klikania linku)
 - ✅ POST `/api/auth/register` → Status 201
 
 ### 2. **Test Logout (Desktop)**
+
 ```
 1. Zaloguj się
 2. Na dole Sidebar powinieneś zobaczyć swoją nazwę i email
@@ -171,11 +183,13 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 **Oczekiwany rezultat:**
+
 - ✅ POST `/api/auth/logout` → Status 200
 - ✅ Cookies usunięte
 - ✅ Nie możesz wejść na /fridge bez ponownego logowania
 
 ### 3. **Test Logout (Mobile)**
+
 ```
 1. Zaloguj się
 2. Kliknij zakładkę "Profil" w bottom navigation
@@ -185,6 +199,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 ### 4. **Test Profile Page**
+
 ```
 1. Zaloguj się
 2. Desktop: Na dole Sidebar kliknij email lub ikonę avatara
@@ -197,6 +212,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 ### 5. **Test Forgot Password**
+
 ```
 1. Otwórz /login
 2. Kliknij "Zapomniałeś hasła?"
@@ -208,10 +224,12 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 **Oczekiwany rezultat:**
+
 - ✅ POST `/api/auth/forgot-password` → Status 200
 - ✅ Email z linkiem resetującym
 
 ### 6. **Test Reset Password**
+
 ```
 1. Kliknij link z emaila
 2. Powinien przekierować do /reset-password?token=XXX
@@ -222,10 +240,12 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ```
 
 **Oczekiwany rezultat:**
+
 - ✅ POST `/api/auth/reset-password` → Status 200
 - ✅ Logowanie nowym hasłem działa
 
 ### 7. **Test Email Verification (Opcjonalny)**
+
 ```
 1. Po rejestracji, sprawdź email
 2. Kliknij link weryfikacyjny
@@ -242,31 +262,37 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ### Zaimplementowane Zabezpieczenia
 
 ✅ **Hasła:**
+
 - Minimum 8 znaków
 - Wymóg: wielka litera, mała litera, cyfra
 - Haszowanie przez Supabase Auth (bcrypt)
 
 ✅ **Cookies:**
+
 - httpOnly: true (nie dostępne z JavaScript)
 - secure: true w produkcji (tylko HTTPS)
 - sameSite: 'lax' (CSRF protection)
 
 ✅ **Validation:**
+
 - Client-side (Zod - instant feedback)
 - Server-side (Zod - security)
 - Double validation everywhere
 
 ✅ **Error Handling:**
+
 - Generic messages (nie ujawniamy szczegółów)
 - Forgot password zawsze zwraca sukces (nie ujawnia czy email istnieje)
 - Proper error codes dla frontend
 
 ✅ **Session Management:**
+
 - JWT tokens (Supabase Auth)
 - Auto-refresh (Supabase SSR)
 - Proper expiry handling
 
 ✅ **Route Protection:**
+
 - Middleware sprawdza sesję na każdym request
 - Protected routes require authentication
 - Auth pages redirect zalogowanych users
@@ -276,6 +302,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ## 📊 Porównanie: Przed vs Po
 
 ### Przed (Mock)
+
 - ❌ Logowanie mockowane (bez backendu)
 - ❌ Brak rejestracji
 - ❌ Brak wylogowania
@@ -284,6 +311,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 - ❌ Brak user info w nawigacji
 
 ### Po (Production)
+
 - ✅ Pełne logowanie z Supabase Auth
 - ✅ Rejestracja z email verification
 - ✅ Wylogowanie (desktop + mobile)
@@ -383,6 +411,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 ## ✅ Podsumowanie
 
 ### Co Działa:
+
 1. ✅ **Logowanie** - Pełny flow z API
 2. ✅ **Rejestracja** - Z email verification (opcjonalną)
 3. ✅ **Wylogowanie** - Desktop (Sidebar) + Mobile (/profile)
@@ -395,12 +424,14 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 10. ✅ **Session Management** - Cookies + refresh
 
 ### Zgodność:
+
 - ✅ PRD US-001: 100% (wszystkie punkty zaimplementowane)
 - ✅ auth-spec.md: 100% (MVP simplifications respected)
 - ✅ Best practices: Astro SSR, React hooks, Zod validation, Security
 - ✅ Brak błędów lintowania
 
 ### Statystyki:
+
 - **Pliki utworzone/zaktualizowane**: 20+
 - **API Endpoints**: 7 (login, register, logout, forgot, reset, verify, test)
 - **React Components**: 7 (formularze + buttons + displays)
@@ -414,6 +445,7 @@ Wszystkie wymagania z **PRD US-001** i **auth-spec.md** zostały zaimplementowan
 Cały system autentykacji jest **kompletny, przetestowany i gotowy do produkcji**.
 
 **Możesz teraz:**
+
 1. Rejestrować nowych użytkowników
 2. Logować się do aplikacji
 3. Zarządzać profilem
@@ -425,4 +457,3 @@ Cały system autentykacji jest **kompletny, przetestowany i gotowy do produkcji*
 ---
 
 **Pytania? Problemy?** Zobacz `IMPLEMENTATION_GUIDE.md` dla szczegółowej dokumentacji.
-
