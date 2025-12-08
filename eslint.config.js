@@ -92,5 +92,19 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "warn", // Downgrade to warning for services (database rows can be complex)
     },
+  },
+  {
+    files: ["scripts/**/*.js", "scripts/**/*.ts"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+      },
+    },
+    rules: {
+      "no-console": "off", // Scripts need console for output
+    },
   }
 );

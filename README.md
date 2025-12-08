@@ -158,6 +158,7 @@ The following scripts are defined in the project's `package.json`:
 - **`npm run dev:e2e`**: Starts dev server in test mode for E2E tests.
 
 📖 **E2E Test Setup:** Before running E2E tests, you need to:
+
 1. Create a `.env.test` file with test credentials (see `e2e/README.md`)
 2. Create a test user in Supabase
 3. Run `npm run test:e2e:verify` to check your configuration

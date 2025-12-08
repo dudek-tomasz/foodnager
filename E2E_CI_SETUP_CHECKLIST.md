@@ -29,31 +29,37 @@ Użyj tej checklisty aby skonfigurować testy E2E na GitHub Actions.
 - [ ] Dodaj następujące sekrety (jeden po drugim):
 
 #### Sekret 1: SUPABASE_URL
+
 - [ ] Name: `SUPABASE_URL`
 - [ ] Secret: Wklej Project URL z kroku 2
 - [ ] Kliknij "Add secret"
 
 #### Sekret 2: SUPABASE_KEY
+
 - [ ] Name: `SUPABASE_KEY`
 - [ ] Secret: Wklej anon public key z kroku 2
 - [ ] Kliknij "Add secret"
 
 #### Sekret 3: SUPABASE_SERVICE_ROLE_KEY
+
 - [ ] Name: `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] Secret: Wklej service_role key z kroku 2
 - [ ] Kliknij "Add secret"
 
 #### Sekret 4: E2E_USERNAME
+
 - [ ] Name: `E2E_USERNAME`
 - [ ] Secret: Wklej email test usera z kroku 1
 - [ ] Kliknij "Add secret"
 
 #### Sekret 5: E2E_PASSWORD
+
 - [ ] Name: `E2E_PASSWORD`
 - [ ] Secret: Wklej hasło test usera z kroku 1
 - [ ] Kliknij "Add secret"
 
 #### Sekret 6: E2E_USERNAME_ID
+
 - [ ] Name: `E2E_USERNAME_ID` ⚠️ **UWAGA:** Dokładnie ta nazwa!
 - [ ] Secret: Wklej UUID test usera z kroku 1
 - [ ] Kliknij "Add secret"
@@ -102,6 +108,7 @@ Jeśli wszystkie kroki są zaznaczone, Twoje testy E2E powinny działać na CI!
 **Problem:** Niepoprawny lub brakujący `SUPABASE_SERVICE_ROLE_KEY`
 
 **Rozwiązanie:**
+
 1. Sprawdź czy sekret jest ustawiony w GitHub
 2. Upewnij się że skopiowałeś **service_role** key (nie anon key)
 3. Sprawdź czy nie ma spacji na początku/końcu klucza
@@ -111,6 +118,7 @@ Jeśli wszystkie kroki są zaznaczone, Twoje testy E2E powinny działać na CI!
 **Problem:** Sekret ma złą nazwę lub nie jest ustawiony
 
 **Rozwiązanie:**
+
 1. Sprawdź czy nazwa sekretu to dokładnie: `E2E_USERNAME_ID`
 2. Nie może być: `E2E_TEST_USER_ID` ani `E2E_USER_ID` (poprawna nazwa to `E2E_USERNAME_ID`)
 3. Jeśli nazwa jest zła, usuń sekret i dodaj ponownie z poprawną nazwą
@@ -120,6 +128,7 @@ Jeśli wszystkie kroki są zaznaczone, Twoje testy E2E powinny działać na CI!
 **Problem:** Test user nie istnieje lub złe credentials
 
 **Rozwiązanie:**
+
 1. Sprawdź czy user istnieje w Supabase Auth
 2. Sprawdź czy email i hasło w sekretach są poprawne
 3. Upewnij się że user jest potwierdzony (email verified)
@@ -129,6 +138,7 @@ Jeśli wszystkie kroki są zaznaczone, Twoje testy E2E powinny działać na CI!
 **Problem:** Brakuje wymaganych sekretów
 
 **Rozwiązanie:**
+
 1. Sprawdź logi tego kroku
 2. Poszukaj komunikatów "MISSING!"
 3. Dodaj brakujące sekrety według checklisty powyżej
@@ -149,4 +159,3 @@ Jeśli wszystkie kroki są zaznaczone, Twoje testy E2E powinny działać na CI!
 ---
 
 **Pytania?** Sprawdź dokumentację w `docs/` lub logi workflow w GitHub Actions.
-

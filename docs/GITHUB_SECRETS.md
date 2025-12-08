@@ -8,19 +8,19 @@ Navigate to your GitHub repository → Settings → Secrets and variables → Ac
 
 ### Supabase Configuration
 
-| Secret Name | Description | Example Value | Where to Find |
-|------------|-------------|---------------|---------------|
-| `SUPABASE_URL` | Your Supabase project URL | `https://xxxxx.supabase.co` | Supabase Dashboard → Settings → API |
-| `SUPABASE_KEY` | Supabase anon/public key | `eyJhbGc...` | Supabase Dashboard → Settings → API → anon public |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin access) | `eyJhbGc...` | Supabase Dashboard → Settings → API → service_role (⚠️ Keep secret!) |
+| Secret Name                 | Description                              | Example Value               | Where to Find                                                        |
+| --------------------------- | ---------------------------------------- | --------------------------- | -------------------------------------------------------------------- |
+| `SUPABASE_URL`              | Your Supabase project URL                | `https://xxxxx.supabase.co` | Supabase Dashboard → Settings → API                                  |
+| `SUPABASE_KEY`              | Supabase anon/public key                 | `eyJhbGc...`                | Supabase Dashboard → Settings → API → anon public                    |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin access) | `eyJhbGc...`                | Supabase Dashboard → Settings → API → service_role (⚠️ Keep secret!) |
 
 ### E2E Test User Configuration
 
-| Secret Name | Description | Example Value | Notes |
-|------------|-------------|---------------|-------|
-| `E2E_USERNAME` | Email of test user | `test@example.com` | Create this user in Supabase Auth |
-| `E2E_PASSWORD` | Password of test user | `TestPassword123!` | Use a strong password |
-| `E2E_USERNAME_ID` | UUID of test user | `00000000-0000-0000-0000-000000000000` | Get from Supabase Auth → Users |
+| Secret Name       | Description           | Example Value                          | Notes                             |
+| ----------------- | --------------------- | -------------------------------------- | --------------------------------- |
+| `E2E_USERNAME`    | Email of test user    | `test@example.com`                     | Create this user in Supabase Auth |
+| `E2E_PASSWORD`    | Password of test user | `TestPassword123!`                     | Use a strong password             |
+| `E2E_USERNAME_ID` | UUID of test user     | `00000000-0000-0000-0000-000000000000` | Get from Supabase Auth → Users    |
 
 ## How to Set Up E2E Test User
 
@@ -51,6 +51,7 @@ After adding all secrets, you can verify they are set correctly by:
 ## Security Notes
 
 ⚠️ **IMPORTANT:**
+
 - Never commit `.env` or `.env.test` files to the repository
 - `SUPABASE_SERVICE_ROLE_KEY` bypasses all Row Level Security (RLS) - keep it secret!
 - Use a dedicated test user, not your personal account
@@ -61,6 +62,7 @@ After adding all secrets, you can verify they are set correctly by:
 ### "Invalid API key" errors in CI
 
 This means one of the Supabase secrets is missing or incorrect:
+
 - Check that `SUPABASE_URL`, `SUPABASE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are all set
 - Verify the values are correct (copy-paste from Supabase Dashboard)
 - Make sure there are no extra spaces or newlines
@@ -68,6 +70,7 @@ This means one of the Supabase secrets is missing or incorrect:
 ### "dotenv injecting env (0)" message
 
 This indicates that the `.env.test` file was created but is empty:
+
 - Check that all E2E secrets are set in GitHub
 - Review the "Create .env files" step in the CI workflow logs
 - Look for "MISSING!" messages in the secret verification output
@@ -82,10 +85,10 @@ This indicates that the `.env.test` file was created but is empty:
 ## CI Workflow Behavior
 
 The CI workflow will:
+
 1. Check if all required secrets are set
 2. Fail early if critical secrets are missing (before running tests)
 3. Create `.env` and `.env.test` files from the secrets
 4. Run E2E tests with the test environment configuration
 
 If you see the workflow fail at the "Create .env files" step, it means required secrets are missing.
-

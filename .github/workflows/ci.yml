@@ -118,13 +118,13 @@ jobs:
           [ -n "${{ secrets.E2E_USERNAME }}" ] && echo "✓ E2E_USERNAME" || echo "✗ E2E_USERNAME MISSING!"
           [ -n "${{ secrets.E2E_PASSWORD }}" ] && echo "✓ E2E_PASSWORD" || echo "✗ E2E_PASSWORD MISSING!"
           [ -n "${{ secrets.E2E_USERNAME_ID }}" ] && echo "✓ E2E_USERNAME_ID" || echo "✗ E2E_USERNAME_ID MISSING!"
-          
+
           # Fail if critical secrets are missing
           if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_KEY }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
             echo "❌ Critical Supabase secrets are missing!"
             exit 1
           fi
-          
+
           if [ -z "${{ secrets.E2E_USERNAME }}" ] || [ -z "${{ secrets.E2E_PASSWORD }}" ] || [ -z "${{ secrets.E2E_USERNAME_ID }}" ]; then
             echo "❌ Critical E2E test user secrets are missing!"
             exit 1

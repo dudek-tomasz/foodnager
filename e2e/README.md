@@ -53,6 +53,7 @@ npm run test:e2e
 ```
 
 This command:
+
 - Starts the dev server in test mode (`npm run dev:e2e`)
 - Runs authentication setup
 - Executes all E2E tests
@@ -154,15 +155,15 @@ import { AddProductModal } from "./pages/AddProductModal.page";
 
 test("add product", async ({ page }) => {
   const modal = new AddProductModal(page);
-  
+
   await page.goto("/fridge");
   await modal.open();
   await modal.fillAndSubmit({
     productName: "Mleko",
     quantity: "1",
-    unit: "litr"
+    unit: "litr",
   });
-  
+
   await expect(page.getByText("Mleko")).toBeVisible();
 });
 ```

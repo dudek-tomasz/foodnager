@@ -43,7 +43,7 @@ test("should add product", async ({ page }) => {
 // Po:
 test.describe("Product Management", () => {
   test.afterEach(async () => { ... }); // ✅ Poprawnie
-  
+
   test("should add product", async ({ page }) => { ... });
 });
 ```
@@ -66,7 +66,8 @@ const nav = page.locator("nav").first(); // ✅ Wybiera pierwszy
 
 **Problem:** Oryginalnie w kodzie była niekonsekwencja - sekret w GitHub nazywał się `E2E_USERNAME_ID`, ale kod używał `E2E_TEST_USER_ID`.
 
-**Rozwiązanie:** 
+**Rozwiązanie:**
+
 - Zunifikowano nazewnictwo - wszędzie używamy `E2E_USERNAME_ID`
 - Sekret w GitHub: `E2E_USERNAME_ID`
 - Zmienna środowiskowa w kodzie: `E2E_USERNAME_ID`
@@ -90,6 +91,7 @@ echo "E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}" >> .env.test # ✅ Dla ko
 ### 1. `docs/GITHUB_SECRETS.md`
 
 Szczegółowa dokumentacja konfiguracji sekretów GitHub:
+
 - Lista wszystkich wymaganych sekretów
 - Instrukcje gdzie je znaleźć
 - Jak stworzyć test usera w Supabase
@@ -98,6 +100,7 @@ Szczegółowa dokumentacja konfiguracji sekretów GitHub:
 ### 2. `e2e/README.md`
 
 Kompletna dokumentacja E2E testów:
+
 - Setup lokalny
 - Uruchamianie testów
 - Struktura testów
@@ -108,12 +111,14 @@ Kompletna dokumentacja E2E testów:
 ### 3. `scripts/verify-test-env.js`
 
 Skrypt weryfikujący konfigurację środowiska testowego:
+
 - Sprawdza czy `.env.test` istnieje
 - Waliduje wszystkie wymagane zmienne
 - Sprawdza formaty (UUID, email, URL)
 - Daje jasne komunikaty błędów
 
 Użycie:
+
 ```bash
 npm run test:e2e:verify
 ```
@@ -130,14 +135,14 @@ Przejdź do: **Repository → Settings → Secrets and variables → Actions**
 
 Dodaj następujące sekrety:
 
-| Nazwa | Opis | Gdzie znaleźć |
-|-------|------|---------------|
-| `SUPABASE_URL` | URL projektu Supabase | Dashboard → Settings → API |
-| `SUPABASE_KEY` | Anon key | Dashboard → Settings → API → anon public |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Dashboard → Settings → API → service_role |
-| `E2E_USERNAME` | Email test usera | Twój test user |
-| `E2E_PASSWORD` | Hasło test usera | Twoje hasło |
-| `E2E_USERNAME_ID` | UUID test usera | Dashboard → Auth → Users |
+| Nazwa                       | Opis                  | Gdzie znaleźć                             |
+| --------------------------- | --------------------- | ----------------------------------------- |
+| `SUPABASE_URL`              | URL projektu Supabase | Dashboard → Settings → API                |
+| `SUPABASE_KEY`              | Anon key              | Dashboard → Settings → API → anon public  |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key      | Dashboard → Settings → API → service_role |
+| `E2E_USERNAME`              | Email test usera      | Twój test user                            |
+| `E2E_PASSWORD`              | Hasło test usera      | Twoje hasło                               |
+| `E2E_USERNAME_ID`           | UUID test usera       | Dashboard → Auth → Users                  |
 
 ### Krok 2: Stwórz test usera w Supabase
 
@@ -212,6 +217,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 **Przyczyna:** Brak lub niepoprawny `SUPABASE_SERVICE_ROLE_KEY`
 
 **Rozwiązanie:**
+
 1. Sprawdź czy sekret jest ustawiony w GitHub
 2. Zweryfikuj wartość w Supabase Dashboard → Settings → API → service_role
 3. Upewnij się że kopiujesz **service_role** a nie **anon** key
@@ -221,6 +227,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 **Przyczyna:** Plik `.env.test` jest pusty lub sekrety nie są ustawione
 
 **Rozwiązanie:**
+
 1. Sprawdź logi kroku "Create .env files" w CI
 2. Poszukaj komunikatów "MISSING!"
 3. Dodaj brakujące sekrety w GitHub
@@ -230,6 +237,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 **Przyczyna:** Test user nie istnieje lub niepoprawne credentials
 
 **Rozwiązanie:**
+
 1. Sprawdź czy user istnieje w Supabase Auth
 2. Zweryfikuj email i hasło w sekretach
 3. Upewnij się że user jest potwierdzony (email verified)
@@ -244,6 +252,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 ## Zmiany w plikach
 
 ### Zmodyfikowane:
+
 - `.github/workflows/ci.yml` - poprawiono sekrety i dodano walidację
 - `e2e/global.teardown.ts` - zmieniono na export funkcji
 - `e2e/examples/cleanup-example.spec.ts` - poprawiono użycie afterEach
@@ -253,6 +262,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 - `README.md` - dodano sekcję o E2E testach
 
 ### Nowe:
+
 - `docs/GITHUB_SECRETS.md` - dokumentacja sekretów
 - `e2e/README.md` - dokumentacja E2E testów
 - `scripts/verify-test-env.js` - skrypt weryfikacji środowiska
@@ -269,7 +279,7 @@ Workflow failuje wcześnie, przed uruchomieniem testów.
 ## Kontakt
 
 Jeśli masz pytania lub problemy:
+
 1. Sprawdź `e2e/README.md` - sekcja Troubleshooting
 2. Sprawdź `docs/GITHUB_SECRETS.md` - sekcja Troubleshooting
 3. Sprawdź logi CI workflow w GitHub Actions
-

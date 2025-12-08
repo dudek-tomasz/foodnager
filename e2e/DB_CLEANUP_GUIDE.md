@@ -134,12 +134,12 @@ Dane są usuwane w **odwrotnej kolejności** kluczy obcych (foreign keys):
 
 | Tabela               | Warunek                       | Opis                       |
 | -------------------- | ----------------------------- | -------------------------- |
-| `cooking_history`    | `user_id = E2E_USERNAME_ID`  | Historia gotowania         |
-| `user_products`      | `user_id = E2E_USERNAME_ID`  | Produkty w lodówce         |
+| `cooking_history`    | `user_id = E2E_USERNAME_ID`   | Historia gotowania         |
+| `user_products`      | `user_id = E2E_USERNAME_ID`   | Produkty w lodówce         |
 | `recipe_tags`        | `recipe_id IN (user recipes)` | Tagi przepisów użytkownika |
 | `recipe_ingredients` | `recipe_id IN (user recipes)` | Składniki przepisów        |
-| `recipes`            | `user_id = E2E_USERNAME_ID`  | Przepisy użytkownika       |
-| `products`           | `user_id = E2E_USERNAME_ID`  | Prywatne produkty          |
+| `recipes`            | `user_id = E2E_USERNAME_ID`   | Przepisy użytkownika       |
+| `products`           | `user_id = E2E_USERNAME_ID`   | Prywatne produkty          |
 
 ### Co NIE jest czyszczone?
 

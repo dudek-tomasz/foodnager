@@ -94,7 +94,7 @@ E2E_USERNAME_ID=your-test-user-uuid  # ⚠️ WYMAGANE!
 | `SUPABASE_URL`              | Dashboard → Settings → API → Project URL  |
 | `SUPABASE_KEY`              | Dashboard → Settings → API → anon/public  |
 | `SUPABASE_SERVICE_ROLE_KEY` | Dashboard → Settings → API → service_role |
-| `E2E_USERNAME_ID`          | Dashboard → Authentication → Users → id   |
+| `E2E_USERNAME_ID`           | Dashboard → Authentication → Users → id   |
 
 ### 5. Dokumentacja
 

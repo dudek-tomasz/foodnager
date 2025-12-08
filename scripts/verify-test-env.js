@@ -2,7 +2,7 @@
 
 /**
  * Verify E2E test environment configuration
- * 
+ *
  * This script checks if all required environment variables are set
  * for running E2E tests locally or in CI.
  */
@@ -118,8 +118,7 @@ if (supabaseUrl && !supabaseUrl.startsWith("https://")) {
 
 // Check E2E_USERNAME_ID format (UUID)
 const testUserId = process.env.E2E_USERNAME_ID;
-const uuidRegex =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 if (testUserId && !uuidRegex.test(testUserId)) {
   console.log("⚠ E2E_USERNAME_ID should be a valid UUID");
   hasWarnings = true;
@@ -137,9 +136,7 @@ if (testUsername && !emailRegex.test(testUsername)) {
 const supabaseKey = process.env.SUPABASE_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (supabaseKey && serviceRoleKey && supabaseKey === serviceRoleKey) {
-  console.log(
-    "⚠ SUPABASE_SERVICE_ROLE_KEY should be different from SUPABASE_KEY"
-  );
+  console.log("⚠ SUPABASE_SERVICE_ROLE_KEY should be different from SUPABASE_KEY");
   console.log("  Make sure you're using the service_role key, not anon key");
   hasWarnings = true;
 }
@@ -169,4 +166,3 @@ if (hasWarnings) {
 console.log("✅ E2E test environment is properly configured!");
 console.log("   You can now run: npm run test:e2e\n");
 process.exit(0);
-
