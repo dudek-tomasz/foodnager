@@ -91,12 +91,26 @@ jobs:
         if: ${{ !inputs.skip_e2e }}
         run: npx playwright install chromium --with-deps
 
-      # 11. E2E TESTS - Testy end-to-end
+      # 11. Tworzenie pliku .env.test dla E2E
+      - name: 📝 Create .env.test file
+        if: ${{ !inputs.skip_e2e }}
+        run: |
+          cat > .env.test << EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          E2E_USERNAME=${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}
+          E2E_TEST_USER_ID=${{ secrets.E2E_USERNAME_ID }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000
+          EOF
+
+      # 12. E2E TESTS - Testy end-to-end
       - name: 🎬 Run E2E tests
         if: ${{ !inputs.skip_e2e }}
         run: npm run test:e2e
 
-      # 12. Upload Playwright raportu (tylko przy błędach)
+      # 13. Upload Playwright raportu (tylko przy błędach)
       - name: 📤 Upload Playwright report
         uses: actions/upload-artifact@v4
         if: ${{ !inputs.skip_e2e && failure() }}
@@ -105,7 +119,7 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-      # 13. Upload Playwright videos (tylko przy błędach)
+      # 14. Upload Playwright videos (tylko przy błędach)
       - name: 📹 Upload test videos
         uses: actions/upload-artifact@v4
         if: ${{ !inputs.skip_e2e && failure() }}
@@ -114,7 +128,7 @@ jobs:
           path: test-results/
           retention-days: 7
 
-      # 14. Podsumowanie
+      # 15. Podsumowanie
       - name: ✅ CI Summary
         if: success()
         run: |
