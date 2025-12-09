@@ -24,4 +24,4 @@ Codecov (raportowanie pokrycia kodu)
 
 CI/CD i hosting:
 Github Actions,
-DigitalOcean
+Cloudflare Pages (production deployment)

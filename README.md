@@ -11,7 +11,7 @@ Foodnager is a mobile and web application that helps users search for, store, an
 - **External Recipe API:** Spoonacular (optional, Tier 2)
 - **AI Communication:** OpenRouter.ai with Perplexity Sonar (web search enabled)
 - **Testing:** Vitest, React Testing Library, Playwright, MSW
-- **CI/CD & Hosting:** GitHub Actions, DigitalOcean
+- **CI/CD & Hosting:** GitHub Actions, Cloudflare Pages
 
 ### Testing Strategy
 
@@ -164,6 +164,29 @@ The following scripts are defined in the project's `package.json`:
 3. Run `npm run test:e2e:verify` to check your configuration
 
 See [e2e/README.md](e2e/README.md) for detailed E2E testing documentation.
+
+## Deployment
+
+Foodnager is automatically deployed to **Cloudflare Pages** via GitHub Actions when changes are pushed to the `master` branch.
+
+### Deployment Workflow
+
+The deployment process includes:
+
+1. Code linting (ESLint + Prettier)
+2. Production build
+3. Unit tests
+4. Automatic deployment to Cloudflare Pages
+
+### Manual Deployment
+
+To trigger a manual deployment:
+
+1. Go to the `Actions` tab in GitHub repository
+2. Select `Deploy to Cloudflare Pages` workflow
+3. Click `Run workflow`
+
+📖 See [.ai/cloudflare-deployment.md](.ai/cloudflare-deployment.md) for detailed deployment documentation.
 
 ## Project Scope
 

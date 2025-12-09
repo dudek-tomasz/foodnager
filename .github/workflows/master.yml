@@ -1,0 +1,114 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  # Trigger manualny
+  workflow_dispatch:
+
+  # Automatyczne uruchomienie po pushu do master
+#   push:
+#     branches:
+#       - master
+
+# Zmienne środowiskowe globalne
+env:
+  NODE_VERSION_FILE: ".nvmrc"
+
+jobs:
+  # Job 1: Build i testy
+  build:
+    name: Lint, Build & Test
+    runs-on: ubuntu-latest
+
+    # Zmienne środowiskowe dla buildu
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+    steps:
+      # 1. Checkout kodu
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js z wersji z .nvmrc
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: "npm"
+
+      # 3. Instalacja zależności
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      # 4. LINT - ESLint
+      - name: 🔍 Run ESLint
+        run: npm run lint
+
+      # 5. LINT - Prettier check
+      - name: ✨ Check code formatting
+        run: npx prettier --check .
+
+      # 6. BUILD - Budowanie wersji produkcyjnej
+      - name: 🏗️ Build production
+        run: npm run build
+
+      # 7. UNIT TESTS - Testy jednostkowe i komponentów
+      - name: 🧪 Run unit tests
+        run: npm run test:run
+
+      # 8. Upload dist jako artifact dla deployment
+      - name: 📤 Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  # Job 2: Deployment do Cloudflare Pages
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+
+    # GitHub Environment dla production
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.deployment-url }}
+
+    # Permissions dla deployment
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      # 1. Checkout kodu (potrzebne dla wrangler)
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Download dist artifact
+      - name: 📥 Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      # 3. Deploy do Cloudflare Pages
+      - name: 🚀 Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy dist --project-name=foodnager --branch=master
+
+      # 4. Podsumowanie deploymentu
+      - name: ✅ Deployment Summary
+        if: success()
+        run: |
+          echo "✅ Deployment zakończony pomyślnie!"
+          echo ""
+          echo "🌐 Deployment URL: ${{ steps.deploy.outputs.deployment-url }}"
+          echo "🔗 Pages Environment: ${{ steps.deploy.outputs.pages-environment }}"
+          echo "🆔 Deployment ID: ${{ steps.deploy.outputs.pages-deployment-id }}"
