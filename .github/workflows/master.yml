@@ -101,7 +101,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy dist --project-name=foodnager --branch=master
+          command: pages deploy dist --project-name=foodnager --branch=master --commit-dirty=true
 
       # 4. Podsumowanie deploymentu
       - name: ✅ Deployment Summary
