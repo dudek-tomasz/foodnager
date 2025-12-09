@@ -47,7 +47,14 @@ insert into auth.users (
 insert into public.products (user_id, name) values
   (null, 'pomidor'),
   (null, 'makaron'),
-  (null, 'mięso mielone')
+  (null, 'mięso mielone'),
+  (null, 'cebula'),
+  (null, 'czosnek'),
+  (null, 'ser żółty'),
+  (null, 'mleko'),
+  (null, 'jajka'),
+  (null, 'masło'),
+  (null, 'mąka')
 on conflict do nothing;
 
 -- ============================================================================

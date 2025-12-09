@@ -54,9 +54,9 @@ test.describe("Fridge - Add Product", () => {
 
     // Act - Fill and submit the form
     await fridgePage.addProductModal.fillAndSubmit({
-      productName: "Mleko",
+      productName: "pomidor",
       quantity: 1.5,
-      unitText: "litr",
+      unitText: "szt",
     });
 
     // Assert - Wait for modal to close
@@ -66,7 +66,7 @@ test.describe("Fridge - Add Product", () => {
     await fridgePage.assertSuccessToast("Produkt dodany pomyślnie");
 
     // Assert - Product should appear in the list
-    await fridgePage.assertProductExists("Mleko");
+    await fridgePage.assertProductExists("pomidor");
   });
 
   test("should add a product using quick add method", async () => {
@@ -74,12 +74,12 @@ test.describe("Fridge - Add Product", () => {
     await fridgePage.openAddProductModal();
 
     // Act
-    await fridgePage.addProductModal.quickAdd("Chleb", 2, "szt");
+    await fridgePage.addProductModal.quickAdd("makaron", 2, "g");
 
     // Assert
     await fridgePage.addProductModal.waitForModalClose();
     await fridgePage.assertSuccessToast("Produkt dodany pomyślnie");
-    await fridgePage.assertProductExists("Chleb");
+    await fridgePage.assertProductExists("makaron");
   });
 
   test("should create and add a new custom product", async () => {
@@ -108,9 +108,9 @@ test.describe("Fridge - Add Product", () => {
 
     // Act
     await fridgePage.addProductModal.fillAndSubmit({
-      productName: "Masło",
+      productName: "makaron",
       quantity: 0.25,
-      unitText: "kg",
+      unitText: "g",
       addAnother: true,
     });
 
@@ -155,8 +155,8 @@ test.describe("Fridge - Add Product", () => {
     // Arrange
     await fridgePage.openAddProductModal();
 
-    // Act - Use existing product "Cukier" from test database
-    await fridgePage.addProductModal.productAutocomplete.searchAndSelect("Cukier");
+    // Act - Use existing product "mięso mielone" from test database
+    await fridgePage.addProductModal.productAutocomplete.searchAndSelect("mięso mielone");
     await fridgePage.addProductModal.fillQuantity(2);
     await fridgePage.addProductModal.unitSelect.selectUnitByText("kg");
     await fridgePage.addProductModal.expiryDatePicker.setTomorrow();
@@ -165,7 +165,7 @@ test.describe("Fridge - Add Product", () => {
     // Assert
     await fridgePage.addProductModal.waitForModalClose();
     await fridgePage.assertSuccessToast("Produkt dodany pomyślnie");
-    await fridgePage.assertProductExists("Cukier");
+    await fridgePage.assertProductExists("mięso mielone");
   });
 
   test("should add a product and clear expiry date", async () => {
@@ -180,9 +180,9 @@ test.describe("Fridge - Add Product", () => {
 
     // Act - Fill rest of the form
     await fridgePage.addProductModal.fillAndSubmit({
-      productName: "Cukier",
+      productName: "pomidor",
       quantity: 1,
-      unitText: "kg",
+      unitText: "szt",
     });
 
     // Assert
@@ -196,7 +196,7 @@ test.describe("Fridge - Add Product", () => {
 
     // Act
     await fridgePage.addProductModal.productAutocomplete.open();
-    await fridgePage.addProductModal.productAutocomplete.search("Ser");
+    await fridgePage.addProductModal.productAutocomplete.search("makaron");
 
     // Assert - Should show results (search() already waits for loading to complete)
     const firstOption = page.locator('[data-testid^="product-autocomplete-option-"]').first();
@@ -239,14 +239,14 @@ test.describe("Fridge - Product Management", () => {
   test.skip("should search for products in fridge", async () => {
     // Arrange - First add a product using existing product from database
     await fridgePage.openAddProductModal();
-    await fridgePage.addProductModal.quickAdd("Pieprz", 5, "g");
+    await fridgePage.addProductModal.quickAdd("makaron", 5, "g");
     await fridgePage.addProductModal.waitForModalClose();
 
     // Act
-    await fridgePage.search("Pieprz");
+    await fridgePage.search("makaron");
 
     // Assert
-    await fridgePage.assertProductExists("Pieprz");
+    await fridgePage.assertProductExists("makaron");
   });
 
   test("should clear search results", async () => {

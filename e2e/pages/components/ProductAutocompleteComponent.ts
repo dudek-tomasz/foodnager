@@ -76,16 +76,41 @@ export class ProductAutocompleteComponent {
 
   /**
    * Selects a product by searching and clicking on the first result
+   * If no results found, creates a new product using the "Create new" button
    * @param productName - The product name to search for
    */
   async searchAndSelect(productName: string): Promise<void> {
     await this.open();
     await this.search(productName);
 
-    // Click first result - search() already waited for loading to complete
+    // Check if we have search results or "create new" button
     const firstOption = this.page.locator('[data-testid^="product-autocomplete-option-"]').first();
-    await firstOption.waitFor({ state: "visible", timeout: 10000 });
-    await firstOption.click();
+
+    try {
+      // Try to find existing product results (wait max 5s to avoid long timeouts)
+      await firstOption.waitFor({ state: "visible", timeout: 5000 });
+      await firstOption.click();
+    } catch {
+      // No results found - check if "Create new" button is visible
+      const hasCreateButton = await this.isCreateNewButtonVisible();
+
+      if (hasCreateButton) {
+        // Product doesn't exist - create it
+        console.log(`Product "${productName}" not found in database. Creating new product...`);
+        await this.createNewButton.click();
+
+        // Fill in the new product name and submit
+        await this.newProductNameInput.waitFor({ state: "visible" });
+        await this.newProductNameInput.fill(productName);
+        await this.createSubmitButton.click();
+
+        // Wait for creation to complete
+        await this.searchInput.waitFor({ state: "hidden", timeout: 10000 });
+      } else {
+        // Neither results nor create button - something is wrong
+        throw new Error(`Failed to find product "${productName}" - no search results and no create button available`);
+      }
+    }
   }
 
   /**
