@@ -70,7 +70,7 @@ export default function FridgeView() {
 
       {/* Loading state */}
       {state.isLoading && (
-        <div className="text-center py-12">
+        <div className="text-center py-12" data-testid="fridge-loading">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Ładowanie produktów...</p>
         </div>

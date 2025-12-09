@@ -37,7 +37,7 @@ export class FridgePage {
     this.sortDropdown = page.getByLabel("Wybierz pole sortowania");
     this.fridgeItemsList = page.getByTestId("fridge-items-list");
     this.emptyState = page.getByText("Twoja lodówka jest pusta");
-    this.loadingSpinner = page.getByText("Ładowanie produktów...");
+    this.loadingSpinner = page.getByTestId("fridge-loading");
     this.statsSection = page
       .locator("div")
       .filter({ hasText: /Wszystkie produkty/ })
@@ -82,8 +82,20 @@ export class FridgePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    // Wait for debounce
-    await this.page.waitForTimeout(500);
+
+    // Wait for loading to complete (handle debounce + API call)
+    // First, wait a bit for debounce to trigger (300ms in useFridge hook)
+    await this.page.waitForTimeout(100);
+
+    // Then wait for loading indicator to appear and disappear
+    try {
+      await this.loadingSpinner.waitFor({ state: "visible", timeout: 5000 });
+      await this.loadingSpinner.waitFor({ state: "hidden", timeout: 10000 });
+    } catch {
+      // If loading doesn't appear, it means results were cached or very fast
+      // Wait a bit more to ensure UI updated
+      await this.page.waitForTimeout(300);
+    }
   }
 
   /**
@@ -91,7 +103,16 @@ export class FridgePage {
    */
   async clearSearch(): Promise<void> {
     await this.searchInput.clear();
-    await this.page.waitForTimeout(500);
+
+    // Wait for loading to complete (same as search)
+    await this.page.waitForTimeout(100);
+
+    try {
+      await this.loadingSpinner.waitFor({ state: "visible", timeout: 5000 });
+      await this.loadingSpinner.waitFor({ state: "hidden", timeout: 10000 });
+    } catch {
+      await this.page.waitForTimeout(300);
+    }
   }
 
   /**

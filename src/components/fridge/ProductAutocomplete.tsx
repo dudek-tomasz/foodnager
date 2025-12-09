@@ -140,7 +140,11 @@ export default function ProductAutocomplete({
               data-testid={`${testId}-search-input`}
             />
             <CommandList>
-              {isLoading && <div className="py-6 text-center text-sm text-gray-500">Wyszukiwanie...</div>}
+              {isLoading && (
+                <div className="py-6 text-center text-sm text-gray-500" data-testid={`${testId}-loading`}>
+                  Wyszukiwanie...
+                </div>
+              )}
 
               {!isLoading && !showCreateForm && query && results.length === 0 && (
                 <CommandEmpty>

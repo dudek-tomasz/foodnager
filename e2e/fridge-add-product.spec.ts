@@ -114,10 +114,7 @@ test.describe("Fridge - Add Product", () => {
       addAnother: true,
     });
 
-    // Wait a bit for the form to reset
-    await fridgePage.page.waitForTimeout(500);
-
-    // Assert - Modal should still be visible
+    // Assert - Modal should still be visible (form resets automatically)
     await fridgePage.addProductModal.assertModalVisible();
 
     // Assert - Success toast should appear
@@ -201,12 +198,11 @@ test.describe("Fridge - Add Product", () => {
     await fridgePage.addProductModal.productAutocomplete.open();
     await fridgePage.addProductModal.productAutocomplete.search("Ser");
 
-    // Wait for results
-    await page.waitForTimeout(600);
+    // Assert - Should show results (search() already waits for loading to complete)
+    const firstOption = page.locator('[data-testid^="product-autocomplete-option-"]').first();
+    await firstOption.waitFor({ state: "visible", timeout: 10000 });
 
-    // Assert - Should show results
-    const hasResults = await page.locator('[data-testid^="product-autocomplete-option-"]').first().isVisible();
-
+    const hasResults = await firstOption.isVisible();
     expect(hasResults).toBeTruthy();
   });
 
