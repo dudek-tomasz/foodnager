@@ -11,21 +11,25 @@ Cloudflare Dashboard → Workers & Pages → foodnager → Settings
 ```
 
 Szukaj sekcji:
+
 - **"Builds & deployments"** LUB
-- **"Source"** LUB  
+- **"Source"** LUB
 - **"Git"**
 
 **Jeśli widzisz:**
+
 - ❌ "Connected to GitHub"
 - ❌ "GitHub repository: [nazwa-repo]"
 - ❌ Automatyczne deploymenty przy pushu
 
 **ROZWIĄZANIE:**
+
 1. Kliknij **"Disconnect"** lub **"Remove GitHub integration"**
 2. Potwierdź odłączenie
 3. Re-run GitHub Actions workflow
 
 **Po odłączeniu Git Integration:**
+
 - ✅ Projekt dalej istnieje
 - ✅ Wszystkie poprzednie deploymenty są zachowane
 - ✅ GitHub Actions może deployować przez API
@@ -44,7 +48,7 @@ Cloudflare Dashboard → My Profile → API Tokens → Edit [twój token]
 ```
 Permissions:
   ✅ Account > Cloudflare Pages > Edit
-  
+
 Account Resources:
   ✅ Include > Specific account > [Twoje konto]
 ```
@@ -64,6 +68,7 @@ Cloudflare Dashboard → Workers & Pages → Account ID (prawy panel)
 ```
 
 Porównaj z:
+
 ```
 GitHub → Settings → Secrets → CLOUDFLARE_ACCOUNT_ID
 ```
@@ -75,6 +80,7 @@ Muszą być **identyczne**!
 #### 4. Sprawdź nazwę projektu
 
 W Cloudflare Dashboard:
+
 ```
 Workers & Pages → Lista projektów → Znajdź "foodnager"
 ```
@@ -82,6 +88,7 @@ Workers & Pages → Lista projektów → Znajdź "foodnager"
 **Dokładna nazwa:** `foodnager` (bez spacji, wielkość liter ma znaczenie)
 
 W workflow:
+
 ```yaml
 command: pages deploy dist --project-name=foodnager --branch=master
 ```
@@ -95,11 +102,13 @@ Muszą być **identyczne**!
 ### Scenariusz A: Git Integration jest włączone
 
 **Problem:**
+
 - Projekt jest zarządzany przez Cloudflare Git Integration
 - API deployment jest zablokowane
 - Błąd: "Project not found" (mimo że projekt istnieje)
 
 **Rozwiązanie:**
+
 1. Odłącz Git Integration (Settings → Source → Disconnect)
 2. Re-run workflow
 3. ✅ Powinno zadziałać!
@@ -109,10 +118,12 @@ Muszą być **identyczne**!
 ### Scenariusz B: API Token nie ma uprawnień
 
 **Problem:**
+
 - Token nie ma `Cloudflare Pages > Edit` permission
 - API deployment jest odrzucane
 
 **Rozwiązanie:**
+
 1. Utwórz nowy token z template "Edit Cloudflare Workers"
 2. Zaktualizuj `CLOUDFLARE_API_TOKEN` w GitHub Secrets
 3. Re-run workflow
@@ -123,10 +134,12 @@ Muszą być **identyczne**!
 ### Scenariusz C: Źle wpisany Account ID
 
 **Problem:**
+
 - Account ID w GitHub Secrets jest błędny
 - API nie może znaleźć konta
 
 **Rozwiązanie:**
+
 1. Skopiuj poprawny Account ID z Cloudflare
 2. Zaktualizuj `CLOUDFLARE_ACCOUNT_ID` w GitHub Secrets
 3. Re-run workflow
@@ -137,10 +150,12 @@ Muszą być **identyczne**!
 ### Scenariusz D: Źle wpisana nazwa projektu
 
 **Problem:**
+
 - Nazwa w workflow (`foodnager`) nie zgadza się z Cloudflare
 - Może być: różna wielkość liter, spacje, znaki specjalne
 
 **Rozwiązanie:**
+
 1. Skopiuj DOKŁADNĄ nazwę z Cloudflare Dashboard
 2. Zaktualizuj workflow:
    ```yaml
@@ -229,18 +244,23 @@ npx wrangler pages deploy dist --project-name=foodnager --branch=master
 ## FAQ
 
 ### Q: Czy stracę poprzednie deploymenty po odłączeniu Git?
+
 **A:** NIE! Wszystkie poprzednie deploymenty są zachowane. Zmieniasz tylko sposób zarządzania (Git → API).
 
 ### Q: Czy mogę później wrócić do Git Integration?
+
 **A:** TAK, ale nie zalecam. GitHub Actions daje pełną kontrolę (testy przed deploymentem, approval, etc.).
 
 ### Q: Co jeśli API Token wygaśnie?
+
 **A:** Ustaw długi TTL (np. 1 rok) lub bez TTL. Możesz później rotować token.
 
 ### Q: Czy mogę mieć Git Integration I GitHub Actions?
+
 **A:** NIE zalecane - będzie podwójny deployment. Wybierz jedno.
 
 ### Q: Co jeśli chcę preview deployments dla PR?
+
 **A:** Możesz to zrobić przez GitHub Actions. Utwórz osobny workflow dla PR z `--branch=${{ github.head_ref }}`.
 
 ---
@@ -259,6 +279,7 @@ npx wrangler pages deploy dist --project-name=foodnager --branch=master
 ## Kontakt
 
 Jeśli problem dalej występuje:
+
 1. Sprawdź czy wykonałeś WSZYSTKIE kroki z checklisty
 2. Skopiuj PEŁNE logi z GitHub Actions
 3. Screenshot z Cloudflare Settings → Source
@@ -271,5 +292,4 @@ Jeśli problem dalej występuje:
 **Najczęstszy problem:** Git Integration jest włączone  
 **Rozwiązanie:** Odłącz w Settings → Source → Disconnect  
 **Czas naprawy:** < 2 minuty  
-**Ryzyko:** Brak - wszystko jest zachowane  
-
+**Ryzyko:** Brak - wszystko jest zachowane
