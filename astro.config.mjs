@@ -20,7 +20,7 @@ export default defineConfig({
       },
     },
     ssr: {
-      external: ['react-dom/server.edge'], // Nie próbuj używać zwykłego Node.js server
+      external: ["react-dom/server.edge"], // Nie próbuj używać zwykłego Node.js server
     },
     server: {
       hmr: {

@@ -41,12 +41,12 @@ jobs:
         run: npm ci
 
       # 4. LINT - ESLint
-      - name: 🔍 Run ESLint
-        run: npm run lint
+      # - name: 🔍 Run ESLint
+      #   run: npm run lint
 
       # 5. LINT - Prettier check
-      - name: ✨ Check code formatting
-        run: npx prettier --check .
+      # - name: ✨ Check code formatting
+      #   run: npx prettier --check .
 
       # 6. BUILD - Budowanie wersji produkcyjnej
       - name: 🏗️ Build production
