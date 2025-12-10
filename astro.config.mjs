@@ -8,7 +8,6 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
 
-// https://astro.build/config
 export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
@@ -19,6 +18,9 @@ export default defineConfig({
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
+    },
+    ssr: {
+      external: ['react-dom/server.edge'], // Nie próbuj używać zwykłego Node.js server
     },
     server: {
       hmr: {
