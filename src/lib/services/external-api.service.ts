@@ -14,6 +14,7 @@ import { translateIngredients } from "../utils/ingredient-translator";
 import { htmlToText, extractSummary } from "../utils/html-to-text";
 import { translateRecipe } from "../utils/recipe-translator";
 import { translateTags } from "../utils/tag-translator";
+import { getSecret } from "astro:env/server";
 
 /**
  * External recipe response from API
@@ -157,8 +158,11 @@ export class ExternalAPIService {
   constructor(config?: Partial<ExternalAPIConfig>) {
     // Default configuration for Spoonacular
     this.config = {
-      url: import.meta.env.EXTERNAL_RECIPE_API_URL || "https://api.spoonacular.com",
-      apiKey: import.meta.env.EXTERNAL_RECIPE_API_KEY,
+      url:
+        getSecret("EXTERNAL_RECIPE_API_URL") ||
+        import.meta.env.EXTERNAL_RECIPE_API_URL ||
+        "https://api.spoonacular.com",
+      apiKey: getSecret("EXTERNAL_RECIPE_API_KEY") || import.meta.env.EXTERNAL_RECIPE_API_KEY || "",
       timeout: parseInt(import.meta.env.TIER2_TIMEOUT_MS || "10000", 10),
       ...config,
     };

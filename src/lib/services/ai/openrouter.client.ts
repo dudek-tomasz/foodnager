@@ -5,6 +5,8 @@
  * Used for recipe generation in Tier 3
  */
 
+import { getSecret } from "astro:env/server";
+
 /* eslint-disable no-console */
 // Console logs are intentional for debugging AI client
 
@@ -111,10 +113,13 @@ export class OpenRouterClient {
 
   constructor(config?: Partial<OpenRouterConfig>) {
     this.config = {
-      apiUrl: import.meta.env.OPENROUTER_API_URL || "https://openrouter.ai/api/v1/chat/completions",
-      apiKey: import.meta.env.OPENROUTER_API_KEY || "",
-      model: import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
-      timeout: parseInt(import.meta.env.TIER3_TIMEOUT_MS || "45000", 10),
+      apiUrl:
+        getSecret("OPENROUTER_API_URL") ||
+        import.meta.env.OPENROUTER_API_URL ||
+        "https://openrouter.ai/api/v1/chat/completions",
+      apiKey: getSecret("OPENROUTER_API_KEY") || import.meta.env.OPENROUTER_API_KEY || "",
+      model: getSecret("OPENROUTER_MODEL") || import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
+      timeout: parseInt(getSecret("TIER3_TIMEOUT_MS") || import.meta.env.TIER3_TIMEOUT_MS || "45000", 10),
       temperature: parseFloat(import.meta.env.OPENROUTER_TEMPERATURE || "0.7"),
       maxTokens: parseInt(import.meta.env.OPENROUTER_MAX_TOKENS || "2000", 10),
       topP: parseFloat(import.meta.env.OPENROUTER_TOP_P || "1.0"),
