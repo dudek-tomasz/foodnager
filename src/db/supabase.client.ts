@@ -11,12 +11,13 @@
 import type { AstroCookies } from "astro";
 import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getSecret } from "astro:env/server";
 
 import type { Database } from "../db/database.types.ts";
 
 // Use runtime environment variables for Cloudflare Pages compatibility
-const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY || process.env.SUPABASE_KEY;
+const supabaseUrl = getSecret("SUPABASE_URL") || import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseAnonKey = getSecret("SUPABASE_KEY") || import.meta.env.SUPABASE_KEY || process.env.SUPABASE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables. Please set SUPABASE_URL and SUPABASE_KEY.");
@@ -61,7 +62,7 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
       getAll() {
         return parseCookieHeader(context.headers.get("Cookie") ?? "");
       },
-      setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+      setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
         cookiesToSet.forEach(({ name, value, options }) => context.cookies.set(name, value, options));
       },
     },
