@@ -14,8 +14,13 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "../db/database.types.ts";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
+// Use runtime environment variables for Cloudflare Pages compatibility
+const supabaseUrl = import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.SUPABASE_KEY || process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing Supabase environment variables. Please set SUPABASE_URL and SUPABASE_KEY.");
+}
 
 // ============================================================================
 // Server-side Client with SSR Support (for Auth)
