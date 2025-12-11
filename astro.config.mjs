@@ -17,10 +17,11 @@ export default defineConfig({
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
+        "react-dom/server": "react-dom/server.edge",
       },
     },
     ssr: {
-      external: ["react-dom/server.edge"], // Nie próbuj używać zwykłego Node.js server
+      noExternal: ["react-dom/server.edge"], // Nie próbuj używać zwykłego Node.js server
     },
     server: {
       hmr: {
@@ -33,9 +34,14 @@ export default defineConfig({
     },
   },
   adapter: cloudflare({
-    mode: "directory",
+    // mode: "directory",
+    mode: "server", // <- wymusza nodejs_compat
+    nodejs_compat: true, // masz to już włączone
     platformProxy: {
       enabled: true,
+    },
+    alias: {
+      "react-dom/server": "react-dom/server.edge",
     },
   }),
 });
