@@ -1,0 +1,20 @@
+---
+// Prosty healthcheck bez zależności od Supabase
+const env = {
+  hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
+  hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
+  nodeEnv: import.meta.env.MODE,
+};
+---
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Healthcheck</title>
+</head>
+<body>
+  <h1>Healthcheck OK</h1>
+  <pre>{JSON.stringify(env, null, 2)}</pre>
+</body>
+</html>
+
