@@ -50,6 +50,8 @@ jobs:
 
       # 6. BUILD - Budowanie wersji produkcyjnej
       - name: 🏗️ Build production
+        env:
+          NODE_ENV: production
         run: npm run build
 
       # 7. UNIT TESTS - Testy jednostkowe i komponentów

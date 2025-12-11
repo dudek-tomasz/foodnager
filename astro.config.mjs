@@ -1,5 +1,5 @@
 // @ts-check
-/* global URL */
+/* global URL, process */
 import { defineConfig } from "astro/config";
 import { fileURLToPath } from "url";
 
@@ -23,9 +23,7 @@ export default defineConfig({
         "@": fileURLToPath(new URL("./src", import.meta.url)),
         // W dev mode nie używamy aliasu (unikamy "require is not defined")
         // W build mode aliasujemy do .edge (unikamy "MessageChannel is not defined" na Cloudflare)
-        ...(isDevelopment
-          ? {}
-          : { "react-dom/server": "react-dom/server.edge" }),
+        ...(isDevelopment ? {} : { "react-dom/server": "react-dom/server.edge" }),
       },
     },
     // W build mode zapewniamy, że react-dom/server.edge jest inline bundlowane
