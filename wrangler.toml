@@ -11,10 +11,6 @@ compatibility_flags = [
 # Pages configuration
 pages_build_output_dir = "dist"
 
-# KV Namespaces for Astro sessions
-[[kv_namespaces]]
-binding = "SESSION"
-id = "5de27ec6fcf541939516db5ac820212f"
 
 # Environment variables (set in Cloudflare dashboard)
 # SUPABASE_URL

@@ -1,5 +1,5 @@
 // @ts-check
-/* global URL, process */
+/* global URL */
 import { defineConfig } from "astro/config";
 import { fileURLToPath } from "url";
 
@@ -8,32 +8,21 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
 
-// Warunkowa konfiguracja dla dev vs build (workaround dla React 19 + Cloudflare)
-// W dev mode (NODE_ENV !== 'production') nie używamy aliasu react-dom/server
-const isDevelopment = process.env.NODE_ENV !== "production";
-
+// https://astro.build/config
 export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
-  // server: { port: 3000 },
+  server: { port: 3000 },
   vite: {
     plugins: [tailwindcss()],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
-        // W dev mode nie używamy aliasu (unikamy "require is not defined")
-        // W build mode aliasujemy do .edge (unikamy "MessageChannel is not defined" na Cloudflare)
-        // ...(isDevelopment ? {} : { "react-dom/server": "react-dom/server.edge" }),
       },
     },
-    // W build mode zapewniamy, że react-dom/server.edge jest inline bundlowane
-    // zgodnie z wymaganiami Cloudflare Workers (wszystko musi być zbundlowane)
-    // ssr: isDevelopment
-    //   ? undefined
-    //   : {
-    //       noExternal: true,
-    //       external: [],
-    //     },
+    ssr: {
+      external: ['react-dom/server.edge'], // Nie próbuj używać zwykłego Node.js server
+    },
     server: {
       hmr: {
         timeout: 120000, // zwiększ timeout HMR do 2 minut
@@ -45,9 +34,9 @@ export default defineConfig({
     },
   },
   adapter: cloudflare({
+    mode: "directory",
     platformProxy: {
       enabled: true,
     },
-    // sessionKVBindingName: "SESSION",
   }),
 });
