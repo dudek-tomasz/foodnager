@@ -14,6 +14,7 @@
 /* eslint-disable no-console */
 // Console logs are intentional for debugging AI generation
 
+import { getSecret } from "astro:env/server";
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateRecipeDTO, GenerateRecipeResponseDTO, RecipeDTO, ProductReferenceDTO } from "../../types";
 import { NotFoundError } from "../errors";
@@ -324,13 +325,13 @@ All text (title, description, instructions, ingredient names, tags) MUST be in P
         description: aiRecipe.description || null,
         instructions: aiRecipe.instructions,
         cooking_time: aiRecipe.cooking_time || null,
-        difficulty: aiRecipe.difficulty || null,
-        source: "ai",
-        metadata: {
-          ai_model: import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
-          generation_timestamp: new Date().toISOString(),
-          input_products: originalProducts.map((p) => p.id),
-          preferences: generateDto.preferences
+      difficulty: aiRecipe.difficulty || null,
+      source: "ai",
+      metadata: {
+        ai_model: getSecret("OPENROUTER_MODEL") || import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
+        generation_timestamp: new Date().toISOString(),
+        input_products: originalProducts.map((p) => p.id),
+        preferences: generateDto.preferences
             ? {
                 cuisine: generateDto.preferences.cuisine,
                 max_cooking_time: generateDto.preferences.max_cooking_time,
@@ -474,7 +475,7 @@ All text (title, description, instructions, ingredient names, tags) MUST be in P
       difficulty: aiRecipe.difficulty || null,
       source: "ai",
       metadata: {
-        ai_model: import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
+        ai_model: getSecret("OPENROUTER_MODEL") || import.meta.env.OPENROUTER_MODEL || "perplexity/sonar-pro",
         generation_timestamp: new Date().toISOString(),
         input_products: originalProducts.map((p) => p.id),
         preferences: generateDto.preferences

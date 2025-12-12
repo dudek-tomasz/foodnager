@@ -1,8 +1,10 @@
 ---
+import { getSecret } from "astro:env/server";
+
 // Prosty healthcheck bez zależności od Supabase
 const env = {
-  hasSupabaseUrl: !!import.meta.env.SUPABASE_URL,
-  hasSupabaseKey: !!import.meta.env.SUPABASE_KEY,
+  hasSupabaseUrl: !!(getSecret("SUPABASE_URL") || import.meta.env.SUPABASE_URL),
+  hasSupabaseKey: !!(getSecret("SUPABASE_KEY") || import.meta.env.SUPABASE_KEY),
   nodeEnv: import.meta.env.MODE,
 };
 ---
