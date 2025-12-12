@@ -23,6 +23,12 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_API_URL: ${{ secrets.OPENROUTER_API_URL }}
+      OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+      TIER3_TIMEOUT_MS: ${{ secrets.TIER3_TIMEOUT_MS }}
+      EXTERNAL_RECIPE_API_KEY: ${{ secrets.EXTERNAL_RECIPE_API_KEY }}
+      EXTERNAL_RECIPE_API_URL: ${{ secrets.EXTERNAL_RECIPE_API_URL }}
 
     steps:
       # 1. Checkout kodu
