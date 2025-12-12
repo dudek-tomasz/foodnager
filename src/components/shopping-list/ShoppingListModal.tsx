@@ -65,6 +65,49 @@ export function ShoppingListModal({ recipeId, recipeTitle, isOpen, onClose, onSu
   }, [shouldRedirectToLogin]);
 
   /**
+   * Obsługuje błędy z API
+   */
+  const handleApiError = useCallback(
+    (error: unknown) => {
+      let errorMessage = "Wystąpił nieoczekiwany błąd";
+
+      const status = (error as { status?: number }).status;
+      if (status) {
+        switch (status) {
+          case 400:
+            errorMessage = "Nieprawidłowe dane przepisu";
+            setTimeout(() => onClose(), 2000);
+            break;
+          case 401:
+            errorMessage = "Wymagane logowanie";
+            setShouldRedirectToLogin(true);
+            break;
+          case 404:
+            errorMessage = "Przepis nie został znaleziony";
+            setTimeout(() => onClose(), 2000);
+            break;
+          case 500:
+          default:
+            errorMessage = "Błąd serwera. Spróbuj ponownie za chwilę.";
+        }
+      } else if (!navigator.onLine) {
+        errorMessage = "Brak połączenia z Internetem";
+      }
+
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+
+      toast.error("Błąd generowania listy zakupów", {
+        description: errorMessage,
+      });
+    },
+    [onClose]
+  );
+
+  /**
    * Wywołuje API i generuje listę zakupów
    */
   const generateShoppingList = useCallback(async () => {
@@ -149,42 +192,6 @@ export function ShoppingListModal({ recipeId, recipeTitle, isOpen, onClose, onSu
 
     generateShoppingList();
   }, [isOpen, recipeId, recipeTitle, onClose, generateShoppingList]);
-
-  /**
-   * Obsługuje błędy z API
-   */
-  const handleApiError = useCallback(
-    (error: unknown) => {
-      let errorMessage = "Wystąpił nieoczekiwany błąd";
-
-      const status = (error as { status?: number }).status;
-      if (status) {
-        switch (status) {
-          case 400:
-            errorMessage = "Nieprawidłowe dane przepisu";
-            setTimeout(() => onClose(), 2000);
-            break;
-          case 401:
-            errorMessage = "Wymagane logowanie";
-            setShouldRedirectToLogin(true);
-            break;
-          case 404:
-            errorMessage = "Przepis nie został znaleziony";
-            setTimeout(() => onClose(), 2000);
-            break;
-          case 500:
-          default:
-            errorMessage = "Błąd serwera. Spróbuj ponownie za chwilę.";
-        }
-      } else if (!navigator.onLine) {
-        errorMessage = "Brak połączenia z internetem. Sprawdź połączenie i spróbuj ponownie.";
-      }
-
-      setState((prev) => ({ ...prev, loading: false, error: errorMessage }));
-      toast.error(errorMessage);
-    },
-    [onClose]
-  );
 
   /**
    * Obsługuje zmianę stanu checkbox pozycji

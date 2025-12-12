@@ -236,6 +236,45 @@ export function useRecipeDetails({
   }, [fetchRecipeAndFridge]);
 
   // =============================================================================
+  // GENERATE SHOPPING LIST
+  // =============================================================================
+
+  /**
+   * Otwiera modal Shopping List
+   */
+  const openShoppingListModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showShoppingListModal: true }));
+  }, []);
+
+  /**
+   * Zamyka modal Shopping List
+   */
+  const closeShoppingListModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showShoppingListModal: false }));
+  }, []);
+
+  /**
+   * Handler dla akcji "Generuj listę zakupów"
+   * Otwiera modal Shopping List
+   */
+  const handleGenerateShoppingList = useCallback(() => {
+    if (!recipe) return;
+    openShoppingListModal();
+  }, [recipe, openShoppingListModal]);
+
+  // =============================================================================
+  // MANUAL CONVERSION MODAL
+  // =============================================================================
+
+  const openManualConversionModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showManualConversionModal: true }));
+  }, []);
+
+  const closeManualConversionModal = useCallback(() => {
+    setUiState((prev) => ({ ...prev, showManualConversionModal: false }));
+  }, []);
+
+  // =============================================================================
   // COOK RECIPE
   // =============================================================================
 
@@ -564,45 +603,6 @@ export function useRecipeDetails({
       setUiState((prev) => ({ ...prev, isSaving: false }));
     }
   }, [recipe, externalRecipe, aiRecipe, isExternalRecipe, isAIRecipe, fetchRecipeAndFridge, onSaveSuccess]);
-
-  // =============================================================================
-  // GENERATE SHOPPING LIST
-  // =============================================================================
-
-  /**
-   * Handler dla akcji "Generuj listę zakupów"
-   * Otwiera modal Shopping List
-   */
-  const handleGenerateShoppingList = useCallback(() => {
-    if (!recipe) return;
-    openShoppingListModal();
-  }, [recipe, openShoppingListModal]);
-
-  /**
-   * Otwiera modal Shopping List
-   */
-  const openShoppingListModal = useCallback(() => {
-    setUiState((prev) => ({ ...prev, showShoppingListModal: true }));
-  }, []);
-
-  /**
-   * Zamyka modal Shopping List
-   */
-  const closeShoppingListModal = useCallback(() => {
-    setUiState((prev) => ({ ...prev, showShoppingListModal: false }));
-  }, []);
-
-  // =============================================================================
-  // MANUAL CONVERSION MODAL
-  // =============================================================================
-
-  const openManualConversionModal = useCallback(() => {
-    setUiState((prev) => ({ ...prev, showManualConversionModal: true }));
-  }, []);
-
-  const closeManualConversionModal = useCallback(() => {
-    setUiState((prev) => ({ ...prev, showManualConversionModal: false }));
-  }, []);
 
   /**
    * Handler potwierdzenia ręcznej konwersji
