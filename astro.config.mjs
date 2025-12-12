@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import cloudflare from "@astrojs/cloudflare";
+import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
@@ -20,9 +20,6 @@ export default defineConfig({
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
     },
-    ssr: {
-      external: ['react-dom/server.edge'], // Nie próbuj używać zwykłego Node.js server
-    },
     server: {
       hmr: {
         timeout: 120000, // zwiększ timeout HMR do 2 minut
@@ -33,10 +30,7 @@ export default defineConfig({
       exclude: ["tw-animate-css", "msw", "@mswjs/interceptors"],
     },
   },
-  adapter: cloudflare({
-    mode: "directory",
-    platformProxy: {
-      enabled: true,
-    },
+  adapter: node({
+    mode: "standalone",
   }),
 });
