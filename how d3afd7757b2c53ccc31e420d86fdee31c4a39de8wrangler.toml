@@ -29,17 +29,11 @@ export default defineConfig({
       include: ["react", "react-dom"],
       exclude: ["tw-animate-css", "msw", "@mswjs/interceptors"],
     },
-    ssr: {
-      external: ["node:buffer", "node:crypto"],
-    },
   },
   adapter: cloudflare({
+    mode: "directory",
     platformProxy: {
       enabled: true,
-    },
-    runtime: {
-      mode: "local",
-      type: "pages",
     },
   }),
 });

@@ -1,18 +1,15 @@
-# Cloudflare Pages Configuration for Foodnager
+name = "foodnager"
+compatibility_date = "2024-12-12"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# KV namespace dla sesji (wymagane przez @astrojs/cloudflare)
+[[kv_namespaces]]
+binding = "SESSION"
+id = "5de27ec6fcf541939516db5ac820212f"
+
+[env.production]
 name = "foodnager"
 
-# Compatibility flags for Node.js and Astro SSR support
-compatibility_date = "2024-12-12"
-
-compatibility_flags = [
-    "nodejs_compat"
-]
-
-# Pages configuration
-pages_build_output_dir = "dist"
-
-
-# Environment variables (set in Cloudflare dashboard)
-# SUPABASE_URL
-# SUPABASE_KEY
-
+[env.preview]
+name = "foodnager-preview"
